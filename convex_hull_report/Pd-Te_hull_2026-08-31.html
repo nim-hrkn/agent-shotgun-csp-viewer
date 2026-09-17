@@ -1,0 +1,670 @@
+<title>Pd–Te 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Pd–Te 相図</h1>
+  <p class="lede">凸包に載った化合物は Pd<sub>2</sub>Te<sub>2</sub>、Pd<sub>7</sub>Te、PdTe<sub>2</sub>。Bi–Pd–Te 三元系の辺として切り出した二元相図。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>64</dd></div><div class="fact"><dt>凸包上</dt><dd>5</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>31</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Pd の原子分率。縦軸は端点（Te, Pd）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Pd–Te 相図">
+<line class="grid-line" x1="76" x2="846" y1="411.84" y2="411.84"/>
+<text class="tick-text" x="64" y="415.84" text-anchor="end">-0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="368.59" y2="368.59"/>
+<text class="tick-text" x="64" y="372.59" text-anchor="end">-0.40</text>
+<line class="grid-line" x1="76" x2="846" y1="325.34" y2="325.34"/>
+<text class="tick-text" x="64" y="329.34" text-anchor="end">-0.30</text>
+<line class="grid-line" x1="76" x2="846" y1="282.10" y2="282.10"/>
+<text class="tick-text" x="64" y="286.10" text-anchor="end">-0.20</text>
+<line class="grid-line" x1="76" x2="846" y1="238.85" y2="238.85"/>
+<text class="tick-text" x="64" y="242.85" text-anchor="end">-0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="195.60" y2="195.60"/>
+<text class="tick-text" x="64" y="199.60" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="152.36" y2="152.36"/>
+<text class="tick-text" x="64" y="156.36" text-anchor="end">0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="109.11" y2="109.11"/>
+<text class="tick-text" x="64" y="113.11" text-anchor="end">0.20</text>
+<line class="grid-line" x1="76" x2="846" y1="65.86" y2="65.86"/>
+<text class="tick-text" x="64" y="69.86" text-anchor="end">0.30</text>
+<line class="axis-line" x1="76" x2="846" y1="195.60" y2="195.60"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Te</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Pd</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Pd の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,195.60 332.67,360.20 461.00,374.65 749.75,257.36 846.00,195.60"/>
+<line class="tie-drop" x1="332.67" x2="332.67" y1="360.20" y2="412"/>
+<line class="tie-drop" x1="461.00" x2="461.00" y1="374.65" y2="412"/>
+<line class="tie-drop" x1="749.75" x2="749.75" y1="257.36" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 6"><title>Te2
+Te:Pd = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 166 → 221
+原子数 / 候補 2 / 6</title><circle cx="76.00" cy="195.60" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="181.60" text-anchor="middle">Te2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Te8
+Te:Pd = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="76.00" cy="195.43" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="215.43" text-anchor="middle">Te8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Te5
+Te:Pd = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 8 → 221
+原子数 / 候補 5 / 6</title><circle cx="76.00" cy="195.30" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="215.30" text-anchor="middle">Te5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>Te
+Te:Pd = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 2 → 123
+原子数 / 候補 1 / 9</title><circle cx="76.00" cy="195.21" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="215.21" text-anchor="middle">Te</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Te7
+Te:Pd = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 1 → 221
+原子数 / 候補 7 / 9</title><circle cx="76.00" cy="195.21" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="215.21" text-anchor="middle">Te7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 152 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>Te3
+Te:Pd = 1.000 / 0.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 152 → 221
+原子数 / 候補 3 / 6</title><circle cx="76.00" cy="194.35" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="214.35" text-anchor="middle">Te3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.032 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 32 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Te6
+Te:Pd = 1.000 / 0.000
+E_form 0.032 eV/atom
+包から 32 meV/atom
+空間群 64 → 69
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="181.85" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="201.85" text-anchor="middle">Te6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.051 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 51 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Te10
+Te:Pd = 1.000 / 0.000
+E_form 0.051 eV/atom
+包から 51 meV/atom
+空間群 12
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="173.50" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="193.50" text-anchor="middle">Te10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.056 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 56 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Te9
+Te:Pd = 1.000 / 0.000
+E_form 0.056 eV/atom
+包から 56 meV/atom
+空間群 8 → 65
+原子数 / 候補 9 / 9</title><circle cx="76.00" cy="171.39" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="191.39" text-anchor="middle">Te9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te9Pd&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.088 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 27 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Te9Pd
+Te:Pd = 0.900 / 0.100
+E_form -0.088 eV/atom
+包から 27 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="153.00" cy="233.44" r="5" fill="var(--h1)"/><text class="plabel" x="153.00" y="219.44" text-anchor="middle">Te9Pd</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te8Pd&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.016 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 111 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Te8Pd
+Te:Pd = 0.889 / 0.111
+E_form -0.016 eV/atom
+包から 111 meV/atom
+空間群 2
+原子数 / 候補 9 / 9</title><circle cx="161.56" cy="202.57" r="5" fill="var(--h3)"/><text class="plabel" x="161.56" y="188.57" text-anchor="middle">Te8Pd</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te7Pd&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.107 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 36 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Te7Pd
+Te:Pd = 0.875 / 0.125
+E_form -0.107 eV/atom
+包から 36 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="172.25" cy="241.92" r="5" fill="var(--h1)"/><text class="plabel" x="172.25" y="227.92" text-anchor="middle">Te7Pd</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te6Pd&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.073 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 91 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Te6Pd
+Te:Pd = 0.857 / 0.143
+E_form -0.073 eV/atom
+包から 91 meV/atom
+空間群 12
+原子数 / 候補 7 / 9</title><circle cx="186.00" cy="226.96" r="5" fill="var(--h2)"/><text class="plabel" x="186.00" y="246.96" text-anchor="middle">Te6Pd</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te5Pd&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.161 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 29 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Te5Pd
+Te:Pd = 0.833 / 0.167
+E_form -0.161 eV/atom
+包から 29 meV/atom
+空間群 12
+原子数 / 候補 6 / 6</title><circle cx="204.33" cy="265.27" r="5" fill="var(--h1)"/><text class="plabel" x="204.33" y="251.27" text-anchor="middle">Te5Pd</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te4Pd&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.135 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 93 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Te4Pd
+Te:Pd = 0.800 / 0.200
+E_form -0.135 eV/atom
+包から 93 meV/atom
+空間群 166
+原子数 / 候補 5 / 6</title><circle cx="230.00" cy="253.99" r="5" fill="var(--h2)"/><text class="plabel" x="230.00" y="273.99" text-anchor="middle">Te4Pd</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te8Pd2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.121 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 107 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Te8Pd2
+Te:Pd = 0.800 / 0.200
+E_form -0.121 eV/atom
+包から 107 meV/atom
+空間群 12
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="247.98" r="5" fill="var(--h3)"/><text class="plabel" x="230.00" y="267.98" text-anchor="middle">Te8Pd2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te7Pd2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.102 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 152 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Te7Pd2
+Te:Pd = 0.778 / 0.222
+E_form -0.102 eV/atom
+包から 152 meV/atom
+空間群 12
+原子数 / 候補 9 / 3</title><circle cx="247.11" cy="239.63" r="5" fill="var(--h3)"/><text class="plabel" x="247.11" y="225.63" text-anchor="middle">Te7Pd2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te3Pd&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.245 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 40 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Te3Pd
+Te:Pd = 0.750 / 0.250
+E_form -0.245 eV/atom
+包から 40 meV/atom
+空間群 166
+原子数 / 候補 4 / 9</title><circle cx="268.50" cy="301.64" r="5" fill="var(--h1)"/><text class="plabel" x="268.50" y="287.64" text-anchor="middle">Te3Pd</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te6Pd2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.245 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 40 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Te6Pd2
+Te:Pd = 0.750 / 0.250
+E_form -0.245 eV/atom
+包から 40 meV/atom
+空間群 12
+原子数 / 候補 8 / 6</title><circle cx="268.50" cy="301.60" r="5" fill="var(--h1)"/><text class="plabel" x="268.50" y="321.60" text-anchor="middle">Te6Pd2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te5Pd2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.262 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 65 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Te5Pd2
+Te:Pd = 0.714 / 0.286
+E_form -0.262 eV/atom
+包から 65 meV/atom
+空間群 166
+原子数 / 候補 7 / 6</title><circle cx="296.00" cy="308.78" r="5" fill="var(--h2)"/><text class="plabel" x="296.00" y="328.78" text-anchor="middle">Te5Pd2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te7Pd3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.226 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 117 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Te7Pd3
+Te:Pd = 0.700 / 0.300
+E_form -0.226 eV/atom
+包から 117 meV/atom
+空間群 12
+原子数 / 候補 10 / 3</title><circle cx="307.00" cy="293.25" r="5" fill="var(--h3)"/><text class="plabel" x="307.00" y="279.25" text-anchor="middle">Te7Pd3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te4Pd2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.358 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 23 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Te4Pd2
+Te:Pd = 0.667 / 0.333
+E_form -0.358 eV/atom
+包から 23 meV/atom
+空間群 12
+原子数 / 候補 6 / 9</title><circle cx="332.67" cy="350.25" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="336.25" text-anchor="middle">Te4Pd2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te6Pd3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.251 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 129 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Te6Pd3
+Te:Pd = 0.667 / 0.333
+E_form -0.251 eV/atom
+包から 129 meV/atom
+空間群 148
+原子数 / 候補 9 / 6</title><circle cx="332.67" cy="304.33" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="290.33" text-anchor="middle">Te6Pd3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te5Pd3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.169 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 220 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Te5Pd3
+Te:Pd = 0.625 / 0.375
+E_form -0.169 eV/atom
+包から 220 meV/atom
+空間群 12 → 6
+原子数 / 候補 8 / 3</title><circle cx="364.75" cy="268.82" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="254.82" text-anchor="middle">Te5Pd3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te6Pd4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.363 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 31 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Te6Pd4
+Te:Pd = 0.600 / 0.400
+E_form -0.363 eV/atom
+包から 31 meV/atom
+空間群 148
+原子数 / 候補 10 / 6</title><circle cx="384.00" cy="352.42" r="5" fill="var(--h1)"/><text class="plabel" x="384.00" y="338.42" text-anchor="middle">Te6Pd4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te3Pd2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.329 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 65 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Te3Pd2
+Te:Pd = 0.600 / 0.400
+E_form -0.329 eV/atom
+包から 65 meV/atom
+空間群 12
+原子数 / 候補 5 / 3</title><circle cx="384.00" cy="337.84" r="5" fill="var(--h2)"/><text class="plabel" x="384.00" y="357.84" text-anchor="middle">Te3Pd2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te4Pd3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.171 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 229 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Te4Pd3
+Te:Pd = 0.571 / 0.429
+E_form -0.171 eV/atom
+包から 229 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="406.00" cy="269.34" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="255.34" text-anchor="middle">Te4Pd3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te5Pd4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.208 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 195 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Te5Pd4
+Te:Pd = 0.556 / 0.444
+E_form -0.208 eV/atom
+包から 195 meV/atom
+空間群 12
+原子数 / 候補 9 / 6</title><circle cx="418.22" cy="285.73" r="5" fill="var(--h3)"/><text class="plabel" x="418.22" y="271.73" text-anchor="middle">Te5Pd4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te4Pd4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.303 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 111 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 205 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Te4Pd4
+Te:Pd = 0.500 / 0.500
+E_form -0.303 eV/atom
+包から 111 meV/atom
+空間群 205 → 225
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="326.51" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="312.51" text-anchor="middle">Te4Pd4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TePd&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.302 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 112 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>TePd
+Te:Pd = 0.500 / 0.500
+E_form -0.302 eV/atom
+包から 112 meV/atom
+空間群 216 → 225
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="326.34" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="346.34" text-anchor="middle">TePd</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te3Pd3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.302 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 112 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Te3Pd3
+Te:Pd = 0.500 / 0.500
+E_form -0.302 eV/atom
+包から 112 meV/atom
+空間群 12
+原子数 / 候補 6 / 6</title><circle cx="461.00" cy="326.04" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="346.04" text-anchor="middle">Te3Pd3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te5Pd5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.271 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 143 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Te5Pd5
+Te:Pd = 0.500 / 0.500
+E_form -0.271 eV/atom
+包から 143 meV/atom
+空間群 12 → 1
+原子数 / 候補 10 / 3</title><circle cx="461.00" cy="312.63" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="332.63" text-anchor="middle">Te5Pd5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te4Pd5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.288 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 86 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Te4Pd5
+Te:Pd = 0.444 / 0.556
+E_form -0.288 eV/atom
+包から 86 meV/atom
+空間群 12
+原子数 / 候補 9 / 3</title><circle cx="503.78" cy="320.02" r="5" fill="var(--h2)"/><text class="plabel" x="503.78" y="306.02" text-anchor="middle">Te4Pd5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te3Pd4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.243 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 120 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Te3Pd4
+Te:Pd = 0.429 / 0.571
+E_form -0.243 eV/atom
+包から 120 meV/atom
+空間群 12 → 1
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="300.48" r="5" fill="var(--h3)"/><text class="plabel" x="516.00" y="320.48" text-anchor="middle">Te3Pd4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te4Pd6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.276 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 66 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 36&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Te4Pd6
+Te:Pd = 0.400 / 0.600
+E_form -0.276 eV/atom
+包から 66 meV/atom
+空間群 36
+原子数 / 候補 10 / 6</title><circle cx="538.00" cy="314.83" r="5" fill="var(--h2)"/><text class="plabel" x="538.00" y="334.83" text-anchor="middle">Te4Pd6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te2Pd3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.238 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 103 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Te2Pd3
+Te:Pd = 0.400 / 0.600
+E_form -0.238 eV/atom
+包から 103 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="538.00" cy="298.62" r="5" fill="var(--h3)"/><text class="plabel" x="538.00" y="284.62" text-anchor="middle">Te2Pd3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te3Pd5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.275 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 49 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Te3Pd5
+Te:Pd = 0.375 / 0.625
+E_form -0.275 eV/atom
+包から 49 meV/atom
+空間群 12
+原子数 / 候補 8 / 3</title><circle cx="557.25" cy="314.58" r="5" fill="var(--h1)"/><text class="plabel" x="557.25" y="300.58" text-anchor="middle">Te3Pd5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TePd2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.265 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 29 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>TePd2
+Te:Pd = 0.333 / 0.667
+E_form -0.265 eV/atom
+包から 29 meV/atom
+空間群 225
+原子数 / 候補 3 / 9</title><circle cx="589.33" cy="310.12" r="5" fill="var(--h1)"/><text class="plabel" x="589.33" y="330.12" text-anchor="middle">TePd2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te2Pd4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.254 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 40 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Te2Pd4
+Te:Pd = 0.333 / 0.667
+E_form -0.254 eV/atom
+包から 40 meV/atom
+空間群 194
+原子数 / 候補 6 / 9</title><circle cx="589.33" cy="305.28" r="5" fill="var(--h1)"/><text class="plabel" x="589.33" y="325.28" text-anchor="middle">Te2Pd4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te3Pd6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.245 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 49 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Te3Pd6
+Te:Pd = 0.333 / 0.667
+E_form -0.245 eV/atom
+包から 49 meV/atom
+空間群 12
+原子数 / 候補 9 / 3</title><circle cx="589.33" cy="301.34" r="5" fill="var(--h1)"/><text class="plabel" x="589.33" y="321.34" text-anchor="middle">Te3Pd6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te3Pd7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.216 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 53 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Te3Pd7
+Te:Pd = 0.300 / 0.700
+E_form -0.216 eV/atom
+包から 53 meV/atom
+空間群 12 → 2
+原子数 / 候補 10 / 3</title><circle cx="615.00" cy="289.10" r="5" fill="var(--h2)"/><text class="plabel" x="615.00" y="275.10" text-anchor="middle">Te3Pd7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te2Pd5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.237 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 22 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Te2Pd5
+Te:Pd = 0.286 / 0.714
+E_form -0.237 eV/atom
+包から 22 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="626.00" cy="298.01" r="5" fill="var(--h1)"/><text class="plabel" x="626.00" y="284.01" text-anchor="middle">Te2Pd5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TePd3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.207 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 26 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>TePd3
+Te:Pd = 0.250 / 0.750
+E_form -0.207 eV/atom
+包から 26 meV/atom
+空間群 225
+原子数 / 候補 4 / 6</title><circle cx="653.50" cy="285.17" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="305.17" text-anchor="middle">TePd3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te2Pd6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.195 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 39 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Te2Pd6
+Te:Pd = 0.250 / 0.750
+E_form -0.195 eV/atom
+包から 39 meV/atom
+空間群 12
+原子数 / 候補 8 / 6</title><circle cx="653.50" cy="279.76" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="299.76" text-anchor="middle">Te2Pd6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te2Pd7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.208 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Te2Pd7
+Te:Pd = 0.222 / 0.778
+E_form -0.208 eV/atom
+包から 6 meV/atom
+空間群 12
+原子数 / 候補 9 / 3</title><circle cx="674.89" cy="285.38" r="5" fill="var(--h1)"/><text class="plabel" x="674.89" y="305.38" text-anchor="middle">Te2Pd7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te2Pd8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.140 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 57 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 4&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Te2Pd8
+Te:Pd = 0.200 / 0.800
+E_form -0.140 eV/atom
+包から 57 meV/atom
+空間群 12 → 4
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="256.15" r="5" fill="var(--h2)"/><text class="plabel" x="692.00" y="242.15" text-anchor="middle">Te2Pd8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TePd4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.306 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 503 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 5"><title>TePd4
+Te:Pd = 0.200 / 0.800
+E_form 0.306 eV/atom
+包から 503 meV/atom
+空間群 123
+原子数 / 候補 5 / 5</title><circle cx="692.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="49.35" text-anchor="middle">TePd4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TePd5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.053 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 226 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>TePd5
+Te:Pd = 0.167 / 0.833
+E_form 0.053 eV/atom
+包から 226 meV/atom
+空間群 123
+原子数 / 候補 6 / 3</title><circle cx="717.67" cy="172.90" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="158.90" text-anchor="middle">TePd5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TePd6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.130 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 26 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>TePd6
+Te:Pd = 0.143 / 0.857
+E_form -0.130 eV/atom
+包から 26 meV/atom
+空間群 123
+原子数 / 候補 7 / 6</title><circle cx="736.00" cy="251.87" r="5" fill="var(--h1)"/><text class="plabel" x="736.00" y="237.87" text-anchor="middle">TePd6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TePd8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.171 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 297 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>TePd8
+Te:Pd = 0.111 / 0.889
+E_form 0.171 eV/atom
+包から 297 meV/atom
+空間群 225
+原子数 / 候補 9 / 6</title><circle cx="760.44" cy="121.87" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="107.87" text-anchor="middle">TePd8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TePd9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.075 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 39 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>TePd9
+Te:Pd = 0.100 / 0.900
+E_form -0.075 eV/atom
+包から 39 meV/atom
+空間群 12
+原子数 / 候補 10 / 9</title><circle cx="769.00" cy="227.95" r="5" fill="var(--h1)"/><text class="plabel" x="769.00" y="247.95" text-anchor="middle">TePd9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Pd2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>Pd2
+Te:Pd = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 2 / 9</title><circle cx="846.00" cy="195.60" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="181.60" text-anchor="middle">Pd2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Pd&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 37"><title>Pd
+Te:Pd = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 166 → 225
+原子数 / 候補 1 / 37</title><circle cx="846.00" cy="195.43" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="215.43" text-anchor="middle">Pd</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Pd4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.054 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 54 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 8"><title>Pd4
+Te:Pd = 0.000 / 1.000
+E_form 0.054 eV/atom
+包から 54 meV/atom
+空間群 12
+原子数 / 候補 4 / 8</title><circle cx="846.00" cy="172.25" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="192.25" text-anchor="middle">Pd4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Pd5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.064 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 64 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Pd5
+Te:Pd = 0.000 / 1.000
+E_form 0.064 eV/atom
+包から 64 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="846.00" cy="167.75" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="187.75" text-anchor="middle">Pd5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Pd7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.065 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 65 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Pd7
+Te:Pd = 0.000 / 1.000
+E_form 0.065 eV/atom
+包から 65 meV/atom
+空間群 166 → 229
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="167.71" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="187.71" text-anchor="middle">Pd7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Pd10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.082 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 82 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 10&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Pd10
+Te:Pd = 0.000 / 1.000
+E_form 0.082 eV/atom
+包から 82 meV/atom
+空間群 12 → 10
+原子数 / 候補 10 / 6</title><circle cx="846.00" cy="160.10" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="146.10" text-anchor="middle">Pd10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Pd6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.104 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 104 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Pd6
+Te:Pd = 0.000 / 1.000
+E_form 0.104 eV/atom
+包から 104 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="150.67" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="170.67" text-anchor="middle">Pd6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Pd3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.112 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 112 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 8"><title>Pd3
+Te:Pd = 0.000 / 1.000
+E_form 0.112 eV/atom
+包から 112 meV/atom
+空間群 166
+原子数 / 候補 3 / 8</title><circle cx="846.00" cy="147.17" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="167.17" text-anchor="middle">Pd3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>Te4
+Te:Pd = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 64 → 123
+原子数 / 候補 4 / 6</title><circle cx="76.00" cy="195.60" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="215.60" text-anchor="middle">Te4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te2Pd&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.381 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>Te2Pd
+Te:Pd = 0.667 / 0.333
+E_form -0.381 eV/atom
+包から 0（凸包上）
+空間群 164
+原子数 / 候補 3 / 9</title><circle cx="332.67" cy="360.20" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="332.67" y="346.20" text-anchor="middle">Te2Pd</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Te2Pd2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.414 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Te2Pd2
+Te:Pd = 0.500 / 0.500
+E_form -0.414 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="461.00" y="360.65" text-anchor="middle">Te2Pd2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TePd7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.143 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>TePd7
+Te:Pd = 0.125 / 0.875
+E_form -0.143 eV/atom
+包から 0（凸包上）
+空間群 225
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="257.36" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="749.75" y="277.36" text-anchor="middle">TePd7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Pd8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Te:Pd&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Pd8
+Te:Pd = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="195.60" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="215.60" text-anchor="middle">Pd8</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Te4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Te2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Te2Pd</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Te2Pd2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">TePd7</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Pd8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Pd2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Te8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Pd</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te5</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te7</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te2Pd7</span><span class="bar-track"><span class="bar-fill" style="width:1.09%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te2Pd5</span><span class="bar-track"><span class="bar-fill" style="width:4.42%;background:var(--h1)"></span></span><span class="bar-val">22 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te4Pd2</span><span class="bar-track"><span class="bar-fill" style="width:4.59%;background:var(--h1)"></span></span><span class="bar-val">23 meV</span></li>
+<li class="bar-row"><span class="bar-name">TePd6</span><span class="bar-track"><span class="bar-fill" style="width:5.07%;background:var(--h1)"></span></span><span class="bar-val">26 meV</span></li>
+<li class="bar-row"><span class="bar-name">TePd3</span><span class="bar-track"><span class="bar-fill" style="width:5.19%;background:var(--h1)"></span></span><span class="bar-val">26 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te9Pd</span><span class="bar-track"><span class="bar-fill" style="width:5.31%;background:var(--h1)"></span></span><span class="bar-val">27 meV</span></li>
+<li class="bar-row"><span class="bar-name">TePd2</span><span class="bar-track"><span class="bar-fill" style="width:5.69%;background:var(--h1)"></span></span><span class="bar-val">29 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te5Pd</span><span class="bar-track"><span class="bar-fill" style="width:5.81%;background:var(--h1)"></span></span><span class="bar-val">29 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te6Pd4</span><span class="bar-track"><span class="bar-fill" style="width:6.25%;background:var(--h1)"></span></span><span class="bar-val">31 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te6</span><span class="bar-track"><span class="bar-fill" style="width:6.32%;background:var(--h1)"></span></span><span class="bar-val">32 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te7Pd</span><span class="bar-track"><span class="bar-fill" style="width:7.08%;background:var(--h1)"></span></span><span class="bar-val">36 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te2Pd6</span><span class="bar-track"><span class="bar-fill" style="width:7.68%;background:var(--h1)"></span></span><span class="bar-val">39 meV</span></li>
+<li class="bar-row"><span class="bar-name">TePd9</span><span class="bar-track"><span class="bar-fill" style="width:7.84%;background:var(--h1)"></span></span><span class="bar-val">39 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te2Pd4</span><span class="bar-track"><span class="bar-fill" style="width:7.92%;background:var(--h1)"></span></span><span class="bar-val">40 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te3Pd</span><span class="bar-track"><span class="bar-fill" style="width:8.02%;background:var(--h1)"></span></span><span class="bar-val">40 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te6Pd2</span><span class="bar-track"><span class="bar-fill" style="width:8.04%;background:var(--h1)"></span></span><span class="bar-val">40 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te3Pd5</span><span class="bar-track"><span class="bar-fill" style="width:9.65%;background:var(--h1)"></span></span><span class="bar-val">49 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te3Pd6</span><span class="bar-track"><span class="bar-fill" style="width:9.73%;background:var(--h1)"></span></span><span class="bar-val">49 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te10</span><span class="bar-track"><span class="bar-fill" style="width:10.16%;background:var(--h2)"></span></span><span class="bar-val">51 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te3Pd7</span><span class="bar-track"><span class="bar-fill" style="width:10.58%;background:var(--h2)"></span></span><span class="bar-val">53 meV</span></li>
+<li class="bar-row"><span class="bar-name">Pd4</span><span class="bar-track"><span class="bar-fill" style="width:10.74%;background:var(--h2)"></span></span><span class="bar-val">54 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te9</span><span class="bar-track"><span class="bar-fill" style="width:11.14%;background:var(--h2)"></span></span><span class="bar-val">56 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te2Pd8</span><span class="bar-track"><span class="bar-fill" style="width:11.34%;background:var(--h2)"></span></span><span class="bar-val">57 meV</span></li>
+<li class="bar-row"><span class="bar-name">Pd5</span><span class="bar-track"><span class="bar-fill" style="width:12.81%;background:var(--h2)"></span></span><span class="bar-val">64 meV</span></li>
+<li class="bar-row"><span class="bar-name">Pd7</span><span class="bar-track"><span class="bar-fill" style="width:12.83%;background:var(--h2)"></span></span><span class="bar-val">65 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te5Pd2</span><span class="bar-track"><span class="bar-fill" style="width:12.85%;background:var(--h2)"></span></span><span class="bar-val">65 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te3Pd2</span><span class="bar-track"><span class="bar-fill" style="width:12.95%;background:var(--h2)"></span></span><span class="bar-val">65 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te4Pd6</span><span class="bar-track"><span class="bar-fill" style="width:13.11%;background:var(--h2)"></span></span><span class="bar-val">66 meV</span></li>
+<li class="bar-row"><span class="bar-name">Pd10</span><span class="bar-track"><span class="bar-fill" style="width:16.33%;background:var(--h2)"></span></span><span class="bar-val">82 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te4Pd5</span><span class="bar-track"><span class="bar-fill" style="width:17.14%;background:var(--h2)"></span></span><span class="bar-val">86 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te6Pd</span><span class="bar-track"><span class="bar-fill" style="width:18.04%;background:var(--h2)"></span></span><span class="bar-val">91 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te4Pd</span><span class="bar-track"><span class="bar-fill" style="width:18.56%;background:var(--h2)"></span></span><span class="bar-val">93 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te2Pd3</span><span class="bar-track"><span class="bar-fill" style="width:20.56%;background:var(--h3)"></span></span><span class="bar-val">103 meV</span></li>
+<li class="bar-row"><span class="bar-name">Pd6</span><span class="bar-track"><span class="bar-fill" style="width:20.66%;background:var(--h3)"></span></span><span class="bar-val">104 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te8Pd2</span><span class="bar-track"><span class="bar-fill" style="width:21.34%;background:var(--h3)"></span></span><span class="bar-val">107 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te8Pd</span><span class="bar-track"><span class="bar-fill" style="width:22.04%;background:var(--h3)"></span></span><span class="bar-val">111 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te4Pd4</span><span class="bar-track"><span class="bar-fill" style="width:22.16%;background:var(--h3)"></span></span><span class="bar-val">111 meV</span></li>
+<li class="bar-row"><span class="bar-name">TePd</span><span class="bar-track"><span class="bar-fill" style="width:22.22%;background:var(--h3)"></span></span><span class="bar-val">112 meV</span></li>
+<li class="bar-row"><span class="bar-name">Pd3</span><span class="bar-track"><span class="bar-fill" style="width:22.28%;background:var(--h3)"></span></span><span class="bar-val">112 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te3Pd3</span><span class="bar-track"><span class="bar-fill" style="width:22.35%;background:var(--h3)"></span></span><span class="bar-val">112 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te7Pd3</span><span class="bar-track"><span class="bar-fill" style="width:23.23%;background:var(--h3)"></span></span><span class="bar-val">117 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te3Pd4</span><span class="bar-track"><span class="bar-fill" style="width:23.83%;background:var(--h3)"></span></span><span class="bar-val">120 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te6Pd3</span><span class="bar-track"><span class="bar-fill" style="width:25.72%;background:var(--h3)"></span></span><span class="bar-val">129 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te5Pd5</span><span class="bar-track"><span class="bar-fill" style="width:28.52%;background:var(--h3)"></span></span><span class="bar-val">143 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te7Pd2</span><span class="bar-track"><span class="bar-fill" style="width:30.23%;background:var(--h3)"></span></span><span class="bar-val">152 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te5Pd4</span><span class="bar-track"><span class="bar-fill" style="width:38.68%;background:var(--h3)"></span></span><span class="bar-val">195 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te5Pd3</span><span class="bar-track"><span class="bar-fill" style="width:43.68%;background:var(--meta)"></span></span><span class="bar-val">220 meV</span></li>
+<li class="bar-row"><span class="bar-name">TePd5</span><span class="bar-track"><span class="bar-fill" style="width:44.85%;background:var(--meta)"></span></span><span class="bar-val">226 meV</span></li>
+<li class="bar-row"><span class="bar-name">Te4Pd3</span><span class="bar-track"><span class="bar-fill" style="width:45.58%;background:var(--meta)"></span></span><span class="bar-val">229 meV</span></li>
+<li class="bar-row"><span class="bar-name">TePd8</span><span class="bar-track"><span class="bar-fill" style="width:59.15%;background:var(--meta)"></span></span><span class="bar-val">297 meV</span></li>
+<li class="bar-row"><span class="bar-name">TePd4</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">503 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 5 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Te</th><th>Pd</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Te4 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>64 → 123</td><td>4</td></tr>
+<tr class="stable"><td class="name">Te2Pd <span class="pill">凸包上</span></td><td>0.667</td><td>0.333</td><td>-0.3806</td><td>164</td><td>3</td></tr>
+<tr class="stable"><td class="name">Te2Pd2 <span class="pill">凸包上</span></td><td>0.500</td><td>0.500</td><td>-0.4140</td><td>194</td><td>4</td></tr>
+<tr class="stable"><td class="name">TePd7 <span class="pill">凸包上</span></td><td>0.125</td><td>0.875</td><td>-0.1428</td><td>225</td><td>8</td></tr>
+<tr class="stable"><td class="name">Pd8 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>194</td><td>8</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>Pd は hcp 検出。実在は fcc（225）だが差は小さい。Te は検出 123 で実在の三方晶（らせん鎖・152/154）に当たっていない。Te 端点が浅く、テルル化物の深さは大きく割り引いて読む — この系でいちばん効く但し書き。</p></div><div class="note"><h3>この系の読み方</h3><p><b>PdTe<sub>2</sub>（164 = CdI<sub>2</sub> 型, -380 meV）が載り構造も実在どおり</b> — II 型ディラック半金属。PdTe（Pd<sub>2</sub>Te<sub>2</sub>/194 = NiAs 型, -414 meV）が最深で、これも実在どおり。Pd<sub>7</sub>Te も載る。Te 端点の浅さで絶対深さは割り引くが、この系は構造の当たりが良い。穴 0。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に Pd<sub>7</sub>Te<sub>2</sub>（+5 meV, spg 12）。分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴は 0</h3><p>≤10 原子・既約 33 組成すべてに点がある。</p></div><div class="note"><h3>この図の出自</h3><p>この二元は Bi–Pd–Te を狙った掃引（topo-2026-08-31 ほか）の副産物である。三元の点群を二元へ射影したものではなく、この二元系そのものの全データから引き直した独立の凸包。三元図のタイラインと突き合わせて読むためのもの。</p></div></section>
+ <footer><span>三元 Bi–Pd–Te の辺（spg_ranks=[1,2,3]・scope=all・basis=all・max_atoms=10）</span><span>2026-08-31 取得 · group_by=structure 445 構造</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

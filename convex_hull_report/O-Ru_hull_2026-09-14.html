@@ -1,0 +1,662 @@
+<title>O–Ru 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>O–Ru 相図</h1>
+  <p class="lede">62 点のうち下側凸包に載ったのは 2 化合物で、いちばん深いのは RuO<sub>2</sub>（-1029 meV/atom）。　RuO<sub>2</sub> —— 金属的な導電性を持つ酸化物。Ru ライナが酸化しても伝導が残る。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>62</dd></div><div class="fact"><dt>凸包上</dt><dd>4</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>10</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は O の原子分率。縦軸は端点（Ru, O）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="O–Ru 相図">
+<line class="grid-line" x1="76" x2="846" y1="402.18" y2="402.18"/>
+<text class="tick-text" x="64" y="406.18" text-anchor="end">-1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="371.06" y2="371.06"/>
+<text class="tick-text" x="64" y="375.06" text-anchor="end">-1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="339.94" y2="339.94"/>
+<text class="tick-text" x="64" y="343.94" text-anchor="end">-0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="308.82" y2="308.82"/>
+<text class="tick-text" x="64" y="312.82" text-anchor="end">-0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="277.70" y2="277.70"/>
+<text class="tick-text" x="64" y="281.70" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="246.57" y2="246.57"/>
+<text class="tick-text" x="64" y="250.57" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="215.45" y2="215.45"/>
+<text class="tick-text" x="64" y="219.45" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="184.33" y2="184.33"/>
+<text class="tick-text" x="64" y="188.33" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="153.21" y2="153.21"/>
+<text class="tick-text" x="64" y="157.21" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="122.09" y2="122.09"/>
+<text class="tick-text" x="64" y="126.09" text-anchor="end">1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="90.97" y2="90.97"/>
+<text class="tick-text" x="64" y="94.97" text-anchor="end">1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="59.84" y2="59.84"/>
+<text class="tick-text" x="64" y="63.84" text-anchor="end">1.50</text>
+<line class="grid-line" x1="76" x2="846" y1="28.72" y2="28.72"/>
+<text class="tick-text" x="64" y="32.72" text-anchor="end">1.75</text>
+<line class="axis-line" x1="76" x2="846" y1="246.57" y2="246.57"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Ru</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">O</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">O の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,246.57 589.33,374.65 692.00,325.34 846.00,246.57"/>
+<line class="tie-drop" x1="589.33" x2="589.33" y1="374.65" y2="412"/>
+<line class="tie-drop" x1="692.00" x2="692.00" y1="325.34" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>Ru8
+Ru:O = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 225
+原子数 / 候補 8 / 8</title><circle cx="76.00" cy="246.57" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="232.57" text-anchor="middle">Ru8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 1"><title>Ru2
+Ru:O = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 166 → 225
+原子数 / 候補 2 / 1</title><circle cx="76.00" cy="246.52" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="266.52" text-anchor="middle">Ru2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.168 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 168 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 5"><title>Ru6
+Ru:O = 1.000 / 0.000
+E_form 0.168 eV/atom
+包から 168 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 5</title><circle cx="76.00" cy="225.64" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="245.64" text-anchor="middle">Ru6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.327 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 327 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Ru7
+Ru:O = 1.000 / 0.000
+E_form 0.327 eV/atom
+包から 327 meV/atom
+空間群 166
+原子数 / 候補 7 / 6</title><circle cx="76.00" cy="205.83" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="191.83" text-anchor="middle">Ru7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.719 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 719 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ru9
+Ru:O = 1.000 / 0.000
+E_form 0.719 eV/atom
+包から 719 meV/atom
+空間群 225
+原子数 / 候補 9 / 3</title><circle cx="76.00" cy="157.11" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="143.11" text-anchor="middle">Ru9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1003 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Ru10
+Ru:O = 1.000 / 0.000
+E_form 1.003 eV/atom
+包から 1003 meV/atom
+空間群 194
+原子数 / 候補 10 / 6</title><circle cx="76.00" cy="121.76" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="107.76" text-anchor="middle">Ru10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.260 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1260 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 1"><title>Ru5
+Ru:O = 1.000 / 0.000
+E_form 1.260 eV/atom
+包から 1260 meV/atom
+空間群 166
+原子数 / 候補 5 / 1</title><circle cx="76.00" cy="89.68" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="75.68" text-anchor="middle">Ru5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru9O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.393 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 547 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ru9O
+Ru:O = 0.900 / 0.100
+E_form 0.393 eV/atom
+包から 547 meV/atom
+空間群 166 → 1
+原子数 / 候補 10 / 9</title><circle cx="153.00" cy="197.66" r="5" fill="var(--meta)"/><text class="plabel" x="153.00" y="183.66" text-anchor="middle">Ru9O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru8O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.299 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 470 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Ru8O
+Ru:O = 0.889 / 0.111
+E_form 0.299 eV/atom
+包から 470 meV/atom
+空間群 166
+原子数 / 候補 9 / 9</title><circle cx="161.56" cy="209.41" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="195.41" text-anchor="middle">Ru8O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru7O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.360 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 553 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ru7O
+Ru:O = 0.875 / 0.125
+E_form 0.360 eV/atom
+包から 553 meV/atom
+空間群 166 → 1
+原子数 / 候補 8 / 9</title><circle cx="172.25" cy="201.71" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="221.71" text-anchor="middle">Ru7O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru6O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.454 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 675 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 156 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Ru6O
+Ru:O = 0.857 / 0.143
+E_form 0.454 eV/atom
+包から 675 meV/atom
+空間群 156 → 1
+原子数 / 候補 7 / 9</title><circle cx="186.00" cy="190.04" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="210.04" text-anchor="middle">Ru6O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru5O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.315 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 572 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 156 → 8&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 5"><title>Ru5O
+Ru:O = 0.833 / 0.167
+E_form 0.315 eV/atom
+包から 572 meV/atom
+空間群 156 → 8
+原子数 / 候補 6 / 5</title><circle cx="204.33" cy="207.34" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="227.34" text-anchor="middle">Ru5O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru8O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.191 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 499 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ru8O2
+Ru:O = 0.800 / 0.200
+E_form 0.191 eV/atom
+包から 499 meV/atom
+空間群 164
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="222.86" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="242.86" text-anchor="middle">Ru8O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru4O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.533 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 842 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>Ru4O
+Ru:O = 0.800 / 0.200
+E_form 0.533 eV/atom
+包から 842 meV/atom
+空間群 187
+原子数 / 候補 5 / 9</title><circle cx="230.00" cy="180.21" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="166.21" text-anchor="middle">Ru4O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru7O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.291 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 634 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 156 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Ru7O2
+Ru:O = 0.778 / 0.222
+E_form 0.291 eV/atom
+包から 634 meV/atom
+空間群 156 → 1
+原子数 / 候補 9 / 9</title><circle cx="247.11" cy="210.30" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="196.30" text-anchor="middle">Ru7O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru3O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.148 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 238 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Ru3O
+Ru:O = 0.750 / 0.250
+E_form -0.148 eV/atom
+包から 238 meV/atom
+空間群 187
+原子数 / 候補 4 / 9</title><circle cx="268.50" cy="264.95" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="250.95" text-anchor="middle">Ru3O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru6O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.292 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 677 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ru6O2
+Ru:O = 0.750 / 0.250
+E_form 0.292 eV/atom
+包から 677 meV/atom
+空間群 166 → 1
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="210.27" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="230.27" text-anchor="middle">Ru6O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru5O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.007 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 434 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Ru5O2
+Ru:O = 0.714 / 0.286
+E_form -0.007 eV/atom
+包から 434 meV/atom
+空間群 164
+原子数 / 候補 7 / 9</title><circle cx="296.00" cy="247.49" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="267.49" text-anchor="middle">Ru5O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru7O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.096 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 559 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ru7O3
+Ru:O = 0.700 / 0.300
+E_form 0.096 eV/atom
+包から 559 meV/atom
+空間群 166 → 1
+原子数 / 候補 10 / 9</title><circle cx="307.00" cy="234.59" r="5" fill="var(--meta)"/><text class="plabel" x="307.00" y="220.59" text-anchor="middle">Ru7O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru6O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.100 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 615 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ru6O3
+Ru:O = 0.667 / 0.333
+E_form 0.100 eV/atom
+包から 615 meV/atom
+空間群 65 → 1
+原子数 / 候補 9 / 6</title><circle cx="332.67" cy="234.09" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="254.09" text-anchor="middle">Ru6O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru2O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.254 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 768 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>Ru2O
+Ru:O = 0.667 / 0.333
+E_form 0.254 eV/atom
+包から 768 meV/atom
+空間群 187 → 191
+原子数 / 候補 3 / 9</title><circle cx="332.67" cy="214.98" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="234.98" text-anchor="middle">Ru2O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru4O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.368 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 882 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Ru4O2
+Ru:O = 0.667 / 0.333
+E_form 0.368 eV/atom
+包から 882 meV/atom
+空間群 166
+原子数 / 候補 6 / 6</title><circle cx="332.67" cy="200.80" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="186.80" text-anchor="middle">Ru4O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru5O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.218 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 797 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Ru5O3
+Ru:O = 0.625 / 0.375
+E_form 0.218 eV/atom
+包から 797 meV/atom
+空間群 65
+原子数 / 候補 8 / 6</title><circle cx="364.75" cy="219.39" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="239.39" text-anchor="middle">Ru5O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru3O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.088 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 529 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>Ru3O2
+Ru:O = 0.600 / 0.400
+E_form -0.088 eV/atom
+包から 529 meV/atom
+空間群 166
+原子数 / 候補 5 / 9</title><circle cx="384.00" cy="257.54" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="243.54" text-anchor="middle">Ru3O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru6O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.039 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 578 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ru6O4
+Ru:O = 0.600 / 0.400
+E_form -0.039 eV/atom
+包から 578 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="251.43" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="271.43" text-anchor="middle">Ru6O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru4O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.182 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 843 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Ru4O3
+Ru:O = 0.571 / 0.429
+E_form 0.182 eV/atom
+包から 843 meV/atom
+空間群 166
+原子数 / 候補 7 / 6</title><circle cx="406.00" cy="223.92" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="209.92" text-anchor="middle">Ru4O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru5O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.214 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 900 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ru5O4
+Ru:O = 0.556 / 0.444
+E_form 0.214 eV/atom
+包から 900 meV/atom
+空間群 166
+原子数 / 候補 9 / 6</title><circle cx="418.22" cy="219.95" r="5" fill="var(--meta)"/><text class="plabel" x="418.22" y="239.95" text-anchor="middle">Ru5O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru2O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.556 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 216 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 131&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 4"><title>Ru2O2
+Ru:O = 0.500 / 0.500
+E_form -0.556 eV/atom
+包から 216 meV/atom
+空間群 131
+原子数 / 候補 4 / 4</title><circle cx="461.00" cy="315.75" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="301.75" text-anchor="middle">Ru2O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;RuO&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.440 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 332 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>RuO
+Ru:O = 0.500 / 0.500
+E_form -0.440 eV/atom
+包から 332 meV/atom
+空間群 187 → 191
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="301.35" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="321.35" text-anchor="middle">RuO</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru3O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.411 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 361 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Ru3O3
+Ru:O = 0.500 / 0.500
+E_form -0.411 eV/atom
+包から 361 meV/atom
+空間群 221
+原子数 / 候補 6 / 6</title><circle cx="461.00" cy="297.75" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="317.75" text-anchor="middle">Ru3O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru5O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.255 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 516 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Ru5O5
+Ru:O = 0.500 / 0.500
+E_form -0.255 eV/atom
+包から 516 meV/atom
+空間群 164 → 1
+原子数 / 候補 10 / 6</title><circle cx="461.00" cy="278.34" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="264.34" text-anchor="middle">Ru5O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru4O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.210 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 562 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ru4O4
+Ru:O = 0.500 / 0.500
+E_form -0.210 eV/atom
+包から 562 meV/atom
+空間群 194 → 191
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="272.73" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="292.73" text-anchor="middle">Ru4O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru4O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.144 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 714 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ru4O5
+Ru:O = 0.444 / 0.556
+E_form -0.144 eV/atom
+包から 714 meV/atom
+空間群 65
+原子数 / 候補 9 / 3</title><circle cx="503.78" cy="264.46" r="5" fill="var(--meta)"/><text class="plabel" x="503.78" y="250.46" text-anchor="middle">Ru4O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru3O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.196 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 686 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ru3O4
+Ru:O = 0.429 / 0.571
+E_form -0.196 eV/atom
+包から 686 meV/atom
+空間群 65 → 1
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="271.00" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="257.00" text-anchor="middle">Ru3O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru4O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.435 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 491 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164 → 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ru4O6
+Ru:O = 0.400 / 0.600
+E_form -0.435 eV/atom
+包から 491 meV/atom
+空間群 164 → 194
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="300.74" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="286.74" text-anchor="middle">Ru4O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru2O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.109 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1034 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Ru2O3
+Ru:O = 0.400 / 0.600
+E_form 0.109 eV/atom
+包から 1034 meV/atom
+空間群 221
+原子数 / 候補 5 / 3</title><circle cx="538.00" cy="233.07" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="219.07" text-anchor="middle">Ru2O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru3O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.442 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 522 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 4&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Ru3O5
+Ru:O = 0.375 / 0.625
+E_form -0.442 eV/atom
+包から 522 meV/atom
+空間群 65 → 4
+原子数 / 候補 8 / 3</title><circle cx="557.25" cy="301.65" r="5" fill="var(--meta)"/><text class="plabel" x="557.25" y="321.65" text-anchor="middle">Ru3O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;RuO2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.790 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 239 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>RuO2
+Ru:O = 0.333 / 0.667
+E_form -0.790 eV/atom
+包から 239 meV/atom
+空間群 166
+原子数 / 候補 3 / 6</title><circle cx="589.33" cy="344.96" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="330.96" text-anchor="middle">RuO2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru3O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.028 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1001 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ru3O6
+Ru:O = 0.333 / 0.667
+E_form -0.028 eV/atom
+包から 1001 meV/atom
+空間群 65
+原子数 / 候補 9 / 3</title><circle cx="589.33" cy="250.05" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="236.05" text-anchor="middle">Ru3O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru2O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.630 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 258 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ru2O5
+Ru:O = 0.286 / 0.714
+E_form -0.630 eV/atom
+包から 258 meV/atom
+空間群 65 → 123
+原子数 / 候補 7 / 3</title><circle cx="626.00" cy="324.98" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="310.98" text-anchor="middle">Ru2O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru2O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.669 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 112 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ru2O6
+Ru:O = 0.250 / 0.750
+E_form -0.669 eV/atom
+包から 112 meV/atom
+空間群 167
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="329.87" r="5" fill="var(--h3)"/><text class="plabel" x="653.50" y="315.87" text-anchor="middle">Ru2O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;RuO3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.617 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 164 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>RuO3
+Ru:O = 0.250 / 0.750
+E_form -0.617 eV/atom
+包から 164 meV/atom
+空間群 65 → 221
+原子数 / 候補 4 / 9</title><circle cx="653.50" cy="323.36" r="5" fill="var(--h3)"/><text class="plabel" x="653.50" y="343.36" text-anchor="middle">RuO3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru2O7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.407 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 292 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ru2O7
+Ru:O = 0.222 / 0.778
+E_form -0.407 eV/atom
+包から 292 meV/atom
+空間群 1
+原子数 / 候補 9 / 3</title><circle cx="674.89" cy="297.18" r="5" fill="var(--meta)"/><text class="plabel" x="674.89" y="283.18" text-anchor="middle">Ru2O7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru2O8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.563 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 70 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 15&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ru2O8
+Ru:O = 0.200 / 0.800
+E_form -0.563 eV/atom
+包から 70 meV/atom
+空間群 15
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="316.67" r="5" fill="var(--h2)"/><text class="plabel" x="692.00" y="302.67" text-anchor="middle">Ru2O8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;RuO5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.289 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 238 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 4&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>RuO5
+Ru:O = 0.167 / 0.833
+E_form -0.289 eV/atom
+包から 238 meV/atom
+空間群 82 → 4
+原子数 / 候補 6 / 9</title><circle cx="717.67" cy="282.55" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="268.55" text-anchor="middle">RuO5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;RuO6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.374 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 78 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>RuO6
+Ru:O = 0.143 / 0.857
+E_form -0.374 eV/atom
+包から 78 meV/atom
+空間群 82 → 1
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="293.13" r="5" fill="var(--h2)"/><text class="plabel" x="736.00" y="279.13" text-anchor="middle">RuO6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;RuO7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.221 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 175 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>RuO7
+Ru:O = 0.125 / 0.875
+E_form -0.221 eV/atom
+包から 175 meV/atom
+空間群 148 → 1
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="274.06" r="5" fill="var(--h3)"/><text class="plabel" x="749.75" y="294.06" text-anchor="middle">RuO7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;RuO8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.318 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 34 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>RuO8
+Ru:O = 0.111 / 0.889
+E_form -0.318 eV/atom
+包から 34 meV/atom
+空間群 148 → 1
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="286.10" r="5" fill="var(--h1)"/><text class="plabel" x="760.44" y="306.10" text-anchor="middle">RuO8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;RuO9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.141 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 175 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>RuO9
+Ru:O = 0.100 / 0.900
+E_form -0.141 eV/atom
+包から 175 meV/atom
+空間群 2 → 1
+原子数 / 候補 10 / 9</title><circle cx="769.00" cy="264.16" r="5" fill="var(--h3)"/><text class="plabel" x="769.00" y="284.16" text-anchor="middle">RuO9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.004 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 9&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>O4
+Ru:O = 0.000 / 1.000
+E_form 0.004 eV/atom
+包から 4 meV/atom
+空間群 9
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="246.09" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="232.09" text-anchor="middle">O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.006 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>O6
+Ru:O = 0.000 / 1.000
+E_form 0.006 eV/atom
+包から 6 meV/atom
+空間群 12
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="245.80" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="265.80" text-anchor="middle">O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.011 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 11 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>O8
+Ru:O = 0.000 / 1.000
+E_form 0.011 eV/atom
+包から 11 meV/atom
+空間群 12
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="245.25" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="265.25" text-anchor="middle">O8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.152 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 152 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>O9
+Ru:O = 0.000 / 1.000
+E_form 0.152 eV/atom
+包から 152 meV/atom
+空間群 12 → 2
+原子数 / 候補 9 / 6</title><circle cx="846.00" cy="227.66" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="247.66" text-anchor="middle">O9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.213 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 213 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>O5
+Ru:O = 0.000 / 1.000
+E_form 0.213 eV/atom
+包から 213 meV/atom
+空間群 12 → 11
+原子数 / 候補 5 / 3</title><circle cx="846.00" cy="220.07" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="240.07" text-anchor="middle">O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.237 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 237 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 5&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>O10
+Ru:O = 0.000 / 1.000
+E_form 0.237 eV/atom
+包から 237 meV/atom
+空間群 12 → 5
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="217.05" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="237.05" text-anchor="middle">O10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.386 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 386 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>O3
+Ru:O = 0.000 / 1.000
+E_form 0.386 eV/atom
+包から 386 meV/atom
+空間群 12 → 11
+原子数 / 候補 3 / 6</title><circle cx="846.00" cy="198.53" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="184.53" text-anchor="middle">O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.497 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 497 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>O7
+Ru:O = 0.000 / 1.000
+E_form 0.497 eV/atom
+包から 497 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="184.65" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="204.65" text-anchor="middle">O7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.472 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1472 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>O
+Ru:O = 0.000 / 1.000
+E_form 1.472 eV/atom
+包から 1472 meV/atom
+空間群 12
+原子数 / 候補 1 / 9</title><circle cx="846.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="49.35" text-anchor="middle">O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>Ru
+Ru:O = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 225
+原子数 / 候補 1 / 9</title><circle cx="76.00" cy="246.57" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="266.57" text-anchor="middle">Ru</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ru2O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.029 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 136&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ru2O4
+Ru:O = 0.333 / 0.667
+E_form -1.029 eV/atom
+包から 0（凸包上）
+空間群 136
+原子数 / 候補 6 / 9</title><circle cx="589.33" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="589.33" y="360.65" text-anchor="middle">Ru2O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;RuO4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.633 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 121&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>RuO4
+Ru:O = 0.200 / 0.800
+E_form -0.633 eV/atom
+包から 0（凸包上）
+空間群 82 → 121
+原子数 / 候補 5 / 9</title><circle cx="692.00" cy="325.34" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="692.00" y="311.34" text-anchor="middle">RuO4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ru:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 17"><title>O2
+Ru:O = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 166 → 2
+原子数 / 候補 2 / 17</title><circle cx="846.00" cy="246.57" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="266.57" text-anchor="middle">O2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Ru</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Ru8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Ru2O4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">RuO4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">O2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Ru2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">O4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">4 meV</span></li>
+<li class="bar-row"><span class="bar-name">O6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">O8</span><span class="bar-track"><span class="bar-fill" style="width:0.72%;background:var(--h1)"></span></span><span class="bar-val">11 meV</span></li>
+<li class="bar-row"><span class="bar-name">RuO8</span><span class="bar-track"><span class="bar-fill" style="width:2.32%;background:var(--h1)"></span></span><span class="bar-val">34 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru2O8</span><span class="bar-track"><span class="bar-fill" style="width:4.73%;background:var(--h2)"></span></span><span class="bar-val">70 meV</span></li>
+<li class="bar-row"><span class="bar-name">RuO6</span><span class="bar-track"><span class="bar-fill" style="width:5.30%;background:var(--h2)"></span></span><span class="bar-val">78 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru2O6</span><span class="bar-track"><span class="bar-fill" style="width:7.62%;background:var(--h3)"></span></span><span class="bar-val">112 meV</span></li>
+<li class="bar-row"><span class="bar-name">O9</span><span class="bar-track"><span class="bar-fill" style="width:10.32%;background:var(--h3)"></span></span><span class="bar-val">152 meV</span></li>
+<li class="bar-row"><span class="bar-name">RuO3</span><span class="bar-track"><span class="bar-fill" style="width:11.17%;background:var(--h3)"></span></span><span class="bar-val">164 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru6</span><span class="bar-track"><span class="bar-fill" style="width:11.43%;background:var(--h3)"></span></span><span class="bar-val">168 meV</span></li>
+<li class="bar-row"><span class="bar-name">RuO7</span><span class="bar-track"><span class="bar-fill" style="width:11.87%;background:var(--h3)"></span></span><span class="bar-val">175 meV</span></li>
+<li class="bar-row"><span class="bar-name">RuO9</span><span class="bar-track"><span class="bar-fill" style="width:11.90%;background:var(--h3)"></span></span><span class="bar-val">175 meV</span></li>
+<li class="bar-row"><span class="bar-name">O5</span><span class="bar-track"><span class="bar-fill" style="width:14.47%;background:var(--meta)"></span></span><span class="bar-val">213 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru2O2</span><span class="bar-track"><span class="bar-fill" style="width:14.67%;background:var(--meta)"></span></span><span class="bar-val">216 meV</span></li>
+<li class="bar-row"><span class="bar-name">O10</span><span class="bar-track"><span class="bar-fill" style="width:16.12%;background:var(--meta)"></span></span><span class="bar-val">237 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru3O</span><span class="bar-track"><span class="bar-fill" style="width:16.18%;background:var(--meta)"></span></span><span class="bar-val">238 meV</span></li>
+<li class="bar-row"><span class="bar-name">RuO5</span><span class="bar-track"><span class="bar-fill" style="width:16.19%;background:var(--meta)"></span></span><span class="bar-val">238 meV</span></li>
+<li class="bar-row"><span class="bar-name">RuO2</span><span class="bar-track"><span class="bar-fill" style="width:16.20%;background:var(--meta)"></span></span><span class="bar-val">239 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru2O5</span><span class="bar-track"><span class="bar-fill" style="width:17.50%;background:var(--meta)"></span></span><span class="bar-val">258 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru2O7</span><span class="bar-track"><span class="bar-fill" style="width:19.85%;background:var(--meta)"></span></span><span class="bar-val">292 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru7</span><span class="bar-track"><span class="bar-fill" style="width:22.24%;background:var(--meta)"></span></span><span class="bar-val">327 meV</span></li>
+<li class="bar-row"><span class="bar-name">RuO</span><span class="bar-track"><span class="bar-fill" style="width:22.53%;background:var(--meta)"></span></span><span class="bar-val">332 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru3O3</span><span class="bar-track"><span class="bar-fill" style="width:24.49%;background:var(--meta)"></span></span><span class="bar-val">361 meV</span></li>
+<li class="bar-row"><span class="bar-name">O3</span><span class="bar-track"><span class="bar-fill" style="width:26.22%;background:var(--meta)"></span></span><span class="bar-val">386 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru5O2</span><span class="bar-track"><span class="bar-fill" style="width:29.45%;background:var(--meta)"></span></span><span class="bar-val">434 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru8O</span><span class="bar-track"><span class="bar-fill" style="width:31.93%;background:var(--meta)"></span></span><span class="bar-val">470 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru4O6</span><span class="bar-track"><span class="bar-fill" style="width:33.35%;background:var(--meta)"></span></span><span class="bar-val">491 meV</span></li>
+<li class="bar-row"><span class="bar-name">O7</span><span class="bar-track"><span class="bar-fill" style="width:33.80%;background:var(--meta)"></span></span><span class="bar-val">497 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru8O2</span><span class="bar-track"><span class="bar-fill" style="width:33.91%;background:var(--meta)"></span></span><span class="bar-val">499 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru5O5</span><span class="bar-track"><span class="bar-fill" style="width:35.09%;background:var(--meta)"></span></span><span class="bar-val">516 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru3O5</span><span class="bar-track"><span class="bar-fill" style="width:35.47%;background:var(--meta)"></span></span><span class="bar-val">522 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru3O2</span><span class="bar-track"><span class="bar-fill" style="width:35.96%;background:var(--meta)"></span></span><span class="bar-val">529 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru9O</span><span class="bar-track"><span class="bar-fill" style="width:37.18%;background:var(--meta)"></span></span><span class="bar-val">547 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru7O</span><span class="bar-track"><span class="bar-fill" style="width:37.59%;background:var(--meta)"></span></span><span class="bar-val">553 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru7O3</span><span class="bar-track"><span class="bar-fill" style="width:38.00%;background:var(--meta)"></span></span><span class="bar-val">559 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru4O4</span><span class="bar-track"><span class="bar-fill" style="width:38.15%;background:var(--meta)"></span></span><span class="bar-val">562 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru5O</span><span class="bar-track"><span class="bar-fill" style="width:38.89%;background:var(--meta)"></span></span><span class="bar-val">572 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru6O4</span><span class="bar-track"><span class="bar-fill" style="width:39.29%;background:var(--meta)"></span></span><span class="bar-val">578 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru6O3</span><span class="bar-track"><span class="bar-fill" style="width:41.77%;background:var(--meta)"></span></span><span class="bar-val">615 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru7O2</span><span class="bar-track"><span class="bar-fill" style="width:43.10%;background:var(--meta)"></span></span><span class="bar-val">634 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru6O</span><span class="bar-track"><span class="bar-fill" style="width:45.84%;background:var(--meta)"></span></span><span class="bar-val">675 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru6O2</span><span class="bar-track"><span class="bar-fill" style="width:46.03%;background:var(--meta)"></span></span><span class="bar-val">677 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru3O4</span><span class="bar-track"><span class="bar-fill" style="width:46.58%;background:var(--meta)"></span></span><span class="bar-val">686 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru4O5</span><span class="bar-track"><span class="bar-fill" style="width:48.48%;background:var(--meta)"></span></span><span class="bar-val">714 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru9</span><span class="bar-track"><span class="bar-fill" style="width:48.83%;background:var(--meta)"></span></span><span class="bar-val">719 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru2O</span><span class="bar-track"><span class="bar-fill" style="width:52.19%;background:var(--meta)"></span></span><span class="bar-val">768 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru5O3</span><span class="bar-track"><span class="bar-fill" style="width:54.16%;background:var(--meta)"></span></span><span class="bar-val">797 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru4O</span><span class="bar-track"><span class="bar-fill" style="width:57.19%;background:var(--meta)"></span></span><span class="bar-val">842 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru4O3</span><span class="bar-track"><span class="bar-fill" style="width:57.30%;background:var(--meta)"></span></span><span class="bar-val">843 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru4O2</span><span class="bar-track"><span class="bar-fill" style="width:59.93%;background:var(--meta)"></span></span><span class="bar-val">882 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru5O4</span><span class="bar-track"><span class="bar-fill" style="width:61.14%;background:var(--meta)"></span></span><span class="bar-val">900 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru3O6</span><span class="bar-track"><span class="bar-fill" style="width:68.01%;background:var(--meta)"></span></span><span class="bar-val">1001 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru10</span><span class="bar-track"><span class="bar-fill" style="width:68.12%;background:var(--meta)"></span></span><span class="bar-val">1003 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru2O3</span><span class="bar-track"><span class="bar-fill" style="width:70.28%;background:var(--meta)"></span></span><span class="bar-val">1034 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ru5</span><span class="bar-track"><span class="bar-fill" style="width:85.63%;background:var(--meta)"></span></span><span class="bar-val">1260 meV</span></li>
+<li class="bar-row"><span class="bar-name">O</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">1472 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 4 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Ru</th><th>O</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Ru <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>225</td><td>1</td></tr>
+<tr class="stable"><td class="name">Ru2O4 <span class="pill">凸包上</span></td><td>0.333</td><td>0.667</td><td>-1.0288</td><td>136</td><td>6</td></tr>
+<tr class="stable"><td class="name">RuO4 <span class="pill">凸包上</span></td><td>0.200</td><td>0.800</td><td>-0.6327</td><td>82 → 121</td><td>5</td></tr>
+<tr class="stable"><td class="name">O2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>166 → 2</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>この系を見る理由</h3><p>RuO<sub>2</sub> —— 金属的な導電性を持つ酸化物。Ru ライナが酸化しても伝導が残る。</p></div><div class="note"><h3>何が包に載ったか</h3><p>包に載った化合物は RuO<sub>2</sub> -1029 meV/atom（空間群 136（ルチル型））、RuO<sub>4</sub> -633 meV/atom（空間群 121（I-42m））。</p></div><div class="note"><h3>包のすぐ上にいるもの</h3><p>包のすぐ上（60 meV/atom 以内）にいるのは O<sub>4</sub> +4 meV、O<sub>6</sub> +6 meV、O<sub>8</sub> +11 meV、O<sub>8</sub>Ru +34 meV。この幅は上の「分解能」と同じ桁なので、条件が少し変われば包に載りうる相として見ておく。</p></div><div class="note"><h3>端点が信用できるか</h3><p>O は 空間群 2（P-1） と出た。実在は &alpha;-O<sub>2</sub>（分子性） なので<b>当たっていない</b>。Ru は 空間群 225（fcc / L1<sub>2</sub> 系） と出た。実在は hcp なので<b>当たっていない</b>。　当たっていない端点があるぶん、生成エネルギーの基準がずれている。この系の深さは<b>そのまま信じず割り引いて読む</b>。</p></div><div class="note"><h3>穴</h3><p>45 組成のうち 1 組で点が出なかった。欠けているのは O<sub>7</sub>Ru<sub>3</sub>。<b>そこに相が無いのではなく、そこを探せていない。</b>原子数 9〜10 の胞で、上位 3 つの空間群に Wyckoff 配置が載らなかった（exit 430）ためで、空間群を名指しして撒き直せば埋まる見込みがある。</p></div><div class="note"><h3>どの三元の辺か</h3><p>この図は Mn-O-Ru の辺である。三角図と突き合わせて読む。</p></div><div class="note"><h3>この手法の分解能</h3><p>数十 meV/atom の差はこの手法（ShotgunCSP-GW の生成 + MatterSim による評価・緩和）の分解能に近い。<b>10 meV 差で「載った／載らない」を言い切らない。</b>包の上下が入れ替わりうる幅だと思って読む。</p></div></section>
+ <footer><span>aiida-shotgun-csp 6.24.0</span><span>sweep = interconnect3-bin-2026-09-13 / interconnect3-ter-2026-09-13</span><span>探索範囲 = 10 原子以内、spg_ranks=[1,2,3]</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

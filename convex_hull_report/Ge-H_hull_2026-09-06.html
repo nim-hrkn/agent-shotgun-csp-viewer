@@ -1,0 +1,558 @@
+<title>Ge–H 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Ge–H 相図</h1>
+  <p class="lede">65 組成のうち 46 組成から構造が出て、うち 2 点が凸包に載った。<b>端点以外に凸包へ載った相は無い（この刻みでは化合物が現れなかった）。</b></p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>48</dd></div><div class="fact"><dt>凸包上</dt><dd>2</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>6</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は H の原子分率。縦軸は端点（Ge, H）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Ge–H 相図">
+<line class="grid-line" x1="76" x2="846" y1="408.53" y2="408.53"/>
+<text class="tick-text" x="64" y="412.53" text-anchor="end">-0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<text class="tick-text" x="64" y="378.65" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="340.77" y2="340.77"/>
+<text class="tick-text" x="64" y="344.77" text-anchor="end">0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="306.88" y2="306.88"/>
+<text class="tick-text" x="64" y="310.88" text-anchor="end">0.20</text>
+<line class="grid-line" x1="76" x2="846" y1="273.00" y2="273.00"/>
+<text class="tick-text" x="64" y="277.00" text-anchor="end">0.30</text>
+<line class="grid-line" x1="76" x2="846" y1="239.12" y2="239.12"/>
+<text class="tick-text" x="64" y="243.12" text-anchor="end">0.40</text>
+<line class="grid-line" x1="76" x2="846" y1="205.24" y2="205.24"/>
+<text class="tick-text" x="64" y="209.24" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="171.36" y2="171.36"/>
+<text class="tick-text" x="64" y="175.36" text-anchor="end">0.60</text>
+<line class="grid-line" x1="76" x2="846" y1="137.48" y2="137.48"/>
+<text class="tick-text" x="64" y="141.48" text-anchor="end">0.70</text>
+<line class="grid-line" x1="76" x2="846" y1="103.60" y2="103.60"/>
+<text class="tick-text" x="64" y="107.60" text-anchor="end">0.80</text>
+<line class="grid-line" x1="76" x2="846" y1="69.72" y2="69.72"/>
+<text class="tick-text" x="64" y="73.72" text-anchor="end">0.90</text>
+<line class="grid-line" x1="76" x2="846" y1="35.84" y2="35.84"/>
+<text class="tick-text" x="64" y="39.84" text-anchor="end">1.00</text>
+<line class="axis-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Ge</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">H</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">H の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,374.65 846.00,374.65"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.237 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 237 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 152 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Ge3
+Ge:H = 1.000 / 0.000
+E_form 0.237 eV/atom
+包から 237 meV/atom
+空間群 152 → 221
+原子数 / 候補 3 / 3</title><circle cx="76.00" cy="294.48" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="280.48" text-anchor="middle">Ge3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.237 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 237 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ge8
+Ge:H = 1.000 / 0.000
+E_form 0.237 eV/atom
+包から 237 meV/atom
+空間群 64 → 123
+原子数 / 候補 8 / 9</title><circle cx="76.00" cy="294.32" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="314.32" text-anchor="middle">Ge8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.238 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 238 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 152&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ge6
+Ge:H = 1.000 / 0.000
+E_form 0.238 eV/atom
+包から 238 meV/atom
+空間群 152
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="294.18" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="314.18" text-anchor="middle">Ge6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.272 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 272 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>Ge4
+Ge:H = 1.000 / 0.000
+E_form 0.272 eV/atom
+包から 272 meV/atom
+空間群 194
+原子数 / 候補 4 / 6</title><circle cx="76.00" cy="282.49" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="302.49" text-anchor="middle">Ge4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.273 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 273 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ge9
+Ge:H = 1.000 / 0.000
+E_form 0.273 eV/atom
+包から 273 meV/atom
+空間群 166
+原子数 / 候補 9 / 3</title><circle cx="76.00" cy="282.05" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="302.05" text-anchor="middle">Ge9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.306 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 306 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>Ge
+Ge:H = 1.000 / 0.000
+E_form 0.306 eV/atom
+包から 306 meV/atom
+空間群 216 → 225
+原子数 / 候補 1 / 6</title><circle cx="76.00" cy="271.04" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="291.04" text-anchor="middle">Ge</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.346 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 346 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ge10
+Ge:H = 1.000 / 0.000
+E_form 0.346 eV/atom
+包から 346 meV/atom
+空間群 194
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="257.45" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="243.45" text-anchor="middle">Ge10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge9H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.534 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 534 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Ge9H
+Ge:H = 0.900 / 0.100
+E_form 0.534 eV/atom
+包から 534 meV/atom
+空間群 216 → 225
+原子数 / 候補 10 / 3</title><circle cx="153.00" cy="193.73" r="5" fill="var(--meta)"/><text class="plabel" x="153.00" y="179.73" text-anchor="middle">Ge9H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge8H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.334 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 334 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 58&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 8"><title>Ge8H2
+Ge:H = 0.800 / 0.200
+E_form 0.334 eV/atom
+包から 334 meV/atom
+空間群 58
+原子数 / 候補 10 / 8</title><circle cx="230.00" cy="261.38" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="247.38" text-anchor="middle">Ge8H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge7H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.322 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 322 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 160 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ge7H2
+Ge:H = 0.778 / 0.222
+E_form 0.322 eV/atom
+包から 322 meV/atom
+空間群 160 → 12
+原子数 / 候補 9 / 3</title><circle cx="247.11" cy="265.72" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="251.72" text-anchor="middle">Ge7H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge6H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.281 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 281 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 72 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ge6H2
+Ge:H = 0.750 / 0.250
+E_form 0.281 eV/atom
+包から 281 meV/atom
+空間群 72 → 65
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="279.37" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="265.37" text-anchor="middle">Ge6H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge3H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.551 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 551 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 3"><title>Ge3H
+Ge:H = 0.750 / 0.250
+E_form 0.551 eV/atom
+包から 551 meV/atom
+空間群 217 → 229
+原子数 / 候補 4 / 3</title><circle cx="268.50" cy="188.00" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="174.00" text-anchor="middle">Ge3H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge2H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.407 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 407 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Ge2H
+Ge:H = 0.667 / 0.333
+E_form 0.407 eV/atom
+包から 407 meV/atom
+空間群 139
+原子数 / 候補 3 / 3</title><circle cx="332.67" cy="236.92" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="222.92" text-anchor="middle">Ge2H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge4H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.409 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 409 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 67&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Ge4H2
+Ge:H = 0.667 / 0.333
+E_form 0.409 eV/atom
+包から 409 meV/atom
+空間群 67
+原子数 / 候補 6 / 6</title><circle cx="332.67" cy="235.94" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="255.94" text-anchor="middle">Ge4H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge5H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.785 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 785 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Ge5H3
+Ge:H = 0.625 / 0.375
+E_form 0.785 eV/atom
+包から 785 meV/atom
+空間群 217 → 229
+原子数 / 候補 8 / 3</title><circle cx="364.75" cy="108.58" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="94.58" text-anchor="middle">Ge5H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge6H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.431 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 431 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 72&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ge6H4
+Ge:H = 0.600 / 0.400
+E_form 0.431 eV/atom
+包から 431 meV/atom
+空間群 72
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="228.62" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="214.62" text-anchor="middle">Ge6H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge4H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.677 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 677 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ge4H3
+Ge:H = 0.571 / 0.429
+E_form 0.677 eV/atom
+包から 677 meV/atom
+空間群 217
+原子数 / 候補 7 / 3</title><circle cx="406.00" cy="145.34" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="131.34" text-anchor="middle">Ge4H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge5H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.919 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 919 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ge5H4
+Ge:H = 0.556 / 0.444
+E_form 0.919 eV/atom
+包から 919 meV/atom
+空間群 217
+原子数 / 候補 9 / 3</title><circle cx="418.22" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="418.22" y="49.35" text-anchor="middle">Ge5H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge4H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.263 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 263 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 72 → 47&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ge4H4
+Ge:H = 0.500 / 0.500
+E_form 0.263 eV/atom
+包から 263 meV/atom
+空間群 72 → 47
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="285.57" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="271.57" text-anchor="middle">Ge4H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;GeH&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.281 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 281 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>GeH
+Ge:H = 0.500 / 0.500
+E_form 0.281 eV/atom
+包から 281 meV/atom
+空間群 1 → 65
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="279.51" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="299.51" text-anchor="middle">GeH</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge2H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.499 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 499 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Ge2H2
+Ge:H = 0.500 / 0.500
+E_form 0.499 eV/atom
+包から 499 meV/atom
+空間群 139 → 123
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="205.65" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="191.65" text-anchor="middle">Ge2H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge4H5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.700 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 700 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ge4H5
+Ge:H = 0.444 / 0.556
+E_form 0.700 eV/atom
+包から 700 meV/atom
+空間群 217
+原子数 / 候補 9 / 3</title><circle cx="503.78" cy="137.38" r="5" fill="var(--meta)"/><text class="plabel" x="503.78" y="123.38" text-anchor="middle">Ge4H5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge3H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.648 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 648 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ge3H4
+Ge:H = 0.429 / 0.571
+E_form 0.648 eV/atom
+包から 648 meV/atom
+空間群 217
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="154.97" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="140.97" text-anchor="middle">Ge3H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge4H6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.319 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 319 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 14&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ge4H6
+Ge:H = 0.400 / 0.600
+E_form 0.319 eV/atom
+包から 319 meV/atom
+空間群 14
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="266.64" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="252.64" text-anchor="middle">Ge4H6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge2H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.529 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 529 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Ge2H3
+Ge:H = 0.400 / 0.600
+E_form 0.529 eV/atom
+包から 529 meV/atom
+空間群 139
+原子数 / 候補 5 / 3</title><circle cx="538.00" cy="195.39" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="181.39" text-anchor="middle">Ge2H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge3H5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.621 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 621 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Ge3H5
+Ge:H = 0.375 / 0.625
+E_form 0.621 eV/atom
+包から 621 meV/atom
+空間群 217
+原子数 / 候補 8 / 3</title><circle cx="557.25" cy="164.35" r="5" fill="var(--meta)"/><text class="plabel" x="557.25" y="150.35" text-anchor="middle">Ge3H5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;GeH2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.384 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 384 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>GeH2
+Ge:H = 0.333 / 0.667
+E_form 0.384 eV/atom
+包から 384 meV/atom
+空間群 1
+原子数 / 候補 3 / 6</title><circle cx="589.33" cy="244.65" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="230.65" text-anchor="middle">GeH2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge2H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.541 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 541 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ge2H4
+Ge:H = 0.333 / 0.667
+E_form 0.541 eV/atom
+包から 541 meV/atom
+空間群 194
+原子数 / 候補 6 / 9</title><circle cx="589.33" cy="191.29" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="177.29" text-anchor="middle">Ge2H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge3H6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.609 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 609 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ge3H6
+Ge:H = 0.333 / 0.667
+E_form 0.609 eV/atom
+包から 609 meV/atom
+空間群 217 → 229
+原子数 / 候補 9 / 3</title><circle cx="589.33" cy="168.48" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="188.48" text-anchor="middle">Ge3H6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge2H5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.510 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 510 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ge2H5
+Ge:H = 0.286 / 0.714
+E_form 0.510 eV/atom
+包から 510 meV/atom
+空間群 139
+原子数 / 候補 7 / 3</title><circle cx="626.00" cy="201.96" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="187.96" text-anchor="middle">Ge2H5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;GeH3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.217 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 217 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>GeH3
+Ge:H = 0.250 / 0.750
+E_form 0.217 eV/atom
+包から 217 meV/atom
+空間群 1
+原子数 / 候補 4 / 6</title><circle cx="653.50" cy="301.23" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="287.23" text-anchor="middle">GeH3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge2H6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.520 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 520 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Ge2H6
+Ge:H = 0.250 / 0.750
+E_form 0.520 eV/atom
+包から 520 meV/atom
+空間群 139 → 123
+原子数 / 候補 8 / 6</title><circle cx="653.50" cy="198.47" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="218.47" text-anchor="middle">Ge2H6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge2H8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.180 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 180 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 72&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Ge2H8
+Ge:H = 0.200 / 0.800
+E_form 0.180 eV/atom
+包から 180 meV/atom
+空間群 72
+原子数 / 候補 10 / 6</title><circle cx="692.00" cy="313.66" r="5" fill="var(--h3)"/><text class="plabel" x="692.00" y="299.66" text-anchor="middle">Ge2H8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;GeH4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.266 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 266 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>GeH4
+Ge:H = 0.200 / 0.800
+E_form 0.266 eV/atom
+包から 266 meV/atom
+空間群 1
+原子数 / 候補 5 / 6</title><circle cx="692.00" cy="284.56" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="304.56" text-anchor="middle">GeH4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;GeH5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.177 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 177 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>GeH5
+Ge:H = 0.167 / 0.833
+E_form 0.177 eV/atom
+包から 177 meV/atom
+空間群 1
+原子数 / 候補 6 / 9</title><circle cx="717.67" cy="314.58" r="5" fill="var(--h3)"/><text class="plabel" x="717.67" y="334.58" text-anchor="middle">GeH5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;GeH6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.136 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 136 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 119&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>GeH6
+Ge:H = 0.143 / 0.857
+E_form 0.136 eV/atom
+包から 136 meV/atom
+空間群 119
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="328.47" r="5" fill="var(--h3)"/><text class="plabel" x="736.00" y="348.47" text-anchor="middle">GeH6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;GeH7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.178 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 178 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>GeH7
+Ge:H = 0.125 / 0.875
+E_form 0.178 eV/atom
+包から 178 meV/atom
+空間群 1
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="314.20" r="5" fill="var(--h3)"/><text class="plabel" x="749.75" y="300.20" text-anchor="middle">GeH7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;GeH8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.211 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 211 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 119&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>GeH8
+Ge:H = 0.111 / 0.889
+E_form 0.211 eV/atom
+包から 211 meV/atom
+空間群 119
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="303.19" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="323.19" text-anchor="middle">GeH8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;GeH9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.168 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 168 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>GeH9
+Ge:H = 0.100 / 0.900
+E_form 0.168 eV/atom
+包から 168 meV/atom
+空間群 1
+原子数 / 候補 10 / 9</title><circle cx="769.00" cy="317.79" r="5" fill="var(--h3)"/><text class="plabel" x="769.00" y="337.79" text-anchor="middle">GeH9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 43 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>H10
+Ge:H = 0.000 / 1.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 43 → 1
+原子数 / 候補 10 / 6</title><circle cx="846.00" cy="373.87" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="359.87" text-anchor="middle">H10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H12&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 14 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 9"><title>H12
+Ge:H = 0.000 / 1.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 14 → 1
+原子数 / 候補 12 / 9</title><circle cx="846.00" cy="373.80" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="393.80" text-anchor="middle">H12</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.007 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 7 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 43 → 70&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>H4
+Ge:H = 0.000 / 1.000
+E_form 0.007 eV/atom
+包から 7 meV/atom
+空間群 43 → 70
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="372.21" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="392.21" text-anchor="middle">H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.015 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 15 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 43 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>H6
+Ge:H = 0.000 / 1.000
+E_form 0.015 eV/atom
+包から 15 meV/atom
+空間群 43 → 1
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="369.66" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="389.66" text-anchor="middle">H6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H14&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.307 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 307 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 14 → 7&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 3"><title>H14
+Ge:H = 0.000 / 1.000
+E_form 0.307 eV/atom
+包から 307 meV/atom
+空間群 14 → 7
+原子数 / 候補 14 / 3</title><circle cx="846.00" cy="270.67" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="256.67" text-anchor="middle">H14</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.332 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 332 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>H
+Ge:H = 0.000 / 1.000
+E_form 0.332 eV/atom
+包から 332 meV/atom
+空間群 123
+原子数 / 候補 1 / 6</title><circle cx="846.00" cy="262.26" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="282.26" text-anchor="middle">H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.369 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 369 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>H2
+Ge:H = 0.000 / 1.000
+E_form 0.369 eV/atom
+包から 369 meV/atom
+空間群 194
+原子数 / 候補 2 / 9</title><circle cx="846.00" cy="249.56" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="269.56" text-anchor="middle">H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ge2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 227&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>Ge2
+Ge:H = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 227
+原子数 / 候補 2 / 9</title><circle cx="76.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="360.65" text-anchor="middle">Ge2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ge:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 43&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>H8
+Ge:H = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 43
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="394.65" text-anchor="middle">H8</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Ge2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">H8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">H10</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">H12</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">H4</span><span class="bar-track"><span class="bar-fill" style="width:0.78%;background:var(--h1)"></span></span><span class="bar-val">7 meV</span></li>
+<li class="bar-row"><span class="bar-name">H6</span><span class="bar-track"><span class="bar-fill" style="width:1.60%;background:var(--h1)"></span></span><span class="bar-val">15 meV</span></li>
+<li class="bar-row"><span class="bar-name">GeH6</span><span class="bar-track"><span class="bar-fill" style="width:14.83%;background:var(--h3)"></span></span><span class="bar-val">136 meV</span></li>
+<li class="bar-row"><span class="bar-name">GeH9</span><span class="bar-track"><span class="bar-fill" style="width:18.26%;background:var(--h3)"></span></span><span class="bar-val">168 meV</span></li>
+<li class="bar-row"><span class="bar-name">GeH5</span><span class="bar-track"><span class="bar-fill" style="width:19.30%;background:var(--h3)"></span></span><span class="bar-val">177 meV</span></li>
+<li class="bar-row"><span class="bar-name">GeH7</span><span class="bar-track"><span class="bar-fill" style="width:19.42%;background:var(--h3)"></span></span><span class="bar-val">178 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge2H8</span><span class="bar-track"><span class="bar-fill" style="width:19.59%;background:var(--h3)"></span></span><span class="bar-val">180 meV</span></li>
+<li class="bar-row"><span class="bar-name">GeH8</span><span class="bar-track"><span class="bar-fill" style="width:22.95%;background:var(--meta)"></span></span><span class="bar-val">211 meV</span></li>
+<li class="bar-row"><span class="bar-name">GeH3</span><span class="bar-track"><span class="bar-fill" style="width:23.59%;background:var(--meta)"></span></span><span class="bar-val">217 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge3</span><span class="bar-track"><span class="bar-fill" style="width:25.75%;background:var(--meta)"></span></span><span class="bar-val">237 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge8</span><span class="bar-track"><span class="bar-fill" style="width:25.81%;background:var(--meta)"></span></span><span class="bar-val">237 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge6</span><span class="bar-track"><span class="bar-fill" style="width:25.85%;background:var(--meta)"></span></span><span class="bar-val">238 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge4H4</span><span class="bar-track"><span class="bar-fill" style="width:28.61%;background:var(--meta)"></span></span><span class="bar-val">263 meV</span></li>
+<li class="bar-row"><span class="bar-name">GeH4</span><span class="bar-track"><span class="bar-fill" style="width:28.94%;background:var(--meta)"></span></span><span class="bar-val">266 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge4</span><span class="bar-track"><span class="bar-fill" style="width:29.60%;background:var(--meta)"></span></span><span class="bar-val">272 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge9</span><span class="bar-track"><span class="bar-fill" style="width:29.75%;background:var(--meta)"></span></span><span class="bar-val">273 meV</span></li>
+<li class="bar-row"><span class="bar-name">GeH</span><span class="bar-track"><span class="bar-fill" style="width:30.56%;background:var(--meta)"></span></span><span class="bar-val">281 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge6H2</span><span class="bar-track"><span class="bar-fill" style="width:30.61%;background:var(--meta)"></span></span><span class="bar-val">281 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge</span><span class="bar-track"><span class="bar-fill" style="width:33.28%;background:var(--meta)"></span></span><span class="bar-val">306 meV</span></li>
+<li class="bar-row"><span class="bar-name">H14</span><span class="bar-track"><span class="bar-fill" style="width:33.40%;background:var(--meta)"></span></span><span class="bar-val">307 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge4H6</span><span class="bar-track"><span class="bar-fill" style="width:34.70%;background:var(--meta)"></span></span><span class="bar-val">319 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge7H2</span><span class="bar-track"><span class="bar-fill" style="width:34.99%;background:var(--meta)"></span></span><span class="bar-val">322 meV</span></li>
+<li class="bar-row"><span class="bar-name">H</span><span class="bar-track"><span class="bar-fill" style="width:36.10%;background:var(--meta)"></span></span><span class="bar-val">332 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge8H2</span><span class="bar-track"><span class="bar-fill" style="width:36.38%;background:var(--meta)"></span></span><span class="bar-val">334 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge10</span><span class="bar-track"><span class="bar-fill" style="width:37.65%;background:var(--meta)"></span></span><span class="bar-val">346 meV</span></li>
+<li class="bar-row"><span class="bar-name">H2</span><span class="bar-track"><span class="bar-fill" style="width:40.18%;background:var(--meta)"></span></span><span class="bar-val">369 meV</span></li>
+<li class="bar-row"><span class="bar-name">GeH2</span><span class="bar-track"><span class="bar-fill" style="width:41.76%;background:var(--meta)"></span></span><span class="bar-val">384 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge2H</span><span class="bar-track"><span class="bar-fill" style="width:44.24%;background:var(--meta)"></span></span><span class="bar-val">407 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge4H2</span><span class="bar-track"><span class="bar-fill" style="width:44.56%;background:var(--meta)"></span></span><span class="bar-val">409 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge6H4</span><span class="bar-track"><span class="bar-fill" style="width:46.91%;background:var(--meta)"></span></span><span class="bar-val">431 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge2H2</span><span class="bar-track"><span class="bar-fill" style="width:54.29%;background:var(--meta)"></span></span><span class="bar-val">499 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge2H5</span><span class="bar-track"><span class="bar-fill" style="width:55.47%;background:var(--meta)"></span></span><span class="bar-val">510 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge2H6</span><span class="bar-track"><span class="bar-fill" style="width:56.60%;background:var(--meta)"></span></span><span class="bar-val">520 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge2H3</span><span class="bar-track"><span class="bar-fill" style="width:57.59%;background:var(--meta)"></span></span><span class="bar-val">529 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge9H</span><span class="bar-track"><span class="bar-fill" style="width:58.12%;background:var(--meta)"></span></span><span class="bar-val">534 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge2H4</span><span class="bar-track"><span class="bar-fill" style="width:58.90%;background:var(--meta)"></span></span><span class="bar-val">541 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge3H</span><span class="bar-track"><span class="bar-fill" style="width:59.96%;background:var(--meta)"></span></span><span class="bar-val">551 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge3H6</span><span class="bar-track"><span class="bar-fill" style="width:66.23%;background:var(--meta)"></span></span><span class="bar-val">609 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge3H5</span><span class="bar-track"><span class="bar-fill" style="width:67.56%;background:var(--meta)"></span></span><span class="bar-val">621 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge3H4</span><span class="bar-track"><span class="bar-fill" style="width:70.57%;background:var(--meta)"></span></span><span class="bar-val">648 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge4H3</span><span class="bar-track"><span class="bar-fill" style="width:73.66%;background:var(--meta)"></span></span><span class="bar-val">677 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge4H5</span><span class="bar-track"><span class="bar-fill" style="width:76.22%;background:var(--meta)"></span></span><span class="bar-val">700 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge5H3</span><span class="bar-track"><span class="bar-fill" style="width:85.47%;background:var(--meta)"></span></span><span class="bar-val">785 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ge5H4</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">919 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 2 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Ge</th><th>H</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Ge2 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>227</td><td>2</td></tr>
+<tr class="stable"><td class="name">H8 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>43</td><td>8</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>穴は「そこに相が無い」ではない</h3><p>19 組成が<b>探索していない穴</b>である（うち辺が 13）。図の余白のうちこれだけは「相が無い」ではなく「そこを見ていない」。数え方は basis=all（gcd>1 の倍胞を含む、原子数の和 ≤ 10）。</p></div><div class="note"><h3>exit 430 と穴を混ぜない</h3><p>exit 430 は 3 つ試した空間群のうち 1〜2 つで Wyckoff 配置が作れなかったという意味で、残りからは構造が出ている。<b>上の穴の数は構造の有無で数えており、exit code では数えていない。</b></p></div><div class="note"><h3>数十 meV は分解能に近い</h3><p>この手法（MatterSim + 生成的探索）の分解能は 数十 meV/atom の程度である。<b>10 meV 差で「載る／載らない」を言い切らないこと。</b></p></div><div class="note"><h3>端点 Ge</h3><p>Ge2 は spg 227（ダイヤモンド型）、fmax 4.6e-6。<b>実在の Ge と同じ型。</b></p></div><div class="note"><h3>端点 H</h3><p>H8 は spg 43（Fdd2）の分子性固体。実在の固体水素も分子性だが対称性が違う。fmax 0.0098 で収束は甘い。<b>H に富む側の depth は割り引いて読む。</b></p></div></section>
+ <footer><span>aiida-shotgun-csp 5.13.0 / ShotgunCSP-GW</span><span>緩和 MatterSim mattersim-v1.0.0-1M (cpu)</span><span>spg_ranks=[1,2,3] / basis=all / max_atoms=10</span><span>生成 2026-09-06</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

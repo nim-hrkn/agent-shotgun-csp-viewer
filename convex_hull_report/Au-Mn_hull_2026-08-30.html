@@ -1,0 +1,635 @@
+<title>Au–Mn 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Au–Mn 相図</h1>
+  <p class="lede">凸包に載った化合物は Au<sub>3</sub>Mn。spin-2026-08-29 掃引の完了を受けた相図。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>59</dd></div><div class="fact"><dt>凸包上</dt><dd>3</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>17</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Au の原子分率。縦軸は端点（Mn, Au）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Au–Mn 相図">
+<line class="grid-line" x1="76" x2="846" y1="390.36" y2="390.36"/>
+<text class="tick-text" x="64" y="394.36" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="354.14" y2="354.14"/>
+<text class="tick-text" x="64" y="358.14" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="317.92" y2="317.92"/>
+<text class="tick-text" x="64" y="321.92" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="281.70" y2="281.70"/>
+<text class="tick-text" x="64" y="285.70" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="245.48" y2="245.48"/>
+<text class="tick-text" x="64" y="249.48" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="209.26" y2="209.26"/>
+<text class="tick-text" x="64" y="213.26" text-anchor="end">1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="173.04" y2="173.04"/>
+<text class="tick-text" x="64" y="177.04" text-anchor="end">1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="136.82" y2="136.82"/>
+<text class="tick-text" x="64" y="140.82" text-anchor="end">1.50</text>
+<line class="grid-line" x1="76" x2="846" y1="100.60" y2="100.60"/>
+<text class="tick-text" x="64" y="104.60" text-anchor="end">1.75</text>
+<line class="grid-line" x1="76" x2="846" y1="64.38" y2="64.38"/>
+<text class="tick-text" x="64" y="68.38" text-anchor="end">2.00</text>
+<line class="grid-line" x1="76" x2="846" y1="28.16" y2="28.16"/>
+<text class="tick-text" x="64" y="32.16" text-anchor="end">2.25</text>
+<line class="axis-line" x1="76" x2="846" y1="354.14" y2="354.14"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Mn</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Au</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Au の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,354.14 653.50,374.65 846.00,354.14"/>
+<line class="tie-drop" x1="653.50" x2="653.50" y1="374.65" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.005 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 5 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>Mn4
+Mn:Au = 1.000 / 0.000
+E_form 0.005 eV/atom
+包から 5 meV/atom
+空間群 194
+原子数 / 候補 4 / 6</title><circle cx="76.00" cy="353.46" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="339.46" text-anchor="middle">Mn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.009 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 9 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>Mn
+Mn:Au = 1.000 / 0.000
+E_form 0.009 eV/atom
+包から 9 meV/atom
+空間群 225
+原子数 / 候補 1 / 9</title><circle cx="76.00" cy="352.90" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="372.90" text-anchor="middle">Mn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.037 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 37 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>Mn8
+Mn:Au = 1.000 / 0.000
+E_form 0.037 eV/atom
+包から 37 meV/atom
+空間群 217 → 229
+原子数 / 候補 8 / 8</title><circle cx="76.00" cy="348.81" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="368.81" text-anchor="middle">Mn8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.110 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 110 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Mn6
+Mn:Au = 1.000 / 0.000
+E_form 0.110 eV/atom
+包から 110 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="338.27" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="358.27" text-anchor="middle">Mn6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.204 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 204 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Mn7
+Mn:Au = 1.000 / 0.000
+E_form 0.204 eV/atom
+包から 204 meV/atom
+空間群 217
+原子数 / 候補 7 / 6</title><circle cx="76.00" cy="324.56" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="344.56" text-anchor="middle">Mn7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.292 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 292 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 7"><title>Mn10
+Mn:Au = 1.000 / 0.000
+E_form 0.292 eV/atom
+包から 292 meV/atom
+空間群 194
+原子数 / 候補 10 / 7</title><circle cx="76.00" cy="311.80" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="297.80" text-anchor="middle">Mn10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.464 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 464 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Mn3
+Mn:Au = 1.000 / 0.000
+E_form 0.464 eV/atom
+包から 464 meV/atom
+空間群 225
+原子数 / 候補 3 / 3</title><circle cx="76.00" cy="286.91" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="306.91" text-anchor="middle">Mn3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.914 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 914 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Mn5
+Mn:Au = 1.000 / 0.000
+E_form 0.914 eV/atom
+包から 914 meV/atom
+空間群 221
+原子数 / 候補 5 / 3</title><circle cx="76.00" cy="221.71" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="207.71" text-anchor="middle">Mn5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 2.007 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2007 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Mn9
+Mn:Au = 1.000 / 0.000
+E_form 2.007 eV/atom
+包から 2007 meV/atom
+空間群 217 → 229
+原子数 / 候補 9 / 3</title><circle cx="76.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="49.35" text-anchor="middle">Mn9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn9Au&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.626 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 645 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Mn9Au
+Mn:Au = 0.900 / 0.100
+E_form 0.626 eV/atom
+包から 645 meV/atom
+空間群 87
+原子数 / 候補 10 / 6</title><circle cx="153.00" cy="263.49" r="5" fill="var(--meta)"/><text class="plabel" x="153.00" y="249.49" text-anchor="middle">Mn9Au</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn8Au&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.202 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 223 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Mn8Au
+Mn:Au = 0.889 / 0.111
+E_form 0.202 eV/atom
+包から 223 meV/atom
+空間群 87
+原子数 / 候補 9 / 6</title><circle cx="161.56" cy="324.94" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="310.94" text-anchor="middle">Mn8Au</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn7Au&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.690 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 714 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 5"><title>Mn7Au
+Mn:Au = 0.875 / 0.125
+E_form 0.690 eV/atom
+包から 714 meV/atom
+空間群 87 → 139
+原子数 / 候補 8 / 5</title><circle cx="172.25" cy="254.19" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="274.19" text-anchor="middle">Mn7Au</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn6Au&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.285 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 312 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Mn6Au
+Mn:Au = 0.857 / 0.143
+E_form 0.285 eV/atom
+包から 312 meV/atom
+空間群 139
+原子数 / 候補 7 / 6</title><circle cx="186.00" cy="312.80" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="332.80" text-anchor="middle">Mn6Au</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn5Au&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.104 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 136 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Mn5Au
+Mn:Au = 0.833 / 0.167
+E_form 0.104 eV/atom
+包から 136 meV/atom
+空間群 123
+原子数 / 候補 6 / 6</title><circle cx="204.33" cy="339.06" r="5" fill="var(--h3)"/><text class="plabel" x="204.33" y="359.06" text-anchor="middle">Mn5Au</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn8Au2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.325 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 363 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 59&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Mn8Au2
+Mn:Au = 0.800 / 0.200
+E_form 0.325 eV/atom
+包から 363 meV/atom
+空間群 59
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="307.00" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="293.00" text-anchor="middle">Mn8Au2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn4Au&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.587 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 625 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Mn4Au
+Mn:Au = 0.800 / 0.200
+E_form 0.587 eV/atom
+包から 625 meV/atom
+空間群 123
+原子数 / 候補 5 / 3</title><circle cx="230.00" cy="269.14" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="255.14" text-anchor="middle">Mn4Au</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn7Au2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.171 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 213 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 14&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Mn7Au2
+Mn:Au = 0.778 / 0.222
+E_form 0.171 eV/atom
+包から 213 meV/atom
+空間群 12 → 14
+原子数 / 候補 9 / 3</title><circle cx="247.11" cy="329.34" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="315.34" text-anchor="middle">Mn7Au2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn6Au2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.195 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 243 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 59&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Mn6Au2
+Mn:Au = 0.750 / 0.250
+E_form 0.195 eV/atom
+包から 243 meV/atom
+空間群 59
+原子数 / 候補 8 / 6</title><circle cx="268.50" cy="325.83" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="345.83" text-anchor="middle">Mn6Au2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn3Au&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.200 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 247 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 7"><title>Mn3Au
+Mn:Au = 0.750 / 0.250
+E_form 0.200 eV/atom
+包から 247 meV/atom
+空間群 221
+原子数 / 候補 4 / 7</title><circle cx="268.50" cy="325.24" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="345.24" text-anchor="middle">Mn3Au</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn5Au2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.179 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 233 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Mn5Au2
+Mn:Au = 0.714 / 0.286
+E_form 0.179 eV/atom
+包から 233 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="296.00" cy="328.27" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="314.27" text-anchor="middle">Mn5Au2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn7Au3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.241 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 297 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Mn7Au3
+Mn:Au = 0.700 / 0.300
+E_form 0.241 eV/atom
+包から 297 meV/atom
+空間群 12 → 1
+原子数 / 候補 10 / 6</title><circle cx="307.00" cy="319.29" r="5" fill="var(--meta)"/><text class="plabel" x="307.00" y="339.29" text-anchor="middle">Mn7Au3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn2Au&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.164 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 227 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 107 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 4"><title>Mn2Au
+Mn:Au = 0.667 / 0.333
+E_form 0.164 eV/atom
+包から 227 meV/atom
+空間群 107 → 139
+原子数 / 候補 3 / 4</title><circle cx="332.67" cy="330.33" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="350.33" text-anchor="middle">Mn2Au</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn6Au3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.221 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 283 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Mn6Au3
+Mn:Au = 0.667 / 0.333
+E_form 0.221 eV/atom
+包から 283 meV/atom
+空間群 12 → 6
+原子数 / 候補 9 / 3</title><circle cx="332.67" cy="322.20" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="308.20" text-anchor="middle">Mn6Au3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn4Au2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.242 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 305 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 59&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 8"><title>Mn4Au2
+Mn:Au = 0.667 / 0.333
+E_form 0.242 eV/atom
+包から 305 meV/atom
+空間群 59
+原子数 / 候補 6 / 8</title><circle cx="332.67" cy="319.07" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="339.07" text-anchor="middle">Mn4Au2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn5Au3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.368 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 439 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Mn5Au3
+Mn:Au = 0.625 / 0.375
+E_form 0.368 eV/atom
+包から 439 meV/atom
+空間群 12
+原子数 / 候補 8 / 3</title><circle cx="364.75" cy="300.86" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="320.86" text-anchor="middle">Mn5Au3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn6Au4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.164 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 240 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Mn6Au4
+Mn:Au = 0.600 / 0.400
+E_form 0.164 eV/atom
+包から 240 meV/atom
+空間群 12 → 1
+原子数 / 候補 10 / 6</title><circle cx="384.00" cy="330.38" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="350.38" text-anchor="middle">Mn6Au4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn3Au2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.568 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 644 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 4"><title>Mn3Au2
+Mn:Au = 0.600 / 0.400
+E_form 0.568 eV/atom
+包から 644 meV/atom
+空間群 139
+原子数 / 候補 5 / 4</title><circle cx="384.00" cy="271.82" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="257.82" text-anchor="middle">Mn3Au2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn5Au4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.071 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 155 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Mn5Au4
+Mn:Au = 0.556 / 0.444
+E_form 0.071 eV/atom
+包から 155 meV/atom
+空間群 12
+原子数 / 候補 9 / 3</title><circle cx="418.22" cy="343.80" r="5" fill="var(--h3)"/><text class="plabel" x="418.22" y="329.80" text-anchor="middle">Mn5Au4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn2Au2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.051 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 43 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 129 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Mn2Au2
+Mn:Au = 0.500 / 0.500
+E_form -0.051 eV/atom
+包から 43 meV/atom
+空間群 129 → 123
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="361.58" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="347.58" text-anchor="middle">Mn2Au2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn4Au4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.038 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 57 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 59 → 51&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Mn4Au4
+Mn:Au = 0.500 / 0.500
+E_form -0.038 eV/atom
+包から 57 meV/atom
+空間群 59 → 51
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="359.64" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="379.64" text-anchor="middle">Mn4Au4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn5Au5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.054 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 148 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Mn5Au5
+Mn:Au = 0.500 / 0.500
+E_form 0.054 eV/atom
+包から 148 meV/atom
+空間群 12
+原子数 / 候補 10 / 3</title><circle cx="461.00" cy="346.34" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="366.34" text-anchor="middle">Mn5Au5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MnAu&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.261 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 355 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 8"><title>MnAu
+Mn:Au = 0.500 / 0.500
+E_form 0.261 eV/atom
+包から 355 meV/atom
+空間群 225
+原子数 / 候補 2 / 8</title><circle cx="461.00" cy="316.32" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="302.32" text-anchor="middle">MnAu</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn3Au4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.055 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 163 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Mn3Au4
+Mn:Au = 0.429 / 0.571
+E_form 0.055 eV/atom
+包から 163 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="346.18" r="5" fill="var(--h3)"/><text class="plabel" x="516.00" y="332.18" text-anchor="middle">Mn3Au4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn4Au6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.102 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 216 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 140 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Mn4Au6
+Mn:Au = 0.400 / 0.600
+E_form 0.102 eV/atom
+包から 216 meV/atom
+空間群 140 → 1
+原子数 / 候補 10 / 6</title><circle cx="538.00" cy="339.32" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="359.32" text-anchor="middle">Mn4Au6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn2Au3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.410 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 523 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 1"><title>Mn2Au3
+Mn:Au = 0.400 / 0.600
+E_form 0.410 eV/atom
+包から 523 meV/atom
+空間群 139
+原子数 / 候補 5 / 1</title><circle cx="538.00" cy="294.79" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="280.79" text-anchor="middle">Mn2Au3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn2Au4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.007 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 119 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 8"><title>Mn2Au4
+Mn:Au = 0.333 / 0.667
+E_form -0.007 eV/atom
+包から 119 meV/atom
+空間群 139 → 123
+原子数 / 候補 6 / 8</title><circle cx="589.33" cy="355.12" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="341.12" text-anchor="middle">Mn2Au4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MnAu2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.061 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 187 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>MnAu2
+Mn:Au = 0.333 / 0.667
+E_form 0.061 eV/atom
+包から 187 meV/atom
+空間群 225
+原子数 / 候補 3 / 3</title><circle cx="589.33" cy="345.32" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="365.32" text-anchor="middle">MnAu2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn2Au5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.006 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 141 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Mn2Au5
+Mn:Au = 0.286 / 0.714
+E_form 0.006 eV/atom
+包から 141 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="626.00" cy="353.30" r="5" fill="var(--h3)"/><text class="plabel" x="626.00" y="339.30" text-anchor="middle">Mn2Au5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn2Au6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.141 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 59 → 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 7"><title>Mn2Au6
+Mn:Au = 0.250 / 0.750
+E_form -0.141 eV/atom
+包から 1 meV/atom
+空間群 59 → 71
+原子数 / 候補 8 / 7</title><circle cx="653.50" cy="374.57" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="360.57" text-anchor="middle">Mn2Au6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn2Au7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.143 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 269 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Mn2Au7
+Mn:Au = 0.222 / 0.778
+E_form 0.143 eV/atom
+包から 269 meV/atom
+空間群 87
+原子数 / 候補 9 / 3</title><circle cx="674.89" cy="333.47" r="5" fill="var(--meta)"/><text class="plabel" x="674.89" y="319.47" text-anchor="middle">Mn2Au7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn2Au8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.007 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 106 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 59&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Mn2Au8
+Mn:Au = 0.200 / 0.800
+E_form -0.007 eV/atom
+包から 106 meV/atom
+空間群 59
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="355.19" r="5" fill="var(--h3)"/><text class="plabel" x="692.00" y="341.19" text-anchor="middle">Mn2Au8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MnAu4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.467 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 580 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>MnAu4
+Mn:Au = 0.200 / 0.800
+E_form 0.467 eV/atom
+包から 580 meV/atom
+空間群 123
+原子数 / 候補 5 / 6</title><circle cx="692.00" cy="286.46" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="272.46" text-anchor="middle">MnAu4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MnAu5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.217 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 312 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 4"><title>MnAu5
+Mn:Au = 0.167 / 0.833
+E_form 0.217 eV/atom
+包から 312 meV/atom
+空間群 139
+原子数 / 候補 6 / 4</title><circle cx="717.67" cy="322.66" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="308.66" text-anchor="middle">MnAu5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MnAu6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.016 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 96 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>MnAu6
+Mn:Au = 0.143 / 0.857
+E_form 0.016 eV/atom
+包から 96 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="736.00" cy="351.90" r="5" fill="var(--h2)"/><text class="plabel" x="736.00" y="337.90" text-anchor="middle">MnAu6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MnAu7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.062 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 8 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>MnAu7
+Mn:Au = 0.125 / 0.875
+E_form -0.062 eV/atom
+包から 8 meV/atom
+空間群 12 → 11
+原子数 / 候補 8 / 6</title><circle cx="749.75" cy="363.19" r="5" fill="var(--h1)"/><text class="plabel" x="749.75" y="349.19" text-anchor="middle">MnAu7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MnAu8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.029 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 34 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>MnAu8
+Mn:Au = 0.111 / 0.889
+E_form -0.029 eV/atom
+包から 34 meV/atom
+空間群 87
+原子数 / 候補 9 / 6</title><circle cx="760.44" cy="358.27" r="5" fill="var(--h1)"/><text class="plabel" x="760.44" y="378.27" text-anchor="middle">MnAu8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MnAu9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.079 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 136 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 5"><title>MnAu9
+Mn:Au = 0.100 / 0.900
+E_form 0.079 eV/atom
+包から 136 meV/atom
+空間群 87 → 6
+原子数 / 候補 10 / 5</title><circle cx="769.00" cy="342.67" r="5" fill="var(--h3)"/><text class="plabel" x="769.00" y="362.67" text-anchor="middle">MnAu9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>Au2
+Mn:Au = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 166
+原子数 / 候補 2 / 9</title><circle cx="846.00" cy="354.12" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="340.12" text-anchor="middle">Au2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Au8
+Mn:Au = 0.000 / 1.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166 → 225
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="354.04" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="374.04" text-anchor="middle">Au8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 8"><title>Au4
+Mn:Au = 0.000 / 1.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 194
+原子数 / 候補 4 / 8</title><circle cx="846.00" cy="353.91" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="373.91" text-anchor="middle">Au4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Au3
+Mn:Au = 0.000 / 1.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 166
+原子数 / 候補 3 / 3</title><circle cx="846.00" cy="353.83" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="373.83" text-anchor="middle">Au3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.045 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 45 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Au5
+Mn:Au = 0.000 / 1.000
+E_form 0.045 eV/atom
+包から 45 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="846.00" cy="347.70" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="367.70" text-anchor="middle">Au5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.045 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 45 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Au7
+Mn:Au = 0.000 / 1.000
+E_form 0.045 eV/atom
+包から 45 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="347.57" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="367.57" text-anchor="middle">Au7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.047 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 47 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Au10
+Mn:Au = 0.000 / 1.000
+E_form 0.047 eV/atom
+包から 47 meV/atom
+空間群 166 → 12
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="347.29" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="367.29" text-anchor="middle">Au10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.076 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 76 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Au6
+Mn:Au = 0.000 / 1.000
+E_form 0.076 eV/atom
+包から 76 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 6</title><circle cx="846.00" cy="343.16" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="363.16" text-anchor="middle">Au6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.102 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 102 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Au9
+Mn:Au = 0.000 / 1.000
+E_form 0.102 eV/atom
+包から 102 meV/atom
+空間群 166
+原子数 / 候補 9 / 3</title><circle cx="846.00" cy="339.40" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="359.40" text-anchor="middle">Au9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 6"><title>Mn2
+Mn:Au = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 2 / 6</title><circle cx="76.00" cy="354.14" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="374.14" text-anchor="middle">Mn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MnAu3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.142 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>MnAu3
+Mn:Au = 0.250 / 0.750
+E_form -0.142 eV/atom
+包から 0（凸包上）
+空間群 221
+原子数 / 候補 4 / 6</title><circle cx="653.50" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="653.50" y="394.65" text-anchor="middle">MnAu3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mn:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 8"><title>Au
+Mn:Au = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 225
+原子数 / 候補 1 / 8</title><circle cx="846.00" cy="354.14" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="374.14" text-anchor="middle">Au</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Mn2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">MnAu3</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Au</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Au2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn2Au6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">5 meV</span></li>
+<li class="bar-row"><span class="bar-name">MnAu7</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">8 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">9 meV</span></li>
+<li class="bar-row"><span class="bar-name">MnAu8</span><span class="bar-track"><span class="bar-fill" style="width:1.71%;background:var(--h1)"></span></span><span class="bar-val">34 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn8</span><span class="bar-track"><span class="bar-fill" style="width:1.83%;background:var(--h1)"></span></span><span class="bar-val">37 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn2Au2</span><span class="bar-track"><span class="bar-fill" style="width:2.14%;background:var(--h1)"></span></span><span class="bar-val">43 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au5</span><span class="bar-track"><span class="bar-fill" style="width:2.22%;background:var(--h1)"></span></span><span class="bar-val">45 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au7</span><span class="bar-track"><span class="bar-fill" style="width:2.26%;background:var(--h1)"></span></span><span class="bar-val">45 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au10</span><span class="bar-track"><span class="bar-fill" style="width:2.36%;background:var(--h1)"></span></span><span class="bar-val">47 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn4Au4</span><span class="bar-track"><span class="bar-fill" style="width:2.82%;background:var(--h2)"></span></span><span class="bar-val">57 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au6</span><span class="bar-track"><span class="bar-fill" style="width:3.78%;background:var(--h2)"></span></span><span class="bar-val">76 meV</span></li>
+<li class="bar-row"><span class="bar-name">MnAu6</span><span class="bar-track"><span class="bar-fill" style="width:4.80%;background:var(--h2)"></span></span><span class="bar-val">96 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au9</span><span class="bar-track"><span class="bar-fill" style="width:5.07%;background:var(--h3)"></span></span><span class="bar-val">102 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn2Au8</span><span class="bar-track"><span class="bar-fill" style="width:5.28%;background:var(--h3)"></span></span><span class="bar-val">106 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn6</span><span class="bar-track"><span class="bar-fill" style="width:5.46%;background:var(--h3)"></span></span><span class="bar-val">110 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn2Au4</span><span class="bar-track"><span class="bar-fill" style="width:5.93%;background:var(--h3)"></span></span><span class="bar-val">119 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn5Au</span><span class="bar-track"><span class="bar-fill" style="width:6.76%;background:var(--h3)"></span></span><span class="bar-val">136 meV</span></li>
+<li class="bar-row"><span class="bar-name">MnAu9</span><span class="bar-track"><span class="bar-fill" style="width:6.77%;background:var(--h3)"></span></span><span class="bar-val">136 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn2Au5</span><span class="bar-track"><span class="bar-fill" style="width:7.01%;background:var(--h3)"></span></span><span class="bar-val">141 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn5Au5</span><span class="bar-track"><span class="bar-fill" style="width:7.38%;background:var(--h3)"></span></span><span class="bar-val">148 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn5Au4</span><span class="bar-track"><span class="bar-fill" style="width:7.74%;background:var(--h3)"></span></span><span class="bar-val">155 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn3Au4</span><span class="bar-track"><span class="bar-fill" style="width:8.11%;background:var(--h3)"></span></span><span class="bar-val">163 meV</span></li>
+<li class="bar-row"><span class="bar-name">MnAu2</span><span class="bar-track"><span class="bar-fill" style="width:9.30%;background:var(--h3)"></span></span><span class="bar-val">187 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn7</span><span class="bar-track"><span class="bar-fill" style="width:10.17%;background:var(--meta)"></span></span><span class="bar-val">204 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn7Au2</span><span class="bar-track"><span class="bar-fill" style="width:10.62%;background:var(--meta)"></span></span><span class="bar-val">213 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn4Au6</span><span class="bar-track"><span class="bar-fill" style="width:10.74%;background:var(--meta)"></span></span><span class="bar-val">216 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn8Au</span><span class="bar-track"><span class="bar-fill" style="width:11.09%;background:var(--meta)"></span></span><span class="bar-val">223 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn2Au</span><span class="bar-track"><span class="bar-fill" style="width:11.32%;background:var(--meta)"></span></span><span class="bar-val">227 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn5Au2</span><span class="bar-track"><span class="bar-fill" style="width:11.58%;background:var(--meta)"></span></span><span class="bar-val">233 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn6Au4</span><span class="bar-track"><span class="bar-fill" style="width:11.93%;background:var(--meta)"></span></span><span class="bar-val">240 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn6Au2</span><span class="bar-track"><span class="bar-fill" style="width:12.09%;background:var(--meta)"></span></span><span class="bar-val">243 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn3Au</span><span class="bar-track"><span class="bar-fill" style="width:12.29%;background:var(--meta)"></span></span><span class="bar-val">247 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn2Au7</span><span class="bar-track"><span class="bar-fill" style="width:13.38%;background:var(--meta)"></span></span><span class="bar-val">269 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn6Au3</span><span class="bar-track"><span class="bar-fill" style="width:14.12%;background:var(--meta)"></span></span><span class="bar-val">283 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn10</span><span class="bar-track"><span class="bar-fill" style="width:14.56%;background:var(--meta)"></span></span><span class="bar-val">292 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn7Au3</span><span class="bar-track"><span class="bar-fill" style="width:14.81%;background:var(--meta)"></span></span><span class="bar-val">297 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn4Au2</span><span class="bar-track"><span class="bar-fill" style="width:15.20%;background:var(--meta)"></span></span><span class="bar-val">305 meV</span></li>
+<li class="bar-row"><span class="bar-name">MnAu5</span><span class="bar-track"><span class="bar-fill" style="width:15.52%;background:var(--meta)"></span></span><span class="bar-val">312 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn6Au</span><span class="bar-track"><span class="bar-fill" style="width:15.56%;background:var(--meta)"></span></span><span class="bar-val">312 meV</span></li>
+<li class="bar-row"><span class="bar-name">MnAu</span><span class="bar-track"><span class="bar-fill" style="width:17.71%;background:var(--meta)"></span></span><span class="bar-val">355 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn8Au2</span><span class="bar-track"><span class="bar-fill" style="width:18.09%;background:var(--meta)"></span></span><span class="bar-val">363 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn5Au3</span><span class="bar-track"><span class="bar-fill" style="width:21.85%;background:var(--meta)"></span></span><span class="bar-val">439 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn3</span><span class="bar-track"><span class="bar-fill" style="width:23.12%;background:var(--meta)"></span></span><span class="bar-val">464 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn2Au3</span><span class="bar-track"><span class="bar-fill" style="width:26.05%;background:var(--meta)"></span></span><span class="bar-val">523 meV</span></li>
+<li class="bar-row"><span class="bar-name">MnAu4</span><span class="bar-track"><span class="bar-fill" style="width:28.92%;background:var(--meta)"></span></span><span class="bar-val">580 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn4Au</span><span class="bar-track"><span class="bar-fill" style="width:31.11%;background:var(--meta)"></span></span><span class="bar-val">625 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn3Au2</span><span class="bar-track"><span class="bar-fill" style="width:32.07%;background:var(--meta)"></span></span><span class="bar-val">644 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn9Au</span><span class="bar-track"><span class="bar-fill" style="width:32.12%;background:var(--meta)"></span></span><span class="bar-val">645 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn7Au</span><span class="bar-track"><span class="bar-fill" style="width:35.55%;background:var(--meta)"></span></span><span class="bar-val">714 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn5</span><span class="bar-track"><span class="bar-fill" style="width:45.54%;background:var(--meta)"></span></span><span class="bar-val">914 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn9</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">2007 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 3 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Mn</th><th>Au</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Mn2 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>194</td><td>2</td></tr>
+<tr class="stable"><td class="name">MnAu3 <span class="pill">凸包上</span></td><td>0.250</td><td>0.750</td><td>-0.1415</td><td>221</td><td>4</td></tr>
+<tr class="stable"><td class="name">Au <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>225</td><td>1</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>Au は fcc（225）で信用できる。Mn は hcp 基準で α-Mn（58 原子）は範囲外。Mn を含む生成エネルギーは一律深めに出る（包の判定は不変）。</p></div><div class="note"><h3>この系の読み方</h3><p>Au<sub>3</sub>Mn（Cu<sub>3</sub>Au 型 221）が載った。実在の規則相 Au<sub>4</sub>Mn・AuMn は数十 meV 帯。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に Au<sub>6</sub>Mn<sub>2</sub>（+1 meV, spg 59）。分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴が 4 組成</h3><p>≤10 原子・既約 33 組成のうち 4 組成に点が無い（exit 430 等）。そこは「相が無い」ではなく「探していない」。</p></div></section>
+ <footer><span>掃引 spin-2026-08-29（default: spg_ranks=[1,2,3]・scope=all・max_atoms=10）</span><span>2026-08-30 取得 · group_by=structure 329 構造</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

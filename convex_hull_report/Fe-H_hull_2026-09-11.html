@@ -1,0 +1,959 @@
+<title>Fe–H 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Fe–H 相図</h1>
+  <p class="lede">Fe–H を 107 組成分の緩和構造で評価した。<b>下側凸包に載った化合物は 1 つも無い</b>（端点のみで包が閉じる）。この範囲では中間相を作らない、と読める。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>107</dd></div><div class="fact"><dt>凸包上</dt><dd>2</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>7</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は H の原子分率。縦軸は端点（Fe, H）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Fe–H 相図">
+<line class="grid-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<text class="tick-text" x="64" y="378.65" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="309.30" y2="309.30"/>
+<text class="tick-text" x="64" y="313.30" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="243.96" y2="243.96"/>
+<text class="tick-text" x="64" y="247.96" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="178.62" y2="178.62"/>
+<text class="tick-text" x="64" y="182.62" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="113.28" y2="113.28"/>
+<text class="tick-text" x="64" y="117.28" text-anchor="end">1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="47.93" y2="47.93"/>
+<text class="tick-text" x="64" y="51.93" text-anchor="end">1.25</text>
+<line class="axis-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Fe</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">H</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">H の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,374.65 846.00,374.65"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe15&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.126 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 126 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 15 / 3"><title>Fe15
+Fe:H = 1.000 / 0.000
+E_form 0.126 eV/atom
+包から 126 meV/atom
+空間群 221
+原子数 / 候補 15 / 3</title><circle cx="76.00" cy="341.82" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="327.82" text-anchor="middle">Fe15</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.140 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 140 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 3"><title>Fe2
+Fe:H = 1.000 / 0.000
+E_form 0.140 eV/atom
+包から 140 meV/atom
+空間群 194
+原子数 / 候補 2 / 3</title><circle cx="76.00" cy="338.05" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="358.05" text-anchor="middle">Fe2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.140 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 140 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Fe8
+Fe:H = 1.000 / 0.000
+E_form 0.140 eV/atom
+包から 140 meV/atom
+空間群 194
+原子数 / 候補 8 / 3</title><circle cx="76.00" cy="338.05" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="358.05" text-anchor="middle">Fe8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.177 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 177 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Fe6
+Fe:H = 1.000 / 0.000
+E_form 0.177 eV/atom
+包から 177 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="328.30" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="348.30" text-anchor="middle">Fe6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe14&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.272 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 272 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 224 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 5"><title>Fe14
+Fe:H = 1.000 / 0.000
+E_form 0.272 eV/atom
+包から 272 meV/atom
+空間群 224 → 229
+原子数 / 候補 14 / 5</title><circle cx="76.00" cy="303.58" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="289.58" text-anchor="middle">Fe14</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe12&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.450 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 450 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 7"><title>Fe12
+Fe:H = 1.000 / 0.000
+E_form 0.450 eV/atom
+包から 450 meV/atom
+空間群 194
+原子数 / 候補 12 / 7</title><circle cx="76.00" cy="256.98" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="242.98" text-anchor="middle">Fe12</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.651 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 651 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Fe10
+Fe:H = 1.000 / 0.000
+E_form 0.651 eV/atom
+包から 651 meV/atom
+空間群 194
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="204.47" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="190.47" text-anchor="middle">Fe10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe11&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.688 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 688 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 11 / 3"><title>Fe11
+Fe:H = 1.000 / 0.000
+E_form 0.688 eV/atom
+包から 688 meV/atom
+空間群 221
+原子数 / 候補 11 / 3</title><circle cx="76.00" cy="194.95" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="214.95" text-anchor="middle">Fe11</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.703 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 703 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>Fe3
+Fe:H = 1.000 / 0.000
+E_form 0.703 eV/atom
+包から 703 meV/atom
+空間群 221
+原子数 / 候補 3 / 6</title><circle cx="76.00" cy="190.98" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="210.98" text-anchor="middle">Fe3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.706 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 706 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 1"><title>Fe4
+Fe:H = 1.000 / 0.000
+E_form 0.706 eV/atom
+包から 706 meV/atom
+空間群 194
+原子数 / 候補 4 / 1</title><circle cx="76.00" cy="190.12" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="210.12" text-anchor="middle">Fe4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.812 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 812 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Fe9
+Fe:H = 1.000 / 0.000
+E_form 0.812 eV/atom
+包から 812 meV/atom
+空間群 221
+原子数 / 候補 9 / 3</title><circle cx="76.00" cy="162.54" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="148.54" text-anchor="middle">Fe9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.887 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 887 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Fe7
+Fe:H = 1.000 / 0.000
+E_form 0.887 eV/atom
+包から 887 meV/atom
+空間群 221
+原子数 / 候補 7 / 3</title><circle cx="76.00" cy="142.89" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="162.89" text-anchor="middle">Fe7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.191 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1191 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Fe5
+Fe:H = 1.000 / 0.000
+E_form 1.191 eV/atom
+包から 1191 meV/atom
+空間群 221
+原子数 / 候補 5 / 3</title><circle cx="76.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="49.35" text-anchor="middle">Fe5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe14H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.933 / 0.067&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.152 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 152 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 10&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 15 / 9"><title>Fe14H
+Fe:H = 0.933 / 0.067
+E_form 0.152 eV/atom
+包から 152 meV/atom
+空間群 10
+原子数 / 候補 15 / 9</title><circle cx="127.33" cy="334.92" r="5" fill="var(--h3)"/><text class="plabel" x="127.33" y="320.92" text-anchor="middle">Fe14H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe13H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.929 / 0.071&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.317 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 317 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 9"><title>Fe13H
+Fe:H = 0.929 / 0.071
+E_form 0.317 eV/atom
+包から 317 meV/atom
+空間群 82
+原子数 / 候補 14 / 9</title><circle cx="131.00" cy="291.74" r="5" fill="var(--meta)"/><text class="plabel" x="131.00" y="277.74" text-anchor="middle">Fe13H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe12H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.923 / 0.077&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.195 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 195 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 10 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 13 / 6"><title>Fe12H
+Fe:H = 0.923 / 0.077
+E_form 0.195 eV/atom
+包から 195 meV/atom
+空間群 10 → 1
+原子数 / 候補 13 / 6</title><circle cx="135.23" cy="323.63" r="5" fill="var(--h3)"/><text class="plabel" x="135.23" y="343.63" text-anchor="middle">Fe12H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe11H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.917 / 0.083&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.220 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 220 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 10&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 6"><title>Fe11H
+Fe:H = 0.917 / 0.083
+E_form 0.220 eV/atom
+包から 220 meV/atom
+空間群 10
+原子数 / 候補 12 / 6</title><circle cx="140.17" cy="317.20" r="5" fill="var(--meta)"/><text class="plabel" x="140.17" y="337.20" text-anchor="middle">Fe11H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe10H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.909 / 0.091&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.142 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 142 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 11 / 6"><title>Fe10H
+Fe:H = 0.909 / 0.091
+E_form 0.142 eV/atom
+包から 142 meV/atom
+空間群 82 → 6
+原子数 / 候補 11 / 6</title><circle cx="146.00" cy="337.61" r="5" fill="var(--h3)"/><text class="plabel" x="146.00" y="357.61" text-anchor="middle">Fe10H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe9H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.189 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 189 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 10 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 15"><title>Fe9H
+Fe:H = 0.900 / 0.100
+E_form 0.189 eV/atom
+包から 189 meV/atom
+空間群 10 → 6
+原子数 / 候補 10 / 15</title><circle cx="153.00" cy="325.19" r="5" fill="var(--h3)"/><text class="plabel" x="153.00" y="345.19" text-anchor="middle">Fe9H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe8H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.083 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 83 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 15"><title>Fe8H
+Fe:H = 0.889 / 0.111
+E_form 0.083 eV/atom
+包から 83 meV/atom
+空間群 82 → 139
+原子数 / 候補 9 / 15</title><circle cx="161.56" cy="352.87" r="5" fill="var(--h2)"/><text class="plabel" x="161.56" y="372.87" text-anchor="middle">Fe8H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe7H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.182 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 182 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 14"><title>Fe7H
+Fe:H = 0.875 / 0.125
+E_form 0.182 eV/atom
+包から 182 meV/atom
+空間群 166
+原子数 / 候補 8 / 14</title><circle cx="172.25" cy="327.13" r="5" fill="var(--h3)"/><text class="plabel" x="172.25" y="347.13" text-anchor="middle">Fe7H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe13H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.867 / 0.133&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.210 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 210 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 10 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 15 / 6"><title>Fe13H2
+Fe:H = 0.867 / 0.133
+E_form 0.210 eV/atom
+包から 210 meV/atom
+空間群 10 → 1
+原子数 / 候補 15 / 6</title><circle cx="178.67" cy="319.81" r="5" fill="var(--meta)"/><text class="plabel" x="178.67" y="305.81" text-anchor="middle">Fe13H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe6H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.127 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 127 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 18"><title>Fe6H
+Fe:H = 0.857 / 0.143
+E_form 0.127 eV/atom
+包から 127 meV/atom
+空間群 164
+原子数 / 候補 7 / 18</title><circle cx="186.00" cy="341.53" r="5" fill="var(--h3)"/><text class="plabel" x="186.00" y="361.53" text-anchor="middle">Fe6H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe12H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.174 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 174 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 182 → 193&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 6"><title>Fe12H2
+Fe:H = 0.857 / 0.143
+E_form 0.174 eV/atom
+包から 174 meV/atom
+空間群 182 → 193
+原子数 / 候補 14 / 6</title><circle cx="186.00" cy="329.14" r="5" fill="var(--h3)"/><text class="plabel" x="186.00" y="315.14" text-anchor="middle">Fe12H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe11H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.846 / 0.154&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.353 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 353 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 13 / 3"><title>Fe11H2
+Fe:H = 0.846 / 0.154
+E_form 0.353 eV/atom
+包から 353 meV/atom
+空間群 82
+原子数 / 候補 13 / 3</title><circle cx="194.46" cy="282.41" r="5" fill="var(--meta)"/><text class="plabel" x="194.46" y="268.41" text-anchor="middle">Fe11H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe5H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.122 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 122 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 15"><title>Fe5H
+Fe:H = 0.833 / 0.167
+E_form 0.122 eV/atom
+包から 122 meV/atom
+空間群 87
+原子数 / 候補 6 / 15</title><circle cx="204.33" cy="342.81" r="5" fill="var(--h3)"/><text class="plabel" x="204.33" y="362.81" text-anchor="middle">Fe5H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe10H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.320 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 320 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 6"><title>Fe10H2
+Fe:H = 0.833 / 0.167
+E_form 0.320 eV/atom
+包から 320 meV/atom
+空間群 162
+原子数 / 候補 12 / 6</title><circle cx="204.33" cy="291.11" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="311.11" text-anchor="middle">Fe10H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe9H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.818 / 0.182&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.132 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 132 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 11 / 6"><title>Fe9H2
+Fe:H = 0.818 / 0.182
+E_form 0.132 eV/atom
+包から 132 meV/atom
+空間群 162
+原子数 / 候補 11 / 6</title><circle cx="216.00" cy="340.09" r="5" fill="var(--h3)"/><text class="plabel" x="216.00" y="326.09" text-anchor="middle">Fe9H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.114 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 114 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 14"><title>Fe4H
+Fe:H = 0.800 / 0.200
+E_form 0.114 eV/atom
+包から 114 meV/atom
+空間群 221
+原子数 / 候補 5 / 14</title><circle cx="230.00" cy="344.74" r="5" fill="var(--h3)"/><text class="plabel" x="230.00" y="330.74" text-anchor="middle">Fe4H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe8H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.115 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 115 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 140&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 15"><title>Fe8H2
+Fe:H = 0.800 / 0.200
+E_form 0.115 eV/atom
+包から 115 meV/atom
+空間群 87 → 140
+原子数 / 候補 10 / 15</title><circle cx="230.00" cy="344.67" r="5" fill="var(--h3)"/><text class="plabel" x="230.00" y="364.67" text-anchor="middle">Fe8H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe12H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.241 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 241 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 15 / 3"><title>Fe12H3
+Fe:H = 0.800 / 0.200
+E_form 0.241 eV/atom
+包から 241 meV/atom
+空間群 82 → 87
+原子数 / 候補 15 / 3</title><circle cx="230.00" cy="311.71" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="331.71" text-anchor="middle">Fe12H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe11H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.786 / 0.214&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.394 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 394 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 6"><title>Fe11H3
+Fe:H = 0.786 / 0.214
+E_form 0.394 eV/atom
+包から 394 meV/atom
+空間群 162
+原子数 / 候補 14 / 6</title><circle cx="241.00" cy="271.72" r="5" fill="var(--meta)"/><text class="plabel" x="241.00" y="257.72" text-anchor="middle">Fe11H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe7H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.262 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 262 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 15"><title>Fe7H2
+Fe:H = 0.778 / 0.222
+E_form 0.262 eV/atom
+包から 262 meV/atom
+空間群 155
+原子数 / 候補 9 / 15</title><circle cx="247.11" cy="306.27" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="292.27" text-anchor="middle">Fe7H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe10H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.769 / 0.231&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.211 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 211 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 13 / 6"><title>Fe10H3
+Fe:H = 0.769 / 0.231
+E_form 0.211 eV/atom
+包から 211 meV/atom
+空間群 82 → 1
+原子数 / 候補 13 / 6</title><circle cx="253.69" cy="319.50" r="5" fill="var(--meta)"/><text class="plabel" x="253.69" y="339.50" text-anchor="middle">Fe10H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.109 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 109 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 15"><title>Fe3H
+Fe:H = 0.750 / 0.250
+E_form 0.109 eV/atom
+包から 109 meV/atom
+空間群 166
+原子数 / 候補 4 / 15</title><circle cx="268.50" cy="346.21" r="5" fill="var(--h3)"/><text class="plabel" x="268.50" y="366.21" text-anchor="middle">Fe3H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe6H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.110 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 110 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162 → 193&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 15"><title>Fe6H2
+Fe:H = 0.750 / 0.250
+E_form 0.110 eV/atom
+包から 110 meV/atom
+空間群 162 → 193
+原子数 / 候補 8 / 15</title><circle cx="268.50" cy="345.82" r="5" fill="var(--h3)"/><text class="plabel" x="268.50" y="365.82" text-anchor="middle">Fe6H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe9H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.117 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 117 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162 → 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 6"><title>Fe9H3
+Fe:H = 0.750 / 0.250
+E_form 0.117 eV/atom
+包から 117 meV/atom
+空間群 162 → 164
+原子数 / 候補 12 / 6</title><circle cx="268.50" cy="344.09" r="5" fill="var(--h3)"/><text class="plabel" x="268.50" y="364.09" text-anchor="middle">Fe9H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe11H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.733 / 0.267&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.363 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 363 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 15 / 3"><title>Fe11H4
+Fe:H = 0.733 / 0.267
+E_form 0.363 eV/atom
+包から 363 meV/atom
+空間群 82
+原子数 / 候補 15 / 3</title><circle cx="281.33" cy="279.72" r="5" fill="var(--meta)"/><text class="plabel" x="281.33" y="265.72" text-anchor="middle">Fe11H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe8H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.727 / 0.273&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.112 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 112 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 11 / 6"><title>Fe8H3
+Fe:H = 0.727 / 0.273
+E_form 0.112 eV/atom
+包から 112 meV/atom
+空間群 82
+原子数 / 候補 11 / 6</title><circle cx="286.00" cy="345.37" r="5" fill="var(--h3)"/><text class="plabel" x="286.00" y="365.37" text-anchor="middle">Fe8H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe5H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.108 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 108 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 15"><title>Fe5H2
+Fe:H = 0.714 / 0.286
+E_form 0.108 eV/atom
+包から 108 meV/atom
+空間群 164
+原子数 / 候補 7 / 15</title><circle cx="296.00" cy="346.34" r="5" fill="var(--h3)"/><text class="plabel" x="296.00" y="332.34" text-anchor="middle">Fe5H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe10H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.220 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 220 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 6"><title>Fe10H4
+Fe:H = 0.714 / 0.286
+E_form 0.220 eV/atom
+包から 220 meV/atom
+空間群 82 → 1
+原子数 / 候補 14 / 6</title><circle cx="296.00" cy="317.14" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="337.14" text-anchor="middle">Fe10H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe7H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.316 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 316 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 10&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 12"><title>Fe7H3
+Fe:H = 0.700 / 0.300
+E_form 0.316 eV/atom
+包から 316 meV/atom
+空間群 10
+原子数 / 候補 10 / 12</title><circle cx="307.00" cy="292.18" r="5" fill="var(--meta)"/><text class="plabel" x="307.00" y="278.18" text-anchor="middle">Fe7H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe9H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.692 / 0.308&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.303 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 303 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 13 / 6"><title>Fe9H4
+Fe:H = 0.692 / 0.308
+E_form 0.303 eV/atom
+包から 303 meV/atom
+空間群 82
+原子数 / 候補 13 / 6</title><circle cx="312.92" cy="295.48" r="5" fill="var(--meta)"/><text class="plabel" x="312.92" y="281.48" text-anchor="middle">Fe9H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.083 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 83 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 15"><title>Fe2H
+Fe:H = 0.667 / 0.333
+E_form 0.083 eV/atom
+包から 83 meV/atom
+空間群 12 → 123
+原子数 / 候補 3 / 15</title><circle cx="332.67" cy="352.93" r="5" fill="var(--h2)"/><text class="plabel" x="332.67" y="338.93" text-anchor="middle">Fe2H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.101 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 101 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 136&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 18"><title>Fe4H2
+Fe:H = 0.667 / 0.333
+E_form 0.101 eV/atom
+包から 101 meV/atom
+空間群 136
+原子数 / 候補 6 / 18</title><circle cx="332.67" cy="348.19" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="368.19" text-anchor="middle">Fe4H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe6H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.158 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 158 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 10&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Fe6H3
+Fe:H = 0.667 / 0.333
+E_form 0.158 eV/atom
+包から 158 meV/atom
+空間群 10
+原子数 / 候補 9 / 9</title><circle cx="332.67" cy="333.24" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="353.24" text-anchor="middle">Fe6H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe8H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.166 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 166 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 9"><title>Fe8H4
+Fe:H = 0.667 / 0.333
+E_form 0.166 eV/atom
+包から 166 meV/atom
+空間群 82 → 1
+原子数 / 候補 12 / 9</title><circle cx="332.67" cy="331.18" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="351.18" text-anchor="middle">Fe8H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe10H5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.309 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 309 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 15 / 3"><title>Fe10H5
+Fe:H = 0.667 / 0.333
+E_form 0.309 eV/atom
+包から 309 meV/atom
+空間群 82
+原子数 / 候補 15 / 3</title><circle cx="332.67" cy="293.88" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="313.88" text-anchor="middle">Fe10H5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe9H5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.643 / 0.357&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.181 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 181 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 6"><title>Fe9H5
+Fe:H = 0.643 / 0.357
+E_form 0.181 eV/atom
+包から 181 meV/atom
+空間群 162
+原子数 / 候補 14 / 6</title><circle cx="351.00" cy="327.29" r="5" fill="var(--h3)"/><text class="plabel" x="351.00" y="347.29" text-anchor="middle">Fe9H5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe7H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.636 / 0.364&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.307 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 307 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 11 / 3"><title>Fe7H4
+Fe:H = 0.636 / 0.364
+E_form 0.307 eV/atom
+包から 307 meV/atom
+空間群 162
+原子数 / 候補 11 / 3</title><circle cx="356.00" cy="294.48" r="5" fill="var(--meta)"/><text class="plabel" x="356.00" y="280.48" text-anchor="middle">Fe7H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe5H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.094 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 94 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Fe5H3
+Fe:H = 0.625 / 0.375
+E_form 0.094 eV/atom
+包から 94 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="364.75" cy="350.05" r="5" fill="var(--h2)"/><text class="plabel" x="364.75" y="370.05" text-anchor="middle">Fe5H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe8H5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.615 / 0.385&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.326 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 326 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 13 / 3"><title>Fe8H5
+Fe:H = 0.615 / 0.385
+E_form 0.326 eV/atom
+包から 326 meV/atom
+空間群 162
+原子数 / 候補 13 / 3</title><circle cx="372.15" cy="289.33" r="5" fill="var(--meta)"/><text class="plabel" x="372.15" y="309.33" text-anchor="middle">Fe8H5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe6H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.189 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 189 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 12"><title>Fe6H4
+Fe:H = 0.600 / 0.400
+E_form 0.189 eV/atom
+包から 189 meV/atom
+空間群 167
+原子数 / 候補 10 / 12</title><circle cx="384.00" cy="325.30" r="5" fill="var(--h3)"/><text class="plabel" x="384.00" y="345.30" text-anchor="middle">Fe6H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.236 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 236 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>Fe3H2
+Fe:H = 0.600 / 0.400
+E_form 0.236 eV/atom
+包から 236 meV/atom
+空間群 71
+原子数 / 候補 5 / 9</title><circle cx="384.00" cy="313.09" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="333.09" text-anchor="middle">Fe3H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe9H6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.249 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 249 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 15 / 3"><title>Fe9H6
+Fe:H = 0.600 / 0.400
+E_form 0.249 eV/atom
+包から 249 meV/atom
+空間群 162
+原子数 / 候補 15 / 3</title><circle cx="384.00" cy="309.59" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="329.59" text-anchor="middle">Fe9H6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe7H5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.583 / 0.417&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.314 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 314 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 3"><title>Fe7H5
+Fe:H = 0.583 / 0.417
+E_form 0.314 eV/atom
+包から 314 meV/atom
+空間群 162
+原子数 / 候補 12 / 3</title><circle cx="396.83" cy="292.47" r="5" fill="var(--meta)"/><text class="plabel" x="396.83" y="278.47" text-anchor="middle">Fe7H5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe8H6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.065 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 65 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 55 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 6"><title>Fe8H6
+Fe:H = 0.571 / 0.429
+E_form 0.065 eV/atom
+包から 65 meV/atom
+空間群 55 → 123
+原子数 / 候補 14 / 6</title><circle cx="406.00" cy="357.60" r="5" fill="var(--h2)"/><text class="plabel" x="406.00" y="377.60" text-anchor="middle">Fe8H6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.081 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 81 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Fe4H3
+Fe:H = 0.571 / 0.429
+E_form 0.081 eV/atom
+包から 81 meV/atom
+空間群 166
+原子数 / 候補 7 / 9</title><circle cx="406.00" cy="353.60" r="5" fill="var(--h2)"/><text class="plabel" x="406.00" y="373.60" text-anchor="middle">Fe4H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe5H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.063 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 63 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Fe5H4
+Fe:H = 0.556 / 0.444
+E_form 0.063 eV/atom
+包から 63 meV/atom
+空間群 87
+原子数 / 候補 9 / 9</title><circle cx="418.22" cy="358.31" r="5" fill="var(--h2)"/><text class="plabel" x="418.22" y="378.31" text-anchor="middle">Fe5H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.050 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 50 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 136 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 18"><title>Fe2H2
+Fe:H = 0.500 / 0.500
+E_form 0.050 eV/atom
+包から 50 meV/atom
+空間群 136 → 225
+原子数 / 候補 4 / 18</title><circle cx="461.00" cy="361.60" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="347.60" text-anchor="middle">Fe2H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.050 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 50 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 18"><title>FeH
+Fe:H = 0.500 / 0.500
+E_form 0.050 eV/atom
+包から 50 meV/atom
+空間群 225
+原子数 / 候補 2 / 18</title><circle cx="461.00" cy="361.58" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="381.58" text-anchor="middle">FeH</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.050 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 50 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 152 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 12"><title>Fe3H3
+Fe:H = 0.500 / 0.500
+E_form 0.050 eV/atom
+包から 50 meV/atom
+空間群 152 → 166
+原子数 / 候補 6 / 12</title><circle cx="461.00" cy="361.58" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="381.58" text-anchor="middle">Fe3H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.092 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 92 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 62 → 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 15"><title>Fe4H4
+Fe:H = 0.500 / 0.500
+E_form 0.092 eV/atom
+包から 92 meV/atom
+空間群 62 → 63
+原子数 / 候補 8 / 15</title><circle cx="461.00" cy="350.55" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="370.55" text-anchor="middle">Fe4H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe6H6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.204 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 204 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 167 → 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 6"><title>Fe6H6
+Fe:H = 0.500 / 0.500
+E_form 0.204 eV/atom
+包から 204 meV/atom
+空間群 167 → 194
+原子数 / 候補 12 / 6</title><circle cx="461.00" cy="321.35" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="307.35" text-anchor="middle">Fe6H6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe5H5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.232 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 232 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Fe5H5
+Fe:H = 0.500 / 0.500
+E_form 0.232 eV/atom
+包から 232 meV/atom
+空間群 1
+原子数 / 候補 10 / 9</title><circle cx="461.00" cy="313.98" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="333.98" text-anchor="middle">Fe5H5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4H5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.253 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 253 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Fe4H5
+Fe:H = 0.444 / 0.556
+E_form 0.253 eV/atom
+包から 253 meV/atom
+空間群 1
+原子数 / 候補 9 / 9</title><circle cx="503.78" cy="308.47" r="5" fill="var(--meta)"/><text class="plabel" x="503.78" y="294.47" text-anchor="middle">Fe4H5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe6H8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.167 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 167 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 227&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 6"><title>Fe6H8
+Fe:H = 0.429 / 0.571
+E_form 0.167 eV/atom
+包から 167 meV/atom
+空間群 227
+原子数 / 候補 14 / 6</title><circle cx="516.00" cy="330.89" r="5" fill="var(--h3)"/><text class="plabel" x="516.00" y="316.89" text-anchor="middle">Fe6H8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.275 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 275 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Fe3H4
+Fe:H = 0.429 / 0.571
+E_form 0.275 eV/atom
+包から 275 meV/atom
+空間群 65
+原子数 / 候補 7 / 9</title><circle cx="516.00" cy="302.90" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="322.90" text-anchor="middle">Fe3H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2H3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.167 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 167 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>Fe2H3
+Fe:H = 0.400 / 0.600
+E_form 0.167 eV/atom
+包から 167 meV/atom
+空間群 166
+原子数 / 候補 5 / 9</title><circle cx="538.00" cy="330.92" r="5" fill="var(--h3)"/><text class="plabel" x="538.00" y="350.92" text-anchor="middle">Fe2H3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4H6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.187 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 187 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 18"><title>Fe4H6
+Fe:H = 0.400 / 0.600
+E_form 0.187 eV/atom
+包から 187 meV/atom
+空間群 167
+原子数 / 候補 10 / 18</title><circle cx="538.00" cy="325.82" r="5" fill="var(--h3)"/><text class="plabel" x="538.00" y="345.82" text-anchor="middle">Fe4H6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3H5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.221 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 221 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Fe3H5
+Fe:H = 0.375 / 0.625
+E_form 0.221 eV/atom
+包から 221 meV/atom
+空間群 1
+原子数 / 候補 8 / 9</title><circle cx="557.25" cy="316.83" r="5" fill="var(--meta)"/><text class="plabel" x="557.25" y="302.83" text-anchor="middle">Fe3H5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.088 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 88 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 15"><title>FeH2
+Fe:H = 0.333 / 0.667
+E_form 0.088 eV/atom
+包から 88 meV/atom
+空間群 225
+原子数 / 候補 3 / 15</title><circle cx="589.33" cy="351.75" r="5" fill="var(--h2)"/><text class="plabel" x="589.33" y="337.75" text-anchor="middle">FeH2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.088 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 88 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 167 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 18"><title>Fe2H4
+Fe:H = 0.333 / 0.667
+E_form 0.088 eV/atom
+包から 88 meV/atom
+空間群 167 → 166
+原子数 / 候補 6 / 18</title><circle cx="589.33" cy="351.54" r="5" fill="var(--h2)"/><text class="plabel" x="589.33" y="371.54" text-anchor="middle">Fe2H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4H8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.149 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 149 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 227&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 9"><title>Fe4H8
+Fe:H = 0.333 / 0.667
+E_form 0.149 eV/atom
+包から 149 meV/atom
+空間群 227
+原子数 / 候補 12 / 9</title><circle cx="589.33" cy="335.81" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="355.81" text-anchor="middle">Fe4H8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3H6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.169 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 169 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Fe3H6
+Fe:H = 0.333 / 0.667
+E_form 0.169 eV/atom
+包から 169 meV/atom
+空間群 1 → 2
+原子数 / 候補 9 / 9</title><circle cx="589.33" cy="330.50" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="350.50" text-anchor="middle">Fe3H6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3H7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.299 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 299 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 10 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Fe3H7
+Fe:H = 0.300 / 0.700
+E_form 0.299 eV/atom
+包から 299 meV/atom
+空間群 10 → 1
+原子数 / 候補 10 / 9</title><circle cx="615.00" cy="296.42" r="5" fill="var(--meta)"/><text class="plabel" x="615.00" y="282.42" text-anchor="middle">Fe3H7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2H5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.235 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 235 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Fe2H5
+Fe:H = 0.286 / 0.714
+E_form 0.235 eV/atom
+包から 235 meV/atom
+空間群 148 → 166
+原子数 / 候補 7 / 9</title><circle cx="626.00" cy="313.22" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="299.22" text-anchor="middle">Fe2H5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4H10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.324 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 324 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 227&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 6"><title>Fe4H10
+Fe:H = 0.286 / 0.714
+E_form 0.324 eV/atom
+包から 324 meV/atom
+空間群 227
+原子数 / 候補 14 / 6</title><circle cx="626.00" cy="289.91" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="309.91" text-anchor="middle">Fe4H10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2H6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.217 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 217 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 72 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 18"><title>Fe2H6
+Fe:H = 0.250 / 0.750
+E_form 0.217 eV/atom
+包から 217 meV/atom
+空間群 72 → 65
+原子数 / 候補 8 / 18</title><circle cx="653.50" cy="318.01" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="338.01" text-anchor="middle">Fe2H6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.328 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 328 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 18"><title>FeH3
+Fe:H = 0.250 / 0.750
+E_form 0.328 eV/atom
+包から 328 meV/atom
+空間群 221
+原子数 / 候補 4 / 18</title><circle cx="653.50" cy="288.84" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="308.84" text-anchor="middle">FeH3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2H7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.277 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 277 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 15"><title>Fe2H7
+Fe:H = 0.222 / 0.778
+E_form 0.277 eV/atom
+包から 277 meV/atom
+空間群 8
+原子数 / 候補 9 / 15</title><circle cx="674.89" cy="302.17" r="5" fill="var(--meta)"/><text class="plabel" x="674.89" y="322.17" text-anchor="middle">Fe2H7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2H8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.186 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 186 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 18"><title>Fe2H8
+Fe:H = 0.200 / 0.800
+E_form 0.186 eV/atom
+包から 186 meV/atom
+空間群 1
+原子数 / 候補 10 / 18</title><circle cx="692.00" cy="326.00" r="5" fill="var(--h3)"/><text class="plabel" x="692.00" y="346.00" text-anchor="middle">Fe2H8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.330 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 330 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 15"><title>FeH4
+Fe:H = 0.200 / 0.800
+E_form 0.330 eV/atom
+包から 330 meV/atom
+空間群 229
+原子数 / 候補 5 / 15</title><circle cx="692.00" cy="288.42" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="274.42" text-anchor="middle">FeH4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2H9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.182 / 0.818&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.355 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 355 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 11 / 6"><title>Fe2H9
+Fe:H = 0.182 / 0.818
+E_form 0.355 eV/atom
+包から 355 meV/atom
+空間群 1
+原子数 / 候補 11 / 6</title><circle cx="706.00" cy="281.96" r="5" fill="var(--meta)"/><text class="plabel" x="706.00" y="301.96" text-anchor="middle">Fe2H9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2H10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.177 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 177 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 9"><title>Fe2H10
+Fe:H = 0.167 / 0.833
+E_form 0.177 eV/atom
+包から 177 meV/atom
+空間群 1
+原子数 / 候補 12 / 9</title><circle cx="717.67" cy="328.49" r="5" fill="var(--h3)"/><text class="plabel" x="717.67" y="314.49" text-anchor="middle">Fe2H10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.292 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 292 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 12"><title>FeH5
+Fe:H = 0.167 / 0.833
+E_form 0.292 eV/atom
+包から 292 meV/atom
+空間群 1
+原子数 / 候補 6 / 12</title><circle cx="717.67" cy="298.33" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="318.33" text-anchor="middle">FeH5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2H11&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.154 / 0.846&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.208 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 208 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 13 / 6"><title>Fe2H11
+Fe:H = 0.154 / 0.846
+E_form 0.208 eV/atom
+包から 208 meV/atom
+空間群 1
+原子数 / 候補 13 / 6</title><circle cx="727.54" cy="320.36" r="5" fill="var(--meta)"/><text class="plabel" x="727.54" y="340.36" text-anchor="middle">Fe2H11</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2H12&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.180 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 180 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 9"><title>Fe2H12
+Fe:H = 0.143 / 0.857
+E_form 0.180 eV/atom
+包から 180 meV/atom
+空間群 1
+原子数 / 候補 14 / 9</title><circle cx="736.00" cy="327.57" r="5" fill="var(--h3)"/><text class="plabel" x="736.00" y="347.57" text-anchor="middle">Fe2H12</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.261 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 261 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 18"><title>FeH6
+Fe:H = 0.143 / 0.857
+E_form 0.261 eV/atom
+包から 261 meV/atom
+空間群 82 → 1
+原子数 / 候補 7 / 18</title><circle cx="736.00" cy="306.40" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="326.40" text-anchor="middle">FeH6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2H13&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.133 / 0.867&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.191 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 191 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 15 / 6"><title>Fe2H13
+Fe:H = 0.133 / 0.867
+E_form 0.191 eV/atom
+包から 191 meV/atom
+空間群 1
+原子数 / 候補 15 / 6</title><circle cx="743.33" cy="324.75" r="5" fill="var(--h3)"/><text class="plabel" x="743.33" y="344.75" text-anchor="middle">Fe2H13</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.220 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 220 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 18"><title>FeH7
+Fe:H = 0.125 / 0.875
+E_form 0.220 eV/atom
+包から 220 meV/atom
+空間群 1
+原子数 / 候補 8 / 18</title><circle cx="749.75" cy="317.25" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="337.25" text-anchor="middle">FeH7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.298 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 298 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 18"><title>FeH8
+Fe:H = 0.111 / 0.889
+E_form 0.298 eV/atom
+包から 298 meV/atom
+空間群 1
+原子数 / 候補 9 / 18</title><circle cx="760.44" cy="296.68" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="282.68" text-anchor="middle">FeH8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.223 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 223 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 18"><title>FeH9
+Fe:H = 0.100 / 0.900
+E_form 0.223 eV/atom
+包から 223 meV/atom
+空間群 87 → 1
+原子数 / 候補 10 / 18</title><circle cx="769.00" cy="316.33" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="336.33" text-anchor="middle">FeH9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.091 / 0.909&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.247 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 247 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 11 / 9"><title>FeH10
+Fe:H = 0.091 / 0.909
+E_form 0.247 eV/atom
+包から 247 meV/atom
+空間群 1
+原子数 / 候補 11 / 9</title><circle cx="776.00" cy="310.14" r="5" fill="var(--meta)"/><text class="plabel" x="776.00" y="296.14" text-anchor="middle">FeH10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH11&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.083 / 0.917&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.193 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 193 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 9"><title>FeH11
+Fe:H = 0.083 / 0.917
+E_form 0.193 eV/atom
+包から 193 meV/atom
+空間群 1
+原子数 / 候補 12 / 9</title><circle cx="781.83" cy="324.25" r="5" fill="var(--h3)"/><text class="plabel" x="781.83" y="344.25" text-anchor="middle">FeH11</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH12&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.077 / 0.923&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.196 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 196 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 13 / 9"><title>FeH12
+Fe:H = 0.077 / 0.923
+E_form 0.196 eV/atom
+包から 196 meV/atom
+空間群 1
+原子数 / 候補 13 / 9</title><circle cx="786.77" cy="323.34" r="5" fill="var(--h3)"/><text class="plabel" x="786.77" y="343.34" text-anchor="middle">FeH12</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH13&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.071 / 0.929&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.198 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 198 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 9"><title>FeH13
+Fe:H = 0.071 / 0.929
+E_form 0.198 eV/atom
+包から 198 meV/atom
+空間群 1
+原子数 / 候補 14 / 9</title><circle cx="791.00" cy="322.92" r="5" fill="var(--h3)"/><text class="plabel" x="791.00" y="342.92" text-anchor="middle">FeH13</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeH14&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.067 / 0.933&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.211 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 211 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 15 / 9"><title>FeH14
+Fe:H = 0.067 / 0.933
+E_form 0.211 eV/atom
+包から 211 meV/atom
+空間群 1
+原子数 / 候補 15 / 9</title><circle cx="794.67" cy="319.42" r="5" fill="var(--meta)"/><text class="plabel" x="794.67" y="305.42" text-anchor="middle">FeH14</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 43 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>H10
+Fe:H = 0.000 / 1.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 43 → 1
+原子数 / 候補 10 / 6</title><circle cx="846.00" cy="374.04" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="360.04" text-anchor="middle">H10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H12&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 14 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 9"><title>H12
+Fe:H = 0.000 / 1.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 14 → 1
+原子数 / 候補 12 / 9</title><circle cx="846.00" cy="373.99" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="393.99" text-anchor="middle">H12</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.007 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 7 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 43 → 70&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>H4
+Fe:H = 0.000 / 1.000
+E_form 0.007 eV/atom
+包から 7 meV/atom
+空間群 43 → 70
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="372.76" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="392.76" text-anchor="middle">H4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.015 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 15 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 43 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>H6
+Fe:H = 0.000 / 1.000
+E_form 0.015 eV/atom
+包から 15 meV/atom
+空間群 43 → 1
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="370.80" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="390.80" text-anchor="middle">H6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H14&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.307 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 307 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 14 → 7&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 3"><title>H14
+Fe:H = 0.000 / 1.000
+E_form 0.307 eV/atom
+包から 307 meV/atom
+空間群 14 → 7
+原子数 / 候補 14 / 3</title><circle cx="846.00" cy="294.43" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="280.43" text-anchor="middle">H14</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.332 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 332 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>H
+Fe:H = 0.000 / 1.000
+E_form 0.332 eV/atom
+包から 332 meV/atom
+空間群 123
+原子数 / 候補 1 / 6</title><circle cx="846.00" cy="287.95" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="307.95" text-anchor="middle">H</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.369 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 369 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>H2
+Fe:H = 0.000 / 1.000
+E_form 0.369 eV/atom
+包から 369 meV/atom
+空間群 194
+原子数 / 候補 2 / 9</title><circle cx="846.00" cy="278.15" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="298.15" text-anchor="middle">H2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 3"><title>Fe
+Fe:H = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 229
+原子数 / 候補 1 / 3</title><circle cx="76.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="360.65" text-anchor="middle">Fe</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;H8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:H&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 43&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>H8
+Fe:H = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 43
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="394.65" text-anchor="middle">H8</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Fe</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">H8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">H10</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">H12</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">H4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">7 meV</span></li>
+<li class="bar-row"><span class="bar-name">H6</span><span class="bar-track"><span class="bar-fill" style="width:1.23%;background:var(--h1)"></span></span><span class="bar-val">15 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2H2</span><span class="bar-track"><span class="bar-fill" style="width:4.19%;background:var(--h1)"></span></span><span class="bar-val">50 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH</span><span class="bar-track"><span class="bar-fill" style="width:4.20%;background:var(--h2)"></span></span><span class="bar-val">50 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3H3</span><span class="bar-track"><span class="bar-fill" style="width:4.20%;background:var(--h2)"></span></span><span class="bar-val">50 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe5H4</span><span class="bar-track"><span class="bar-fill" style="width:5.25%;background:var(--h2)"></span></span><span class="bar-val">63 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe8H6</span><span class="bar-track"><span class="bar-fill" style="width:5.47%;background:var(--h2)"></span></span><span class="bar-val">65 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4H3</span><span class="bar-track"><span class="bar-fill" style="width:6.76%;background:var(--h2)"></span></span><span class="bar-val">81 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2H</span><span class="bar-track"><span class="bar-fill" style="width:6.98%;background:var(--h2)"></span></span><span class="bar-val">83 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe8H</span><span class="bar-track"><span class="bar-fill" style="width:6.99%;background:var(--h2)"></span></span><span class="bar-val">83 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH2</span><span class="bar-track"><span class="bar-fill" style="width:7.36%;background:var(--h2)"></span></span><span class="bar-val">88 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2H4</span><span class="bar-track"><span class="bar-fill" style="width:7.42%;background:var(--h2)"></span></span><span class="bar-val">88 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4H4</span><span class="bar-track"><span class="bar-fill" style="width:7.74%;background:var(--h2)"></span></span><span class="bar-val">92 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe5H3</span><span class="bar-track"><span class="bar-fill" style="width:7.90%;background:var(--h2)"></span></span><span class="bar-val">94 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4H2</span><span class="bar-track"><span class="bar-fill" style="width:8.50%;background:var(--h3)"></span></span><span class="bar-val">101 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe5H2</span><span class="bar-track"><span class="bar-fill" style="width:9.09%;background:var(--h3)"></span></span><span class="bar-val">108 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3H</span><span class="bar-track"><span class="bar-fill" style="width:9.14%;background:var(--h3)"></span></span><span class="bar-val">109 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe6H2</span><span class="bar-track"><span class="bar-fill" style="width:9.26%;background:var(--h3)"></span></span><span class="bar-val">110 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe8H3</span><span class="bar-track"><span class="bar-fill" style="width:9.40%;background:var(--h3)"></span></span><span class="bar-val">112 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4H</span><span class="bar-track"><span class="bar-fill" style="width:9.61%;background:var(--h3)"></span></span><span class="bar-val">114 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe8H2</span><span class="bar-track"><span class="bar-fill" style="width:9.63%;background:var(--h3)"></span></span><span class="bar-val">115 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe9H3</span><span class="bar-track"><span class="bar-fill" style="width:9.82%;background:var(--h3)"></span></span><span class="bar-val">117 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe5H</span><span class="bar-track"><span class="bar-fill" style="width:10.23%;background:var(--h3)"></span></span><span class="bar-val">122 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe15</span><span class="bar-track"><span class="bar-fill" style="width:10.55%;background:var(--h3)"></span></span><span class="bar-val">126 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe6H</span><span class="bar-track"><span class="bar-fill" style="width:10.64%;background:var(--h3)"></span></span><span class="bar-val">127 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe9H2</span><span class="bar-track"><span class="bar-fill" style="width:11.10%;background:var(--h3)"></span></span><span class="bar-val">132 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2</span><span class="bar-track"><span class="bar-fill" style="width:11.75%;background:var(--h3)"></span></span><span class="bar-val">140 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe8</span><span class="bar-track"><span class="bar-fill" style="width:11.75%;background:var(--h3)"></span></span><span class="bar-val">140 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe10H</span><span class="bar-track"><span class="bar-fill" style="width:11.90%;background:var(--h3)"></span></span><span class="bar-val">142 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4H8</span><span class="bar-track"><span class="bar-fill" style="width:12.48%;background:var(--h3)"></span></span><span class="bar-val">149 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe14H</span><span class="bar-track"><span class="bar-fill" style="width:12.76%;background:var(--h3)"></span></span><span class="bar-val">152 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe6H3</span><span class="bar-track"><span class="bar-fill" style="width:13.30%;background:var(--h3)"></span></span><span class="bar-val">158 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe8H4</span><span class="bar-track"><span class="bar-fill" style="width:13.96%;background:var(--h3)"></span></span><span class="bar-val">166 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2H3</span><span class="bar-track"><span class="bar-fill" style="width:14.05%;background:var(--h3)"></span></span><span class="bar-val">167 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe6H8</span><span class="bar-track"><span class="bar-fill" style="width:14.06%;background:var(--h3)"></span></span><span class="bar-val">167 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3H6</span><span class="bar-track"><span class="bar-fill" style="width:14.18%;background:var(--h3)"></span></span><span class="bar-val">169 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe12H2</span><span class="bar-track"><span class="bar-fill" style="width:14.62%;background:var(--h3)"></span></span><span class="bar-val">174 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2H10</span><span class="bar-track"><span class="bar-fill" style="width:14.83%;background:var(--h3)"></span></span><span class="bar-val">177 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe6</span><span class="bar-track"><span class="bar-fill" style="width:14.89%;background:var(--h3)"></span></span><span class="bar-val">177 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2H12</span><span class="bar-track"><span class="bar-fill" style="width:15.12%;background:var(--h3)"></span></span><span class="bar-val">180 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe9H5</span><span class="bar-track"><span class="bar-fill" style="width:15.21%;background:var(--h3)"></span></span><span class="bar-val">181 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe7H</span><span class="bar-track"><span class="bar-fill" style="width:15.26%;background:var(--h3)"></span></span><span class="bar-val">182 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2H8</span><span class="bar-track"><span class="bar-fill" style="width:15.63%;background:var(--h3)"></span></span><span class="bar-val">186 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4H6</span><span class="bar-track"><span class="bar-fill" style="width:15.68%;background:var(--h3)"></span></span><span class="bar-val">187 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe6H4</span><span class="bar-track"><span class="bar-fill" style="width:15.85%;background:var(--h3)"></span></span><span class="bar-val">189 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe9H</span><span class="bar-track"><span class="bar-fill" style="width:15.89%;background:var(--h3)"></span></span><span class="bar-val">189 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2H13</span><span class="bar-track"><span class="bar-fill" style="width:16.03%;background:var(--h3)"></span></span><span class="bar-val">191 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH11</span><span class="bar-track"><span class="bar-fill" style="width:16.19%;background:var(--h3)"></span></span><span class="bar-val">193 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe12H</span><span class="bar-track"><span class="bar-fill" style="width:16.39%;background:var(--h3)"></span></span><span class="bar-val">195 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH12</span><span class="bar-track"><span class="bar-fill" style="width:16.48%;background:var(--h3)"></span></span><span class="bar-val">196 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH13</span><span class="bar-track"><span class="bar-fill" style="width:16.62%;background:var(--h3)"></span></span><span class="bar-val">198 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe6H6</span><span class="bar-track"><span class="bar-fill" style="width:17.12%;background:var(--meta)"></span></span><span class="bar-val">204 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2H11</span><span class="bar-track"><span class="bar-fill" style="width:17.44%;background:var(--meta)"></span></span><span class="bar-val">208 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe13H2</span><span class="bar-track"><span class="bar-fill" style="width:17.62%;background:var(--meta)"></span></span><span class="bar-val">210 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe10H3</span><span class="bar-track"><span class="bar-fill" style="width:17.72%;background:var(--meta)"></span></span><span class="bar-val">211 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH14</span><span class="bar-track"><span class="bar-fill" style="width:17.74%;background:var(--meta)"></span></span><span class="bar-val">211 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2H6</span><span class="bar-track"><span class="bar-fill" style="width:18.19%;background:var(--meta)"></span></span><span class="bar-val">217 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH7</span><span class="bar-track"><span class="bar-fill" style="width:18.44%;background:var(--meta)"></span></span><span class="bar-val">220 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe11H</span><span class="bar-track"><span class="bar-fill" style="width:18.46%;background:var(--meta)"></span></span><span class="bar-val">220 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe10H4</span><span class="bar-track"><span class="bar-fill" style="width:18.47%;background:var(--meta)"></span></span><span class="bar-val">220 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3H5</span><span class="bar-track"><span class="bar-fill" style="width:18.57%;background:var(--meta)"></span></span><span class="bar-val">221 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH9</span><span class="bar-track"><span class="bar-fill" style="width:18.73%;background:var(--meta)"></span></span><span class="bar-val">223 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe5H5</span><span class="bar-track"><span class="bar-fill" style="width:19.49%;background:var(--meta)"></span></span><span class="bar-val">232 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2H5</span><span class="bar-track"><span class="bar-fill" style="width:19.73%;background:var(--meta)"></span></span><span class="bar-val">235 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3H2</span><span class="bar-track"><span class="bar-fill" style="width:19.77%;background:var(--meta)"></span></span><span class="bar-val">236 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe12H3</span><span class="bar-track"><span class="bar-fill" style="width:20.22%;background:var(--meta)"></span></span><span class="bar-val">241 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH10</span><span class="bar-track"><span class="bar-fill" style="width:20.72%;background:var(--meta)"></span></span><span class="bar-val">247 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe9H6</span><span class="bar-track"><span class="bar-fill" style="width:20.90%;background:var(--meta)"></span></span><span class="bar-val">249 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4H5</span><span class="bar-track"><span class="bar-fill" style="width:21.26%;background:var(--meta)"></span></span><span class="bar-val">253 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH6</span><span class="bar-track"><span class="bar-fill" style="width:21.92%;background:var(--meta)"></span></span><span class="bar-val">261 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe7H2</span><span class="bar-track"><span class="bar-fill" style="width:21.96%;background:var(--meta)"></span></span><span class="bar-val">262 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe14</span><span class="bar-track"><span class="bar-fill" style="width:22.83%;background:var(--meta)"></span></span><span class="bar-val">272 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3H4</span><span class="bar-track"><span class="bar-fill" style="width:23.05%;background:var(--meta)"></span></span><span class="bar-val">275 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2H7</span><span class="bar-track"><span class="bar-fill" style="width:23.28%;background:var(--meta)"></span></span><span class="bar-val">277 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH5</span><span class="bar-track"><span class="bar-fill" style="width:24.52%;background:var(--meta)"></span></span><span class="bar-val">292 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH8</span><span class="bar-track"><span class="bar-fill" style="width:25.05%;background:var(--meta)"></span></span><span class="bar-val">298 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3H7</span><span class="bar-track"><span class="bar-fill" style="width:25.13%;background:var(--meta)"></span></span><span class="bar-val">299 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe9H4</span><span class="bar-track"><span class="bar-fill" style="width:25.43%;background:var(--meta)"></span></span><span class="bar-val">303 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe7H4</span><span class="bar-track"><span class="bar-fill" style="width:25.75%;background:var(--meta)"></span></span><span class="bar-val">307 meV</span></li>
+<li class="bar-row"><span class="bar-name">H14</span><span class="bar-track"><span class="bar-fill" style="width:25.77%;background:var(--meta)"></span></span><span class="bar-val">307 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe10H5</span><span class="bar-track"><span class="bar-fill" style="width:25.94%;background:var(--meta)"></span></span><span class="bar-val">309 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe7H5</span><span class="bar-track"><span class="bar-fill" style="width:26.40%;background:var(--meta)"></span></span><span class="bar-val">314 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe7H3</span><span class="bar-track"><span class="bar-fill" style="width:26.49%;background:var(--meta)"></span></span><span class="bar-val">316 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe13H</span><span class="bar-track"><span class="bar-fill" style="width:26.63%;background:var(--meta)"></span></span><span class="bar-val">317 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe10H2</span><span class="bar-track"><span class="bar-fill" style="width:26.83%;background:var(--meta)"></span></span><span class="bar-val">320 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4H10</span><span class="bar-track"><span class="bar-fill" style="width:27.22%;background:var(--meta)"></span></span><span class="bar-val">324 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe8H5</span><span class="bar-track"><span class="bar-fill" style="width:27.41%;background:var(--meta)"></span></span><span class="bar-val">326 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH3</span><span class="bar-track"><span class="bar-fill" style="width:27.57%;background:var(--meta)"></span></span><span class="bar-val">328 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeH4</span><span class="bar-track"><span class="bar-fill" style="width:27.70%;background:var(--meta)"></span></span><span class="bar-val">330 meV</span></li>
+<li class="bar-row"><span class="bar-name">H</span><span class="bar-track"><span class="bar-fill" style="width:27.85%;background:var(--meta)"></span></span><span class="bar-val">332 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe11H2</span><span class="bar-track"><span class="bar-fill" style="width:29.63%;background:var(--meta)"></span></span><span class="bar-val">353 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2H9</span><span class="bar-track"><span class="bar-fill" style="width:29.77%;background:var(--meta)"></span></span><span class="bar-val">355 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe11H4</span><span class="bar-track"><span class="bar-fill" style="width:30.50%;background:var(--meta)"></span></span><span class="bar-val">363 meV</span></li>
+<li class="bar-row"><span class="bar-name">H2</span><span class="bar-track"><span class="bar-fill" style="width:31.00%;background:var(--meta)"></span></span><span class="bar-val">369 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe11H3</span><span class="bar-track"><span class="bar-fill" style="width:33.06%;background:var(--meta)"></span></span><span class="bar-val">394 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe12</span><span class="bar-track"><span class="bar-fill" style="width:37.80%;background:var(--meta)"></span></span><span class="bar-val">450 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe10</span><span class="bar-track"><span class="bar-fill" style="width:54.67%;background:var(--meta)"></span></span><span class="bar-val">651 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe11</span><span class="bar-track"><span class="bar-fill" style="width:57.72%;background:var(--meta)"></span></span><span class="bar-val">688 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3</span><span class="bar-track"><span class="bar-fill" style="width:59.00%;background:var(--meta)"></span></span><span class="bar-val">703 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4</span><span class="bar-track"><span class="bar-fill" style="width:59.28%;background:var(--meta)"></span></span><span class="bar-val">706 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe9</span><span class="bar-track"><span class="bar-fill" style="width:68.14%;background:var(--meta)"></span></span><span class="bar-val">812 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe7</span><span class="bar-track"><span class="bar-fill" style="width:74.45%;background:var(--meta)"></span></span><span class="bar-val">887 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe5</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">1191 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 2 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Fe</th><th>H</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Fe <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>229</td><td>1</td></tr>
+<tr class="stable"><td class="name">H8 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>43</td><td>8</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点が信用できるか</h3><p><b>基準を割り引いて読むもの</b><br><b>H</b>：検出 123（1 原子）。8 原子の Fdd2 (43) が基準になった。分子性固体としては近似であり、H を含む系の深さは大きく割り引いて読む。<br><b>H</b>：検出 1（10 原子）。8 原子の Fdd2 (43) が基準になった。分子性固体としては近似であり、H を含む系の深さは大きく割り引いて読む。<br><b>H</b>：検出 1（12 原子）。8 原子の Fdd2 (43) が基準になった。分子性固体としては近似であり、H を含む系の深さは大きく割り引いて読む。<br><b>H</b>：検出 7（14 原子）。8 原子の Fdd2 (43) が基準になった。分子性固体としては近似であり、H を含む系の深さは大きく割り引いて読む。<br><b>H</b>：検出 194（2 原子）。8 原子の Fdd2 (43) が基準になった。分子性固体としては近似であり、H を含む系の深さは大きく割り引いて読む。<br><b>H</b>：検出 70（4 原子）。8 原子の Fdd2 (43) が基準になった。分子性固体としては近似であり、H を含む系の深さは大きく割り引いて読む。<br><b>H</b>：検出 1（6 原子）。8 原子の Fdd2 (43) が基準になった。分子性固体としては近似であり、H を含む系の深さは大きく割り引いて読む。<br><b>H</b>：検出 43（8 原子）。8 原子の Fdd2 (43) が基準になった。分子性固体としては近似であり、H を含む系の深さは大きく割り引いて読む。<br><br>実在相に当たったもの<br><b>Fe</b>：検出 229（1 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 194（10 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 221（11 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 194（12 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 229（14 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 221（15 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 194（2 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 221（3 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 194（4 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 221（5 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 191（6 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 221（7 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 194（8 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 221（9 原子）。体心立方に当たった（α-Fe）。<br><br>端点が実在相より高いと、生成エネルギーは深く出る。上の元素を含む相の深さはその分だけ割り引く。</p></div><div class="note"><h3>穴</h3><p>撒いたはずの 65 組成のうち <b>4 組成で構造が 1 件も出なかった</b>（H3、H5、H7、H9）。これは「そこに相が無い」ではなく「<b>その組成では全空間群で Wyckoff 配置が作れなかった</b>」である。図の余白をそのまま相の不在と読まないこと。</p></div><div class="note"><h3>H の刻み方</h3><p>H を含む組成は<b>奇数個の H を探索していない</b>（既定の方針）。H 側の刻みが粗いので、H 濃度の高い側のタイラインは荒い。また H の端点は分子性固体の近似なので、水素化物の深さは大きく割り引く。</p></div><div class="note"><h3>どの三元の辺か</h3><p>この 2 元系は <b>Fe-H-Pd、Fe-H-Pt</b> の辺である。三角図の対応する縁と突き合わせて読むこと。</p></div><div class="note"><h3>分解能</h3><p>数十 meV/atom の差はこの手法の分解能に近い。「包に載った／載らない」を 10 meV 差で言い切らないこと。また探索は 10 原子以下の基本胞に限っているので、それより大きい胞でしか組めない実在相には届かない。</p></div></section>
+ <footer><span>aiida-shotgun-csp 6.24.0</span><span>sweep = fehpdpt-edges</span><span>stage = relaxed / 2026-09-11</span><span>spg_ranks = [1,2,3]</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

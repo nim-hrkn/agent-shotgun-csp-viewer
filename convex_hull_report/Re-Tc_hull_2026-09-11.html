@@ -1,0 +1,591 @@
+<title>Re–Tc 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Re–Tc 相図</h1>
+  <p class="lede">Re–Tc を 53 組成分の緩和構造で評価した。<b>下側凸包に載った化合物は 1 つも無い</b>（端点のみで包が閉じる）。この範囲では中間相を作らない、と読める。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>53</dd></div><div class="fact"><dt>凸包上</dt><dd>2</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>3</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Tc の原子分率。縦軸は端点（Re, Tc）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Re–Tc 相図">
+<line class="grid-line" x1="76" x2="846" y1="411.79" y2="411.79"/>
+<text class="tick-text" x="64" y="415.79" text-anchor="end">-0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<text class="tick-text" x="64" y="378.65" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="337.50" y2="337.50"/>
+<text class="tick-text" x="64" y="341.50" text-anchor="end">0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="300.35" y2="300.35"/>
+<text class="tick-text" x="64" y="304.35" text-anchor="end">0.20</text>
+<line class="grid-line" x1="76" x2="846" y1="263.20" y2="263.20"/>
+<text class="tick-text" x="64" y="267.20" text-anchor="end">0.30</text>
+<line class="grid-line" x1="76" x2="846" y1="226.06" y2="226.06"/>
+<text class="tick-text" x="64" y="230.06" text-anchor="end">0.40</text>
+<line class="grid-line" x1="76" x2="846" y1="188.91" y2="188.91"/>
+<text class="tick-text" x="64" y="192.91" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="151.76" y2="151.76"/>
+<text class="tick-text" x="64" y="155.76" text-anchor="end">0.60</text>
+<line class="grid-line" x1="76" x2="846" y1="114.62" y2="114.62"/>
+<text class="tick-text" x="64" y="118.62" text-anchor="end">0.70</text>
+<line class="grid-line" x1="76" x2="846" y1="77.47" y2="77.47"/>
+<text class="tick-text" x="64" y="81.47" text-anchor="end">0.80</text>
+<line class="grid-line" x1="76" x2="846" y1="40.32" y2="40.32"/>
+<text class="tick-text" x="64" y="44.32" text-anchor="end">0.90</text>
+<line class="axis-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Re</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Tc</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Tc の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,374.65 846.00,374.65"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.052 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 52 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>Re
+Re:Tc = 1.000 / 0.000
+E_form 0.052 eV/atom
+包から 52 meV/atom
+空間群 225
+原子数 / 候補 1 / 9</title><circle cx="76.00" cy="355.29" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="341.29" text-anchor="middle">Re</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.052 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 52 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 11 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 4"><title>Re8
+Re:Tc = 1.000 / 0.000
+E_form 0.052 eV/atom
+包から 52 meV/atom
+空間群 11 → 69
+原子数 / 候補 8 / 4</title><circle cx="76.00" cy="355.18" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="375.18" text-anchor="middle">Re8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.411 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 411 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 51 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 5"><title>Re10
+Re:Tc = 1.000 / 0.000
+E_form 0.411 eV/atom
+包から 411 meV/atom
+空間群 51 → 65
+原子数 / 候補 10 / 5</title><circle cx="76.00" cy="221.90" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="207.90" text-anchor="middle">Re10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.711 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 711 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 1"><title>Re6
+Re:Tc = 1.000 / 0.000
+E_form 0.711 eV/atom
+包から 711 meV/atom
+空間群 12
+原子数 / 候補 6 / 1</title><circle cx="76.00" cy="110.49" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="96.49" text-anchor="middle">Re6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re9Tc&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.054 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 54 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Re9Tc
+Re:Tc = 0.900 / 0.100
+E_form 0.054 eV/atom
+包から 54 meV/atom
+空間群 2
+原子数 / 候補 10 / 6</title><circle cx="153.00" cy="354.51" r="5" fill="var(--h2)"/><text class="plabel" x="153.00" y="340.51" text-anchor="middle">Re9Tc</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re8Tc&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.257 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 257 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Re8Tc
+Re:Tc = 0.889 / 0.111
+E_form 0.257 eV/atom
+包から 257 meV/atom
+空間群 2 → 12
+原子数 / 候補 9 / 6</title><circle cx="161.56" cy="279.36" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="265.36" text-anchor="middle">Re8Tc</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re7Tc&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.271 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 271 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Re7Tc
+Re:Tc = 0.875 / 0.125
+E_form 0.271 eV/atom
+包から 271 meV/atom
+空間群 217
+原子数 / 候補 8 / 6</title><circle cx="172.25" cy="273.90" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="293.90" text-anchor="middle">Re7Tc</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re6Tc&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.772 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 772 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 1"><title>Re6Tc
+Re:Tc = 0.857 / 0.143
+E_form 0.772 eV/atom
+包から 772 meV/atom
+空間群 139
+原子数 / 候補 7 / 1</title><circle cx="186.00" cy="87.83" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="73.83" text-anchor="middle">Re6Tc</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re5Tc&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.102 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 102 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 44 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Re5Tc
+Re:Tc = 0.833 / 0.167
+E_form 0.102 eV/atom
+包から 102 meV/atom
+空間群 44 → 11
+原子数 / 候補 6 / 6</title><circle cx="204.33" cy="336.61" r="5" fill="var(--h3)"/><text class="plabel" x="204.33" y="322.61" text-anchor="middle">Re5Tc</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re8Tc2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.057 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 57 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 10&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Re8Tc2
+Re:Tc = 0.800 / 0.200
+E_form 0.057 eV/atom
+包から 57 meV/atom
+空間群 2 → 10
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="353.47" r="5" fill="var(--h2)"/><text class="plabel" x="230.00" y="339.47" text-anchor="middle">Re8Tc2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re7Tc2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.075 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 75 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Re7Tc2
+Re:Tc = 0.778 / 0.222
+E_form 0.075 eV/atom
+包から 75 meV/atom
+空間群 2
+原子数 / 候補 9 / 9</title><circle cx="247.11" cy="346.90" r="5" fill="var(--h2)"/><text class="plabel" x="247.11" y="366.90" text-anchor="middle">Re7Tc2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re6Tc2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.060 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 60 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 7"><title>Re6Tc2
+Re:Tc = 0.750 / 0.250
+E_form 0.060 eV/atom
+包から 60 meV/atom
+空間群 225 → 221
+原子数 / 候補 8 / 7</title><circle cx="268.50" cy="352.32" r="5" fill="var(--h2)"/><text class="plabel" x="268.50" y="372.32" text-anchor="middle">Re6Tc2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re5Tc2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.442 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 442 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 121&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 7"><title>Re5Tc2
+Re:Tc = 0.714 / 0.286
+E_form 0.442 eV/atom
+包から 442 meV/atom
+空間群 121
+原子数 / 候補 7 / 7</title><circle cx="296.00" cy="210.38" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="196.38" text-anchor="middle">Re5Tc2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re7Tc3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.189 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 189 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 5"><title>Re7Tc3
+Re:Tc = 0.700 / 0.300
+E_form 0.189 eV/atom
+包から 189 meV/atom
+空間群 2 → 1
+原子数 / 候補 10 / 5</title><circle cx="307.00" cy="304.29" r="5" fill="var(--h3)"/><text class="plabel" x="307.00" y="290.29" text-anchor="middle">Re7Tc3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re4Tc2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.130 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 130 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 51 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 8"><title>Re4Tc2
+Re:Tc = 0.667 / 0.333
+E_form 0.130 eV/atom
+包から 130 meV/atom
+空間群 51 → 11
+原子数 / 候補 6 / 8</title><circle cx="332.67" cy="326.47" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="312.47" text-anchor="middle">Re4Tc2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re6Tc3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.361 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 361 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Re6Tc3
+Re:Tc = 0.667 / 0.333
+E_form 0.361 eV/atom
+包から 361 meV/atom
+空間群 2 → 1
+原子数 / 候補 9 / 6</title><circle cx="332.67" cy="240.73" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="226.73" text-anchor="middle">Re6Tc3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re5Tc3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.053 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 53 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Re5Tc3
+Re:Tc = 0.625 / 0.375
+E_form 0.053 eV/atom
+包から 53 meV/atom
+空間群 2
+原子数 / 候補 8 / 9</title><circle cx="364.75" cy="355.11" r="5" fill="var(--h2)"/><text class="plabel" x="364.75" y="341.11" text-anchor="middle">Re5Tc3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re6Tc4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.055 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 55 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Re6Tc4
+Re:Tc = 0.600 / 0.400
+E_form 0.055 eV/atom
+包から 55 meV/atom
+空間群 2 → 12
+原子数 / 候補 10 / 6</title><circle cx="384.00" cy="354.25" r="5" fill="var(--h2)"/><text class="plabel" x="384.00" y="374.25" text-anchor="middle">Re6Tc4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re4Tc3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.438 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 438 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Re4Tc3
+Re:Tc = 0.571 / 0.429
+E_form 0.438 eV/atom
+包から 438 meV/atom
+空間群 217
+原子数 / 候補 7 / 9</title><circle cx="406.00" cy="211.79" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="197.79" text-anchor="middle">Re4Tc3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re5Tc4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.139 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 139 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Re5Tc4
+Re:Tc = 0.556 / 0.444
+E_form 0.139 eV/atom
+包から 139 meV/atom
+空間群 2
+原子数 / 候補 9 / 6</title><circle cx="418.22" cy="323.05" r="5" fill="var(--h3)"/><text class="plabel" x="418.22" y="309.05" text-anchor="middle">Re5Tc4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re4Tc4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.065 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 65 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 121 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>Re4Tc4
+Re:Tc = 0.500 / 0.500
+E_form 0.065 eV/atom
+包から 65 meV/atom
+空間群 121 → 123
+原子数 / 候補 8 / 8</title><circle cx="461.00" cy="350.61" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="336.61" text-anchor="middle">Re4Tc4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re3Tc3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.140 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 140 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 44 → 31&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 7"><title>Re3Tc3
+Re:Tc = 0.500 / 0.500
+E_form 0.140 eV/atom
+包から 140 meV/atom
+空間群 44 → 31
+原子数 / 候補 6 / 7</title><circle cx="461.00" cy="322.49" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="342.49" text-anchor="middle">Re3Tc3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re5Tc5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.242 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 242 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Re5Tc5
+Re:Tc = 0.500 / 0.500
+E_form 0.242 eV/atom
+包から 242 meV/atom
+空間群 2
+原子数 / 候補 10 / 9</title><circle cx="461.00" cy="284.71" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="270.71" text-anchor="middle">Re5Tc5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re4Tc5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.065 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 65 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 7"><title>Re4Tc5
+Re:Tc = 0.444 / 0.556
+E_form 0.065 eV/atom
+包から 65 meV/atom
+空間群 2 → 12
+原子数 / 候補 9 / 7</title><circle cx="503.78" cy="350.35" r="5" fill="var(--h2)"/><text class="plabel" x="503.78" y="336.35" text-anchor="middle">Re4Tc5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re3Tc4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.394 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 394 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Re3Tc4
+Re:Tc = 0.429 / 0.571
+E_form 0.394 eV/atom
+包から 394 meV/atom
+空間群 217
+原子数 / 候補 7 / 9</title><circle cx="516.00" cy="228.44" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="214.44" text-anchor="middle">Re3Tc4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re2Tc3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.252 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 252 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 160&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 1"><title>Re2Tc3
+Re:Tc = 0.400 / 0.600
+E_form 0.252 eV/atom
+包から 252 meV/atom
+空間群 160
+原子数 / 候補 5 / 1</title><circle cx="538.00" cy="281.18" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="267.18" text-anchor="middle">Re2Tc3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re4Tc6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.516 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 516 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Re4Tc6
+Re:Tc = 0.400 / 0.600
+E_form 0.516 eV/atom
+包から 516 meV/atom
+空間群 194
+原子数 / 候補 10 / 6</title><circle cx="538.00" cy="183.00" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="169.00" text-anchor="middle">Re4Tc6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re3Tc5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.054 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 54 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 160 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Re3Tc5
+Re:Tc = 0.375 / 0.625
+E_form 0.054 eV/atom
+包から 54 meV/atom
+空間群 160 → 12
+原子数 / 候補 8 / 9</title><circle cx="557.25" cy="354.51" r="5" fill="var(--h2)"/><text class="plabel" x="557.25" y="340.51" text-anchor="middle">Re3Tc5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re2Tc4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.123 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 123 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 44 → 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Re2Tc4
+Re:Tc = 0.333 / 0.667
+E_form 0.123 eV/atom
+包から 123 meV/atom
+空間群 44 → 63
+原子数 / 候補 6 / 6</title><circle cx="589.33" cy="328.84" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="348.84" text-anchor="middle">Re2Tc4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ReTc2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.193 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 193 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 2"><title>ReTc2
+Re:Tc = 0.333 / 0.667
+E_form 0.193 eV/atom
+包から 193 meV/atom
+空間群 187 → 191
+原子数 / 候補 3 / 2</title><circle cx="589.33" cy="302.91" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="288.91" text-anchor="middle">ReTc2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re3Tc6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.838 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 838 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Re3Tc6
+Re:Tc = 0.333 / 0.667
+E_form 0.838 eV/atom
+包から 838 meV/atom
+空間群 225
+原子数 / 候補 9 / 6</title><circle cx="589.33" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="49.35" text-anchor="middle">Re3Tc6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re3Tc7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.179 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 179 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 4"><title>Re3Tc7
+Re:Tc = 0.300 / 0.700
+E_form 0.179 eV/atom
+包から 179 meV/atom
+空間群 2 → 1
+原子数 / 候補 10 / 4</title><circle cx="615.00" cy="308.00" r="5" fill="var(--h3)"/><text class="plabel" x="615.00" y="294.00" text-anchor="middle">Re3Tc7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re2Tc5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.230 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 230 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 160 → 5&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 5"><title>Re2Tc5
+Re:Tc = 0.286 / 0.714
+E_form 0.230 eV/atom
+包から 230 meV/atom
+空間群 160 → 5
+原子数 / 候補 7 / 5</title><circle cx="626.00" cy="289.24" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="309.24" text-anchor="middle">Re2Tc5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re2Tc6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.059 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 59 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Re2Tc6
+Re:Tc = 0.250 / 0.750
+E_form 0.059 eV/atom
+包から 59 meV/atom
+空間群 225 → 221
+原子数 / 候補 8 / 6</title><circle cx="653.50" cy="352.58" r="5" fill="var(--h2)"/><text class="plabel" x="653.50" y="338.58" text-anchor="middle">Re2Tc6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re2Tc7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.157 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 157 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 121 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Re2Tc7
+Re:Tc = 0.222 / 0.778
+E_form 0.157 eV/atom
+包から 157 meV/atom
+空間群 121 → 1
+原子数 / 候補 9 / 9</title><circle cx="674.89" cy="316.40" r="5" fill="var(--h3)"/><text class="plabel" x="674.89" y="302.40" text-anchor="middle">Re2Tc7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re2Tc8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.071 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 71 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Re2Tc8
+Re:Tc = 0.200 / 0.800
+E_form 0.071 eV/atom
+包から 71 meV/atom
+空間群 2
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="348.38" r="5" fill="var(--h2)"/><text class="plabel" x="692.00" y="334.38" text-anchor="middle">Re2Tc8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ReTc4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.333 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 333 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 44&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>ReTc4
+Re:Tc = 0.200 / 0.800
+E_form 0.333 eV/atom
+包から 333 meV/atom
+空間群 44
+原子数 / 候補 5 / 3</title><circle cx="692.00" cy="250.91" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="236.91" text-anchor="middle">ReTc4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ReTc5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.186 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 186 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 44&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 7"><title>ReTc5
+Re:Tc = 0.167 / 0.833
+E_form 0.186 eV/atom
+包から 186 meV/atom
+空間群 44
+原子数 / 候補 6 / 7</title><circle cx="717.67" cy="305.51" r="5" fill="var(--h3)"/><text class="plabel" x="717.67" y="291.51" text-anchor="middle">ReTc5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ReTc6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.486 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 486 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>ReTc6
+Re:Tc = 0.143 / 0.857
+E_form 0.486 eV/atom
+包から 486 meV/atom
+空間群 225
+原子数 / 候補 7 / 3</title><circle cx="736.00" cy="194.04" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="180.04" text-anchor="middle">ReTc6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ReTc7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.055 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 55 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>ReTc7
+Re:Tc = 0.125 / 0.875
+E_form 0.055 eV/atom
+包から 55 meV/atom
+空間群 225
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="354.21" r="5" fill="var(--h2)"/><text class="plabel" x="749.75" y="340.21" text-anchor="middle">ReTc7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ReTc8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.064 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 64 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 7"><title>ReTc8
+Re:Tc = 0.111 / 0.889
+E_form 0.064 eV/atom
+包から 64 meV/atom
+空間群 2
+原子数 / 候補 9 / 7</title><circle cx="760.44" cy="350.80" r="5" fill="var(--h2)"/><text class="plabel" x="760.44" y="370.80" text-anchor="middle">ReTc8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ReTc9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.234 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 234 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>ReTc9
+Re:Tc = 0.100 / 0.900
+E_form 0.234 eV/atom
+包から 234 meV/atom
+空間群 2
+原子数 / 候補 10 / 6</title><circle cx="769.00" cy="287.91" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="273.91" text-anchor="middle">ReTc9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Tc3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.020 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 20 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 1"><title>Tc3
+Re:Tc = 0.000 / 1.000
+E_form 0.020 eV/atom
+包から 20 meV/atom
+空間群 166
+原子数 / 候補 3 / 1</title><circle cx="846.00" cy="367.22" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="353.22" text-anchor="middle">Tc3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Tc&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.058 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 58 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>Tc
+Re:Tc = 0.000 / 1.000
+E_form 0.058 eV/atom
+包から 58 meV/atom
+空間群 225
+原子数 / 候補 1 / 6</title><circle cx="846.00" cy="353.29" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="373.29" text-anchor="middle">Tc</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Tc2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.058 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 58 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 2"><title>Tc2
+Re:Tc = 0.000 / 1.000
+E_form 0.058 eV/atom
+包から 58 meV/atom
+空間群 166
+原子数 / 候補 2 / 2</title><circle cx="846.00" cy="353.10" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="373.10" text-anchor="middle">Tc2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Tc6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.060 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 60 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Tc6
+Re:Tc = 0.000 / 1.000
+E_form 0.060 eV/atom
+包から 60 meV/atom
+空間群 64 → 139
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="352.25" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="372.25" text-anchor="middle">Tc6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Tc10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.174 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 174 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Tc10
+Re:Tc = 0.000 / 1.000
+E_form 0.174 eV/atom
+包から 174 meV/atom
+空間群 12 → 1
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="309.86" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="295.86" text-anchor="middle">Tc10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Tc4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.248 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 248 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 1"><title>Tc4
+Re:Tc = 0.000 / 1.000
+E_form 0.248 eV/atom
+包から 248 meV/atom
+空間群 166
+原子数 / 候補 4 / 1</title><circle cx="846.00" cy="282.41" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="302.41" text-anchor="middle">Tc4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Tc7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.293 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 293 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Tc7
+Re:Tc = 0.000 / 1.000
+E_form 0.293 eV/atom
+包から 293 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="265.69" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="251.69" text-anchor="middle">Tc7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Tc9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.307 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 307 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Tc9
+Re:Tc = 0.000 / 1.000
+E_form 0.307 eV/atom
+包から 307 meV/atom
+空間群 12
+原子数 / 候補 9 / 3</title><circle cx="846.00" cy="260.53" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="280.53" text-anchor="middle">Tc9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Tc5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.643 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 643 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 2"><title>Tc5
+Re:Tc = 0.000 / 1.000
+E_form 0.643 eV/atom
+包から 643 meV/atom
+空間群 166
+原子数 / 候補 5 / 2</title><circle cx="846.00" cy="135.98" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="121.98" text-anchor="middle">Tc5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Re2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 2"><title>Re2
+Re:Tc = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 2 / 2</title><circle cx="76.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="394.65" text-anchor="middle">Re2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Tc8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Re:Tc&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Tc8
+Re:Tc = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="394.65" text-anchor="middle">Tc8</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Re2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Tc8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Tc3</span><span class="bar-track"><span class="bar-fill" style="width:2.39%;background:var(--h1)"></span></span><span class="bar-val">20 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re</span><span class="bar-track"><span class="bar-fill" style="width:6.22%;background:var(--h2)"></span></span><span class="bar-val">52 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re8</span><span class="bar-track"><span class="bar-fill" style="width:6.25%;background:var(--h2)"></span></span><span class="bar-val">52 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re5Tc3</span><span class="bar-track"><span class="bar-fill" style="width:6.28%;background:var(--h2)"></span></span><span class="bar-val">53 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re9Tc</span><span class="bar-track"><span class="bar-fill" style="width:6.47%;background:var(--h2)"></span></span><span class="bar-val">54 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re3Tc5</span><span class="bar-track"><span class="bar-fill" style="width:6.47%;background:var(--h2)"></span></span><span class="bar-val">54 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re6Tc4</span><span class="bar-track"><span class="bar-fill" style="width:6.55%;background:var(--h2)"></span></span><span class="bar-val">55 meV</span></li>
+<li class="bar-row"><span class="bar-name">ReTc7</span><span class="bar-track"><span class="bar-fill" style="width:6.56%;background:var(--h2)"></span></span><span class="bar-val">55 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re8Tc2</span><span class="bar-track"><span class="bar-fill" style="width:6.80%;background:var(--h2)"></span></span><span class="bar-val">57 meV</span></li>
+<li class="bar-row"><span class="bar-name">Tc</span><span class="bar-track"><span class="bar-fill" style="width:6.86%;background:var(--h2)"></span></span><span class="bar-val">58 meV</span></li>
+<li class="bar-row"><span class="bar-name">Tc2</span><span class="bar-track"><span class="bar-fill" style="width:6.92%;background:var(--h2)"></span></span><span class="bar-val">58 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re2Tc6</span><span class="bar-track"><span class="bar-fill" style="width:7.09%;background:var(--h2)"></span></span><span class="bar-val">59 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re6Tc2</span><span class="bar-track"><span class="bar-fill" style="width:7.17%;background:var(--h2)"></span></span><span class="bar-val">60 meV</span></li>
+<li class="bar-row"><span class="bar-name">Tc6</span><span class="bar-track"><span class="bar-fill" style="width:7.20%;background:var(--h2)"></span></span><span class="bar-val">60 meV</span></li>
+<li class="bar-row"><span class="bar-name">ReTc8</span><span class="bar-track"><span class="bar-fill" style="width:7.66%;background:var(--h2)"></span></span><span class="bar-val">64 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re4Tc4</span><span class="bar-track"><span class="bar-fill" style="width:7.72%;background:var(--h2)"></span></span><span class="bar-val">65 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re4Tc5</span><span class="bar-track"><span class="bar-fill" style="width:7.80%;background:var(--h2)"></span></span><span class="bar-val">65 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re2Tc8</span><span class="bar-track"><span class="bar-fill" style="width:8.44%;background:var(--h2)"></span></span><span class="bar-val">71 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re7Tc2</span><span class="bar-track"><span class="bar-fill" style="width:8.91%;background:var(--h2)"></span></span><span class="bar-val">75 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re5Tc</span><span class="bar-track"><span class="bar-fill" style="width:12.22%;background:var(--h3)"></span></span><span class="bar-val">102 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re2Tc4</span><span class="bar-track"><span class="bar-fill" style="width:14.71%;background:var(--h3)"></span></span><span class="bar-val">123 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re4Tc2</span><span class="bar-track"><span class="bar-fill" style="width:15.48%;background:var(--h3)"></span></span><span class="bar-val">130 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re5Tc4</span><span class="bar-track"><span class="bar-fill" style="width:16.58%;background:var(--h3)"></span></span><span class="bar-val">139 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re3Tc3</span><span class="bar-track"><span class="bar-fill" style="width:16.75%;background:var(--h3)"></span></span><span class="bar-val">140 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re2Tc7</span><span class="bar-track"><span class="bar-fill" style="width:18.71%;background:var(--h3)"></span></span><span class="bar-val">157 meV</span></li>
+<li class="bar-row"><span class="bar-name">Tc10</span><span class="bar-track"><span class="bar-fill" style="width:20.81%;background:var(--h3)"></span></span><span class="bar-val">174 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re3Tc7</span><span class="bar-track"><span class="bar-fill" style="width:21.41%;background:var(--h3)"></span></span><span class="bar-val">179 meV</span></li>
+<li class="bar-row"><span class="bar-name">ReTc5</span><span class="bar-track"><span class="bar-fill" style="width:22.21%;background:var(--h3)"></span></span><span class="bar-val">186 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re7Tc3</span><span class="bar-track"><span class="bar-fill" style="width:22.60%;background:var(--h3)"></span></span><span class="bar-val">189 meV</span></li>
+<li class="bar-row"><span class="bar-name">ReTc2</span><span class="bar-track"><span class="bar-fill" style="width:23.04%;background:var(--h3)"></span></span><span class="bar-val">193 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re2Tc5</span><span class="bar-track"><span class="bar-fill" style="width:27.43%;background:var(--meta)"></span></span><span class="bar-val">230 meV</span></li>
+<li class="bar-row"><span class="bar-name">ReTc9</span><span class="bar-track"><span class="bar-fill" style="width:27.86%;background:var(--meta)"></span></span><span class="bar-val">234 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re5Tc5</span><span class="bar-track"><span class="bar-fill" style="width:28.89%;background:var(--meta)"></span></span><span class="bar-val">242 meV</span></li>
+<li class="bar-row"><span class="bar-name">Tc4</span><span class="bar-track"><span class="bar-fill" style="width:29.63%;background:var(--meta)"></span></span><span class="bar-val">248 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re2Tc3</span><span class="bar-track"><span class="bar-fill" style="width:30.02%;background:var(--meta)"></span></span><span class="bar-val">252 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re8Tc</span><span class="bar-track"><span class="bar-fill" style="width:30.61%;background:var(--meta)"></span></span><span class="bar-val">257 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re7Tc</span><span class="bar-track"><span class="bar-fill" style="width:32.36%;background:var(--meta)"></span></span><span class="bar-val">271 meV</span></li>
+<li class="bar-row"><span class="bar-name">Tc7</span><span class="bar-track"><span class="bar-fill" style="width:35.00%;background:var(--meta)"></span></span><span class="bar-val">293 meV</span></li>
+<li class="bar-row"><span class="bar-name">Tc9</span><span class="bar-track"><span class="bar-fill" style="width:36.66%;background:var(--meta)"></span></span><span class="bar-val">307 meV</span></li>
+<li class="bar-row"><span class="bar-name">ReTc4</span><span class="bar-track"><span class="bar-fill" style="width:39.75%;background:var(--meta)"></span></span><span class="bar-val">333 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re6Tc3</span><span class="bar-track"><span class="bar-fill" style="width:43.02%;background:var(--meta)"></span></span><span class="bar-val">361 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re3Tc4</span><span class="bar-track"><span class="bar-fill" style="width:46.97%;background:var(--meta)"></span></span><span class="bar-val">394 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re10</span><span class="bar-track"><span class="bar-fill" style="width:49.07%;background:var(--meta)"></span></span><span class="bar-val">411 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re4Tc3</span><span class="bar-track"><span class="bar-fill" style="width:52.32%;background:var(--meta)"></span></span><span class="bar-val">438 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re5Tc2</span><span class="bar-track"><span class="bar-fill" style="width:52.77%;background:var(--meta)"></span></span><span class="bar-val">442 meV</span></li>
+<li class="bar-row"><span class="bar-name">ReTc6</span><span class="bar-track"><span class="bar-fill" style="width:58.02%;background:var(--meta)"></span></span><span class="bar-val">486 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re4Tc6</span><span class="bar-track"><span class="bar-fill" style="width:61.56%;background:var(--meta)"></span></span><span class="bar-val">516 meV</span></li>
+<li class="bar-row"><span class="bar-name">Tc5</span><span class="bar-track"><span class="bar-fill" style="width:76.67%;background:var(--meta)"></span></span><span class="bar-val">643 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re6</span><span class="bar-track"><span class="bar-fill" style="width:84.86%;background:var(--meta)"></span></span><span class="bar-val">711 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re6Tc</span><span class="bar-track"><span class="bar-fill" style="width:92.14%;background:var(--meta)"></span></span><span class="bar-val">772 meV</span></li>
+<li class="bar-row"><span class="bar-name">Re3Tc6</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">838 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 2 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Re</th><th>Tc</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Re2 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>194</td><td>2</td></tr>
+<tr class="stable"><td class="name">Tc8 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>194</td><td>8</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点が信用できるか</h3><p>実在相に当たったもの<br><b>Re</b>：検出 225（1 原子）。六方最密に当たった。<br><b>Re</b>：検出 65（10 原子）。六方最密に当たった。<br><b>Re</b>：検出 194（2 原子）。六方最密に当たった。<br><b>Re</b>：検出 12（6 原子）。六方最密に当たった。<br><b>Re</b>：検出 69（8 原子）。六方最密に当たった。<br><b>Tc</b>：検出 225（1 原子）。六方最密に当たった。<br><b>Tc</b>：検出 1（10 原子）。六方最密に当たった。<br><b>Tc</b>：検出 166（2 原子）。六方最密に当たった。<br><b>Tc</b>：検出 166（3 原子）。六方最密に当たった。<br><b>Tc</b>：検出 166（4 原子）。六方最密に当たった。<br><b>Tc</b>：検出 166（5 原子）。六方最密に当たった。<br><b>Tc</b>：検出 139（6 原子）。六方最密に当たった。<br><b>Tc</b>：検出 12（7 原子）。六方最密に当たった。<br><b>Tc</b>：検出 194（8 原子）。六方最密に当たった。<br><b>Tc</b>：検出 12（9 原子）。六方最密に当たった。</p></div><div class="note"><h3>穴</h3><p>撒いたはずの 65 組成のうち <b>12 組成で構造が 1 件も出なかった</b>（Re2Tc、Re2Tc2、Re3、Re3Tc、Re3Tc2、Re4、Re4Tc、Re5、Re7、Re9、ReTc、ReTc3）。これは「そこに相が無い」ではなく「<b>その組成では全空間群で Wyckoff 配置が作れなかった</b>」である。図の余白をそのまま相の不在と読まないこと。</p></div><div class="note"><h3>どの三元の辺か</h3><p>この 2 元系は <b>Mn-Re-Tc</b> の辺である。三角図の対応する縁と突き合わせて読むこと。</p></div><div class="note"><h3>分解能</h3><p>数十 meV/atom の差はこの手法の分解能に近い。「包に載った／載らない」を 10 meV 差で言い切らないこと。また探索は 10 原子以下の基本胞に限っているので、それより大きい胞でしか組めない実在相には届かない。</p></div></section>
+ <footer><span>aiida-shotgun-csp 6.24.0</span><span>sweep = edges3 / edges4</span><span>stage = relaxed / 2026-09-11</span><span>spg_ranks = [1,2,3]</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

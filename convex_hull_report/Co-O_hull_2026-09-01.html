@@ -1,0 +1,693 @@
+<title>Co–O 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Co–O 相図</h1>
+  <p class="lede">原子数の和 10 以下の Co–O 組成 65 通りのうち 64 を撒いた（残る穴は Co5 のみ）。それでも凸包に載ったのは Co3O4（スピネル型、空間群 227、ΔEf = −288 meV/atom）ただ 1 つで、1:1 の CoO は最良のセルでも +154 meV/atom 上にあり、Co3O4 と Co へ分解する。実在の CoO は安定相なので、ここは食い違っている。<b>ただし同じ組成でもセルの原子数で 1.6 eV/atom 動く</b>ことのほうが、この図では効いている。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>67</dd></div><div class="fact"><dt>凸包上</dt><dd>3</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>9</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は O の原子分率。縦軸は端点（Co, O）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Co–O 相図">
+<line class="grid-line" x1="76" x2="846" y1="402.76" y2="402.76"/>
+<text class="tick-text" x="64" y="406.76" text-anchor="end">-0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="369.54" y2="369.54"/>
+<text class="tick-text" x="64" y="373.54" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="336.32" y2="336.32"/>
+<text class="tick-text" x="64" y="340.32" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="303.10" y2="303.10"/>
+<text class="tick-text" x="64" y="307.10" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="269.89" y2="269.89"/>
+<text class="tick-text" x="64" y="273.89" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="236.67" y2="236.67"/>
+<text class="tick-text" x="64" y="240.67" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="203.45" y2="203.45"/>
+<text class="tick-text" x="64" y="207.45" text-anchor="end">1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="170.23" y2="170.23"/>
+<text class="tick-text" x="64" y="174.23" text-anchor="end">1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="137.01" y2="137.01"/>
+<text class="tick-text" x="64" y="141.01" text-anchor="end">1.50</text>
+<line class="grid-line" x1="76" x2="846" y1="103.79" y2="103.79"/>
+<text class="tick-text" x="64" y="107.79" text-anchor="end">1.75</text>
+<line class="grid-line" x1="76" x2="846" y1="70.57" y2="70.57"/>
+<text class="tick-text" x="64" y="74.57" text-anchor="end">2.00</text>
+<line class="grid-line" x1="76" x2="846" y1="37.35" y2="37.35"/>
+<text class="tick-text" x="64" y="41.35" text-anchor="end">2.25</text>
+<line class="axis-line" x1="76" x2="846" y1="336.32" y2="336.32"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Co</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">O</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">O の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,336.32 516.00,374.65 846.00,336.32"/>
+<line class="tie-drop" x1="516.00" x2="516.00" y1="374.65" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Co8
+Co:O = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="76.00" cy="336.31" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="322.31" text-anchor="middle">Co8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Co4
+Co:O = 1.000 / 0.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 11
+原子数 / 候補 4 / 9</title><circle cx="76.00" cy="335.89" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="355.89" text-anchor="middle">Co4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.009 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 9 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>Co
+Co:O = 1.000 / 0.000
+E_form 0.009 eV/atom
+包から 9 meV/atom
+空間群 225
+原子数 / 候補 1 / 6</title><circle cx="76.00" cy="335.09" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="355.09" text-anchor="middle">Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.102 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 102 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Co6
+Co:O = 1.000 / 0.000
+E_form 0.102 eV/atom
+包から 102 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="322.77" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="342.77" text-anchor="middle">Co6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co14&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.241 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 241 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 6"><title>Co14
+Co:O = 1.000 / 0.000
+E_form 0.241 eV/atom
+包から 241 meV/atom
+空間群 194
+原子数 / 候補 14 / 6</title><circle cx="76.00" cy="304.37" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="290.37" text-anchor="middle">Co14</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.295 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 295 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Co10
+Co:O = 1.000 / 0.000
+E_form 0.295 eV/atom
+包から 295 meV/atom
+空間群 194
+原子数 / 候補 10 / 6</title><circle cx="76.00" cy="297.19" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="317.19" text-anchor="middle">Co10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.441 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 441 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>Co3
+Co:O = 1.000 / 0.000
+E_form 0.441 eV/atom
+包から 441 meV/atom
+空間群 166 → 191
+原子数 / 候補 3 / 6</title><circle cx="76.00" cy="277.69" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="297.69" text-anchor="middle">Co3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co12&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.452 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 452 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 224 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 8"><title>Co12
+Co:O = 1.000 / 0.000
+E_form 0.452 eV/atom
+包から 452 meV/atom
+空間群 224 → 225
+原子数 / 候補 12 / 8</title><circle cx="76.00" cy="276.29" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="296.29" text-anchor="middle">Co12</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.683 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 683 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Co9
+Co:O = 1.000 / 0.000
+E_form 0.683 eV/atom
+包から 683 meV/atom
+空間群 221
+原子数 / 候補 9 / 3</title><circle cx="76.00" cy="245.52" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="231.52" text-anchor="middle">Co9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.824 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 824 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Co7
+Co:O = 1.000 / 0.000
+E_form 0.824 eV/atom
+包から 824 meV/atom
+空間群 221
+原子数 / 候補 7 / 3</title><circle cx="76.00" cy="226.90" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="246.90" text-anchor="middle">Co7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co9O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.746 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 796 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Co9O
+Co:O = 0.900 / 0.100
+E_form 0.746 eV/atom
+包から 796 meV/atom
+空間群 123
+原子数 / 候補 10 / 9</title><circle cx="153.00" cy="237.25" r="5" fill="var(--meta)"/><text class="plabel" x="153.00" y="223.25" text-anchor="middle">Co9O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co8O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.910 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 966 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 8&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Co8O
+Co:O = 0.889 / 0.111
+E_form 0.910 eV/atom
+包から 966 meV/atom
+空間群 166 → 8
+原子数 / 候補 9 / 9</title><circle cx="161.56" cy="215.39" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="235.39" text-anchor="middle">Co8O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co7O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.327 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1390 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Co7O
+Co:O = 0.875 / 0.125
+E_form 1.327 eV/atom
+包から 1390 meV/atom
+空間群 123
+原子数 / 候補 8 / 9</title><circle cx="172.25" cy="160.04" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="146.04" text-anchor="middle">Co7O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co6O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.392 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 464 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 7"><title>Co6O
+Co:O = 0.857 / 0.143
+E_form 0.392 eV/atom
+包から 464 meV/atom
+空間群 123
+原子数 / 候補 7 / 7</title><circle cx="186.00" cy="284.22" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="270.22" text-anchor="middle">Co6O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co5O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 2.054 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2139 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>Co5O
+Co:O = 0.833 / 0.167
+E_form 2.054 eV/atom
+包から 2139 meV/atom
+空間群 123
+原子数 / 候補 6 / 3</title><circle cx="204.33" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="49.35" text-anchor="middle">Co5O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co8O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.363 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 464 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Co8O2
+Co:O = 0.800 / 0.200
+E_form 0.363 eV/atom
+包から 464 meV/atom
+空間群 12 → 11
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="288.12" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="274.12" text-anchor="middle">Co8O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.584 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1685 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Co4O
+Co:O = 0.800 / 0.200
+E_form 1.584 eV/atom
+包から 1685 meV/atom
+空間群 123
+原子数 / 候補 5 / 6</title><circle cx="230.00" cy="125.86" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="111.86" text-anchor="middle">Co4O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co7O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.482 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1594 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Co7O2
+Co:O = 0.778 / 0.222
+E_form 1.482 eV/atom
+包から 1594 meV/atom
+空間群 123
+原子数 / 候補 9 / 9</title><circle cx="247.11" cy="139.37" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="125.37" text-anchor="middle">Co7O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co6O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.332 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1458 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Co6O2
+Co:O = 0.750 / 0.250
+E_form 1.332 eV/atom
+包から 1458 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="159.40" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="145.40" text-anchor="middle">Co6O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.646 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1773 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Co3O
+Co:O = 0.750 / 0.250
+E_form 1.646 eV/atom
+包から 1773 meV/atom
+空間群 221
+原子数 / 候補 4 / 9</title><circle cx="268.50" cy="117.57" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="137.57" text-anchor="middle">Co3O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co5O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.215 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1359 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123 → 8&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 8"><title>Co5O2
+Co:O = 0.714 / 0.286
+E_form 1.215 eV/atom
+包から 1359 meV/atom
+空間群 123 → 8
+原子数 / 候補 7 / 8</title><circle cx="296.00" cy="174.89" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="160.89" text-anchor="middle">Co5O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co7O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.151 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1302 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123 → 25&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Co7O3
+Co:O = 0.700 / 0.300
+E_form 1.151 eV/atom
+包から 1302 meV/atom
+空間群 123 → 25
+原子数 / 候補 10 / 9</title><circle cx="307.00" cy="183.45" r="5" fill="var(--meta)"/><text class="plabel" x="307.00" y="169.45" text-anchor="middle">Co7O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.983 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1152 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>Co2O
+Co:O = 0.667 / 0.333
+E_form 0.983 eV/atom
+包から 1152 meV/atom
+空間群 123
+原子数 / 候補 3 / 6</title><circle cx="332.67" cy="205.67" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="191.67" text-anchor="middle">Co2O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co6O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.055 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1223 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Co6O3
+Co:O = 0.667 / 0.333
+E_form 1.055 eV/atom
+包から 1223 meV/atom
+空間群 123
+原子数 / 候補 9 / 9</title><circle cx="332.67" cy="196.20" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="216.20" text-anchor="middle">Co6O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.109 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1277 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Co4O2
+Co:O = 0.667 / 0.333
+E_form 1.109 eV/atom
+包から 1277 meV/atom
+空間群 166
+原子数 / 候補 6 / 6</title><circle cx="332.67" cy="189.00" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="209.00" text-anchor="middle">Co4O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co5O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.884 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1074 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Co5O3
+Co:O = 0.625 / 0.375
+E_form 0.884 eV/atom
+包から 1074 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="364.75" cy="218.82" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="238.82" text-anchor="middle">Co5O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co6O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.751 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 953 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Co6O4
+Co:O = 0.600 / 0.400
+E_form 0.751 eV/atom
+包から 953 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="236.56" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="256.56" text-anchor="middle">Co6O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.230 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1432 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Co3O2
+Co:O = 0.600 / 0.400
+E_form 1.230 eV/atom
+包から 1432 meV/atom
+空間群 221
+原子数 / 候補 5 / 3</title><circle cx="384.00" cy="172.89" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="158.89" text-anchor="middle">Co3O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.578 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 794 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Co4O3
+Co:O = 0.571 / 0.429
+E_form 0.578 eV/atom
+包から 794 meV/atom
+空間群 166
+原子数 / 候補 7 / 6</title><circle cx="406.00" cy="259.51" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="279.51" text-anchor="middle">Co4O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co5O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.394 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 618 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Co5O4
+Co:O = 0.556 / 0.444
+E_form 0.394 eV/atom
+包から 618 meV/atom
+空間群 166
+原子数 / 候補 9 / 6</title><circle cx="418.22" cy="283.98" r="5" fill="var(--meta)"/><text class="plabel" x="418.22" y="303.98" text-anchor="middle">Co5O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.099 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 154 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 186&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>Co2O2
+Co:O = 0.500 / 0.500
+E_form -0.099 eV/atom
+包から 154 meV/atom
+空間群 186
+原子数 / 候補 4 / 6</title><circle cx="461.00" cy="349.41" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="335.41" text-anchor="middle">Co2O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoO&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.091 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 161 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 6"><title>CoO
+Co:O = 0.500 / 0.500
+E_form -0.091 eV/atom
+包から 161 meV/atom
+空間群 216
+原子数 / 候補 2 / 6</title><circle cx="461.00" cy="348.47" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="368.47" text-anchor="middle">CoO</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co5O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.034 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 287 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Co5O5
+Co:O = 0.500 / 0.500
+E_form 0.034 eV/atom
+包から 287 meV/atom
+空間群 216
+原子数 / 候補 10 / 6</title><circle cx="461.00" cy="331.75" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="351.75" text-anchor="middle">Co5O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.159 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 412 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Co4O4
+Co:O = 0.500 / 0.500
+E_form 0.159 eV/atom
+包から 412 meV/atom
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="315.16" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="301.16" text-anchor="middle">Co4O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.320 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 572 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>Co3O3
+Co:O = 0.500 / 0.500
+E_form 0.320 eV/atom
+包から 572 meV/atom
+空間群 221
+原子数 / 候補 6 / 3</title><circle cx="461.00" cy="293.86" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="313.86" text-anchor="middle">Co3O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.369 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 650 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Co4O5
+Co:O = 0.444 / 0.556
+E_form 0.369 eV/atom
+包から 650 meV/atom
+空間群 216
+原子数 / 候補 9 / 3</title><circle cx="503.78" cy="287.24" r="5" fill="var(--meta)"/><text class="plabel" x="503.78" y="273.24" text-anchor="middle">Co4O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.304 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1593 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Co3O4
+Co:O = 0.429 / 0.571
+E_form 1.304 eV/atom
+包から 1593 meV/atom
+空間群 216
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="163.01" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="149.01" text-anchor="middle">Co3O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.159 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 110 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Co4O6
+Co:O = 0.400 / 0.600
+E_form -0.159 eV/atom
+包から 110 meV/atom
+空間群 167
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="357.45" r="5" fill="var(--h3)"/><text class="plabel" x="538.00" y="343.45" text-anchor="middle">Co4O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.459 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 728 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Co2O3
+Co:O = 0.400 / 0.600
+E_form 0.459 eV/atom
+包から 728 meV/atom
+空間群 221
+原子数 / 候補 5 / 3</title><circle cx="538.00" cy="275.35" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="261.35" text-anchor="middle">Co2O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.707 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 959 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Co3O5
+Co:O = 0.375 / 0.625
+E_form 0.707 eV/atom
+包から 959 meV/atom
+空間群 148 → 166
+原子数 / 候補 8 / 3</title><circle cx="557.25" cy="242.39" r="5" fill="var(--meta)"/><text class="plabel" x="557.25" y="228.39" text-anchor="middle">Co3O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.079 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 145 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 14 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Co2O4
+Co:O = 0.333 / 0.667
+E_form -0.079 eV/atom
+包から 145 meV/atom
+空間群 14 → 12
+原子数 / 候補 6 / 6</title><circle cx="589.33" cy="346.83" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="332.83" text-anchor="middle">Co2O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.169 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 393 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Co3O6
+Co:O = 0.333 / 0.667
+E_form 0.169 eV/atom
+包から 393 meV/atom
+空間群 87
+原子数 / 候補 9 / 3</title><circle cx="589.33" cy="313.87" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="299.87" text-anchor="middle">Co3O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoO2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.326 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 551 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>CoO2
+Co:O = 0.333 / 0.667
+E_form 0.326 eV/atom
+包から 551 meV/atom
+空間群 166
+原子数 / 候補 3 / 3</title><circle cx="589.33" cy="292.98" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="312.98" text-anchor="middle">CoO2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3O7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.152 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 353 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Co3O7
+Co:O = 0.300 / 0.700
+E_form 0.152 eV/atom
+包から 353 meV/atom
+空間群 87 → 1
+原子数 / 候補 10 / 6</title><circle cx="615.00" cy="316.18" r="5" fill="var(--meta)"/><text class="plabel" x="615.00" y="336.18" text-anchor="middle">Co3O7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.780 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 972 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Co2O5
+Co:O = 0.286 / 0.714
+E_form 0.780 eV/atom
+包から 972 meV/atom
+空間群 148 → 166
+原子数 / 候補 7 / 3</title><circle cx="626.00" cy="232.71" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="218.71" text-anchor="middle">Co2O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.215 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 383 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Co2O6
+Co:O = 0.250 / 0.750
+E_form 0.215 eV/atom
+包から 383 meV/atom
+空間群 87 → 6
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="307.77" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="293.77" text-anchor="middle">Co2O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoO3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.583 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 752 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>CoO3
+Co:O = 0.250 / 0.750
+E_form 0.583 eV/atom
+包から 752 meV/atom
+空間群 166
+原子数 / 候補 4 / 9</title><circle cx="653.50" cy="258.82" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="244.82" text-anchor="middle">CoO3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2O7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.146 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 296 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Co2O7
+Co:O = 0.222 / 0.778
+E_form 0.146 eV/atom
+包から 296 meV/atom
+空間群 65 → 1
+原子数 / 候補 9 / 9</title><circle cx="674.89" cy="316.87" r="5" fill="var(--meta)"/><text class="plabel" x="674.89" y="302.87" text-anchor="middle">Co2O7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2O8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.157 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 291 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Co2O8
+Co:O = 0.200 / 0.800
+E_form 0.157 eV/atom
+包から 291 meV/atom
+空間群 65 → 1
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="315.52" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="335.52" text-anchor="middle">Co2O8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoO4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.228 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 362 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>CoO4
+Co:O = 0.200 / 0.800
+E_form 0.228 eV/atom
+包から 362 meV/atom
+空間群 82
+原子数 / 候補 5 / 9</title><circle cx="692.00" cy="306.09" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="326.09" text-anchor="middle">CoO4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoO5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.576 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 688 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>CoO5
+Co:O = 0.167 / 0.833
+E_form 0.576 eV/atom
+包から 688 meV/atom
+空間群 82 → 1
+原子数 / 候補 6 / 6</title><circle cx="717.67" cy="259.81" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="245.81" text-anchor="middle">CoO5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoO6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.283 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 379 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 9&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>CoO6
+Co:O = 0.143 / 0.857
+E_form 0.283 eV/atom
+包から 379 meV/atom
+空間群 82 → 9
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="298.69" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="284.69" text-anchor="middle">CoO6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoO7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.251 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 335 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>CoO7
+Co:O = 0.125 / 0.875
+E_form 0.251 eV/atom
+包から 335 meV/atom
+空間群 82 → 1
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="302.94" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="288.94" text-anchor="middle">CoO7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoO8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.278 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 353 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>CoO8
+Co:O = 0.111 / 0.889
+E_form 0.278 eV/atom
+包から 353 meV/atom
+空間群 87
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="299.38" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="319.38" text-anchor="middle">CoO8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoO9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.245 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 312 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>CoO9
+Co:O = 0.100 / 0.900
+E_form 0.245 eV/atom
+包から 312 meV/atom
+空間群 87
+原子数 / 候補 10 / 9</title><circle cx="769.00" cy="303.77" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="323.77" text-anchor="middle">CoO9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.004 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 9&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>O4
+Co:O = 0.000 / 1.000
+E_form 0.004 eV/atom
+包から 4 meV/atom
+空間群 9
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="335.81" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="321.81" text-anchor="middle">O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.006 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>O6
+Co:O = 0.000 / 1.000
+E_form 0.006 eV/atom
+包から 6 meV/atom
+空間群 12
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="335.50" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="355.50" text-anchor="middle">O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.011 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 11 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>O8
+Co:O = 0.000 / 1.000
+E_form 0.011 eV/atom
+包から 11 meV/atom
+空間群 12
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="334.92" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="354.92" text-anchor="middle">O8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.152 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 152 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>O9
+Co:O = 0.000 / 1.000
+E_form 0.152 eV/atom
+包から 152 meV/atom
+空間群 12 → 2
+原子数 / 候補 9 / 6</title><circle cx="846.00" cy="316.14" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="336.14" text-anchor="middle">O9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.213 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 213 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>O5
+Co:O = 0.000 / 1.000
+E_form 0.213 eV/atom
+包から 213 meV/atom
+空間群 12 → 11
+原子数 / 候補 5 / 3</title><circle cx="846.00" cy="308.03" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="328.03" text-anchor="middle">O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.237 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 237 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 5&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>O10
+Co:O = 0.000 / 1.000
+E_form 0.237 eV/atom
+包から 237 meV/atom
+空間群 12 → 5
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="304.81" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="290.81" text-anchor="middle">O10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.386 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 386 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>O3
+Co:O = 0.000 / 1.000
+E_form 0.386 eV/atom
+包から 386 meV/atom
+空間群 12 → 11
+原子数 / 候補 3 / 6</title><circle cx="846.00" cy="285.05" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="305.05" text-anchor="middle">O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.497 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 497 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>O7
+Co:O = 0.000 / 1.000
+E_form 0.497 eV/atom
+包から 497 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="270.23" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="256.23" text-anchor="middle">O7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.472 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1472 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>O
+Co:O = 0.000 / 1.000
+E_form 1.472 eV/atom
+包から 1472 meV/atom
+空間群 12
+原子数 / 候補 1 / 9</title><circle cx="846.00" cy="140.76" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="126.76" text-anchor="middle">O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 12"><title>Co2
+Co:O = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 2 / 12</title><circle cx="76.00" cy="336.32" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="356.32" text-anchor="middle">Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co6O8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.288 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 227&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 9"><title>Co6O8
+Co:O = 0.429 / 0.571
+E_form -0.288 eV/atom
+包から 0（凸包上）
+空間群 227
+原子数 / 候補 14 / 9</title><circle cx="516.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="516.00" y="360.65" text-anchor="middle">Co6O8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 17"><title>O2
+Co:O = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 166 → 2
+原子数 / 候補 2 / 17</title><circle cx="846.00" cy="336.32" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="356.32" text-anchor="middle">O2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Co2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Co6O8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">O2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Co8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">O4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">4 meV</span></li>
+<li class="bar-row"><span class="bar-name">O6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">9 meV</span></li>
+<li class="bar-row"><span class="bar-name">O8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">11 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co6</span><span class="bar-track"><span class="bar-fill" style="width:4.77%;background:var(--h3)"></span></span><span class="bar-val">102 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4O6</span><span class="bar-track"><span class="bar-fill" style="width:5.15%;background:var(--h3)"></span></span><span class="bar-val">110 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2O4</span><span class="bar-track"><span class="bar-fill" style="width:6.79%;background:var(--h3)"></span></span><span class="bar-val">145 meV</span></li>
+<li class="bar-row"><span class="bar-name">O9</span><span class="bar-track"><span class="bar-fill" style="width:7.10%;background:var(--h3)"></span></span><span class="bar-val">152 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2O2</span><span class="bar-track"><span class="bar-fill" style="width:7.19%;background:var(--h3)"></span></span><span class="bar-val">154 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoO</span><span class="bar-track"><span class="bar-fill" style="width:7.52%;background:var(--h3)"></span></span><span class="bar-val">161 meV</span></li>
+<li class="bar-row"><span class="bar-name">O5</span><span class="bar-track"><span class="bar-fill" style="width:9.96%;background:var(--meta)"></span></span><span class="bar-val">213 meV</span></li>
+<li class="bar-row"><span class="bar-name">O10</span><span class="bar-track"><span class="bar-fill" style="width:11.09%;background:var(--meta)"></span></span><span class="bar-val">237 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co14</span><span class="bar-track"><span class="bar-fill" style="width:11.25%;background:var(--meta)"></span></span><span class="bar-val">241 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co5O5</span><span class="bar-track"><span class="bar-fill" style="width:13.41%;background:var(--meta)"></span></span><span class="bar-val">287 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2O8</span><span class="bar-track"><span class="bar-fill" style="width:13.61%;background:var(--meta)"></span></span><span class="bar-val">291 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co10</span><span class="bar-track"><span class="bar-fill" style="width:13.77%;background:var(--meta)"></span></span><span class="bar-val">295 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2O7</span><span class="bar-track"><span class="bar-fill" style="width:13.84%;background:var(--meta)"></span></span><span class="bar-val">296 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoO9</span><span class="bar-track"><span class="bar-fill" style="width:14.60%;background:var(--meta)"></span></span><span class="bar-val">312 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoO7</span><span class="bar-track"><span class="bar-fill" style="width:15.68%;background:var(--meta)"></span></span><span class="bar-val">335 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoO8</span><span class="bar-track"><span class="bar-fill" style="width:16.50%;background:var(--meta)"></span></span><span class="bar-val">353 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3O7</span><span class="bar-track"><span class="bar-fill" style="width:16.53%;background:var(--meta)"></span></span><span class="bar-val">353 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoO4</span><span class="bar-track"><span class="bar-fill" style="width:16.93%;background:var(--meta)"></span></span><span class="bar-val">362 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoO6</span><span class="bar-track"><span class="bar-fill" style="width:17.74%;background:var(--meta)"></span></span><span class="bar-val">379 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2O6</span><span class="bar-track"><span class="bar-fill" style="width:17.91%;background:var(--meta)"></span></span><span class="bar-val">383 meV</span></li>
+<li class="bar-row"><span class="bar-name">O3</span><span class="bar-track"><span class="bar-fill" style="width:18.05%;background:var(--meta)"></span></span><span class="bar-val">386 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3O6</span><span class="bar-track"><span class="bar-fill" style="width:18.39%;background:var(--meta)"></span></span><span class="bar-val">393 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4O4</span><span class="bar-track"><span class="bar-fill" style="width:19.25%;background:var(--meta)"></span></span><span class="bar-val">412 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3</span><span class="bar-track"><span class="bar-fill" style="width:20.64%;background:var(--meta)"></span></span><span class="bar-val">441 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co12</span><span class="bar-track"><span class="bar-fill" style="width:21.13%;background:var(--meta)"></span></span><span class="bar-val">452 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co8O2</span><span class="bar-track"><span class="bar-fill" style="width:21.68%;background:var(--meta)"></span></span><span class="bar-val">464 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co6O</span><span class="bar-track"><span class="bar-fill" style="width:21.71%;background:var(--meta)"></span></span><span class="bar-val">464 meV</span></li>
+<li class="bar-row"><span class="bar-name">O7</span><span class="bar-track"><span class="bar-fill" style="width:23.26%;background:var(--meta)"></span></span><span class="bar-val">497 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoO2</span><span class="bar-track"><span class="bar-fill" style="width:25.74%;background:var(--meta)"></span></span><span class="bar-val">551 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3O3</span><span class="bar-track"><span class="bar-fill" style="width:26.74%;background:var(--meta)"></span></span><span class="bar-val">572 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co5O4</span><span class="bar-track"><span class="bar-fill" style="width:28.91%;background:var(--meta)"></span></span><span class="bar-val">618 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4O5</span><span class="bar-track"><span class="bar-fill" style="width:30.39%;background:var(--meta)"></span></span><span class="bar-val">650 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co9</span><span class="bar-track"><span class="bar-fill" style="width:31.96%;background:var(--meta)"></span></span><span class="bar-val">683 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoO5</span><span class="bar-track"><span class="bar-fill" style="width:32.17%;background:var(--meta)"></span></span><span class="bar-val">688 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2O3</span><span class="bar-track"><span class="bar-fill" style="width:34.05%;background:var(--meta)"></span></span><span class="bar-val">728 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoO3</span><span class="bar-track"><span class="bar-fill" style="width:35.14%;background:var(--meta)"></span></span><span class="bar-val">752 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4O3</span><span class="bar-track"><span class="bar-fill" style="width:37.15%;background:var(--meta)"></span></span><span class="bar-val">794 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co9O</span><span class="bar-track"><span class="bar-fill" style="width:37.23%;background:var(--meta)"></span></span><span class="bar-val">796 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co7</span><span class="bar-track"><span class="bar-fill" style="width:38.51%;background:var(--meta)"></span></span><span class="bar-val">824 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co6O4</span><span class="bar-track"><span class="bar-fill" style="width:44.55%;background:var(--meta)"></span></span><span class="bar-val">953 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3O5</span><span class="bar-track"><span class="bar-fill" style="width:44.86%;background:var(--meta)"></span></span><span class="bar-val">959 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co8O</span><span class="bar-track"><span class="bar-fill" style="width:45.18%;background:var(--meta)"></span></span><span class="bar-val">966 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2O5</span><span class="bar-track"><span class="bar-fill" style="width:45.45%;background:var(--meta)"></span></span><span class="bar-val">972 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co5O3</span><span class="bar-track"><span class="bar-fill" style="width:50.20%;background:var(--meta)"></span></span><span class="bar-val">1074 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2O</span><span class="bar-track"><span class="bar-fill" style="width:53.85%;background:var(--meta)"></span></span><span class="bar-val">1152 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co6O3</span><span class="bar-track"><span class="bar-fill" style="width:57.18%;background:var(--meta)"></span></span><span class="bar-val">1223 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4O2</span><span class="bar-track"><span class="bar-fill" style="width:59.71%;background:var(--meta)"></span></span><span class="bar-val">1277 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co7O3</span><span class="bar-track"><span class="bar-fill" style="width:60.88%;background:var(--meta)"></span></span><span class="bar-val">1302 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co5O2</span><span class="bar-track"><span class="bar-fill" style="width:63.55%;background:var(--meta)"></span></span><span class="bar-val">1359 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co7O</span><span class="bar-track"><span class="bar-fill" style="width:64.99%;background:var(--meta)"></span></span><span class="bar-val">1390 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3O2</span><span class="bar-track"><span class="bar-fill" style="width:66.96%;background:var(--meta)"></span></span><span class="bar-val">1432 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co6O2</span><span class="bar-track"><span class="bar-fill" style="width:68.16%;background:var(--meta)"></span></span><span class="bar-val">1458 meV</span></li>
+<li class="bar-row"><span class="bar-name">O</span><span class="bar-track"><span class="bar-fill" style="width:68.82%;background:var(--meta)"></span></span><span class="bar-val">1472 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3O4</span><span class="bar-track"><span class="bar-fill" style="width:74.48%;background:var(--meta)"></span></span><span class="bar-val">1593 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co7O2</span><span class="bar-track"><span class="bar-fill" style="width:74.56%;background:var(--meta)"></span></span><span class="bar-val">1594 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4O</span><span class="bar-track"><span class="bar-fill" style="width:78.78%;background:var(--meta)"></span></span><span class="bar-val">1685 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3O</span><span class="bar-track"><span class="bar-fill" style="width:82.89%;background:var(--meta)"></span></span><span class="bar-val">1773 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co5O</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">2139 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 3 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Co</th><th>O</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Co2 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>194</td><td>2</td></tr>
+<tr class="stable"><td class="name">Co6O8 <span class="pill">凸包上</span></td><td>0.429</td><td>0.571</td><td>-0.2884</td><td>227</td><td>14</td></tr>
+<tr class="stable"><td class="name">O2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>166 → 2</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>同じ組成でも、セルの原子数で数百 meV 変わる</h3><p><b>この図でいちばん強い教訓がこれである。</b>同じ Co3O4 でも、7 原子セル（spg 216）は 凸包の +1593 meV/atom、14 原子セル（spg 227、スピネル）は<b>凸包そのもの</b>。差は 1.6 eV/atom ある。ほかも同じで、Co2O3 は 5 原子 +728 meV に対し 10 原子（167、コランダム型）が +110 meV、CoO2 は 3 原子 +551 meV に対し 6 原子（14）が +145 meV。<b>組成式で撒くと、その構造型に届かない。</b>基本胞の原子数で撒くこと。</p></div><div class="note"><h3>CoO が載らないことを、機械学習ポテンシャルのせいと即断しない</h3><p>実在の CoO は岩塩型で安定だが、ここでは 1:1 の最良（Co2O2、4 原子、spg 186）でも凸包の +154 meV/atom に出て、Co3O4 と Co へ分解する。<b>これを「汎用機械学習ポテンシャルは強相関 3d 酸化物を扱えないから」で片付けない。</b>DFT は絶縁体であっても、全エネルギーにもとづく相図は当たることが多い。MatterSim はその DFT を学習しているので、強相関 3d 酸化物の相図も当たっている可能性のほうが高い。決着させるなら、磁性を入れた DFT で CoO(225) と Co3O4 を直接比べること。</p></div><div class="note"><h3>今回は掃引の側を潰したうえでの結果である</h3><p>原子数の和 10 以下の 65 組成のうち<b>64 を撒いた</b>（残る穴は Co5 のみで、3 つの空間群すべてで 5 個の Co を載せる Wyckoff 配置が組めなかった）。1:1 だけでも CoO・Co2O2・Co3O3・Co4O4・Co5O5 の 5 通りのセルを撒いてある。<b>「探していないから載らない」は、もう理由にならない。</b>残る自由度は空間群の順位（各組成 3 位まで）と 1 組成あたりの構造本数である。</p></div><div class="note"><h3>この食い違いに酸素端点は効かない</h3><p>CoO の分解先は Co3O4 + Co で、<b>O2 端点を含まない</b>。O 端点の甘さ（下記）は酸素分率を跨ぐ比較には効くが、この +154 meV には 1 meV も効かない。<b>端点の話と混ぜない。</b></p></div><div class="note"><h3>酸素端点は甘い（酸素分率を跨ぐ比較にだけ効く）</h3><p>O 端点は 2 原子セルの O2 で、指定した空間群 166 に対し検出は 2（P-1）まで崩れ、fmax も 0.041 と残っている。分子性結晶は低対称で収束が甘くなりやすい。<b>端点が高めに出れば、酸化物の生成エネルギーは一律に深く出る。</b>Co2O3 や CoO2 のように O2 へ分解する点の高さは、その分を割り引いて読む。Co 端点は hcp（194）で当たっており、fcc の 1 原子セルより 9.3 meV/atom 低い。</p></div><div class="note"><h3>数十 meV の順位を言い切らない</h3><p>Co2O3（+110 meV）と CoO2（+145 meV）の差は 35 meV で、この手法の分解能に近い。どちらがより不安定かは、この掃引では決められない。</p></div></section>
+ <footer><span>aiida-shotgun-csp 4.12.0 / MatterSim v1.0.0-1M</span><span>sweep = coo-mygarden6-2026-09-01 + coo-rest-mygarden6-2026-09-01（mygarden6, RTX 3060, device=cuda）</span><span>49 組成 / 67 点。緩和 fmax_step2 0.01 / steps 150 / rounds 10、spg_ranks [1,2,3]、n_cfgs 20 × n_per_cfg 3、top_n 3</span><span>被覆 64/65（原子数の和 <= 10）。2026-09-01</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

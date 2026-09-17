@@ -1,0 +1,628 @@
+<title>Li–Si 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Li–Si 相図</h1>
+  <p class="lede">58 組成・545 構造を緩和した。凸包に載ったのは <b>Li<sub>3</sub>Si・Li<sub>4</sub>Si・Li<sub>2</sub>Si</b> の 3 つ。ただし<b>これらはいずれも実在の平衡相ではない</b>。実際の Li–Si 系の平衡相（Li<sub>12</sub>Si<sub>7</sub>・Li<sub>7</sub>Si<sub>3</sub>・Li<sub>13</sub>Si<sub>4</sub>・Li<sub>22</sub>Si<sub>5</sub>）は 1 つを除いて 10 原子セルに入らない。端点は Li が 229（bcc）、Si が 227（ダイヤモンド型）で、どちらも実在の単体と一致した。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>58</dd></div><div class="fact"><dt>凸包上</dt><dd>5</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>20</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Si の原子分率。縦軸は端点（Li, Si）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Li–Si 相図">
+<line class="grid-line" x1="76" x2="846" y1="399.10" y2="399.10"/>
+<text class="tick-text" x="64" y="403.10" text-anchor="end">-0.30</text>
+<line class="grid-line" x1="76" x2="846" y1="356.27" y2="356.27"/>
+<text class="tick-text" x="64" y="360.27" text-anchor="end">-0.20</text>
+<line class="grid-line" x1="76" x2="846" y1="313.43" y2="313.43"/>
+<text class="tick-text" x="64" y="317.43" text-anchor="end">-0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="270.60" y2="270.60"/>
+<text class="tick-text" x="64" y="274.60" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="227.76" y2="227.76"/>
+<text class="tick-text" x="64" y="231.76" text-anchor="end">0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="184.92" y2="184.92"/>
+<text class="tick-text" x="64" y="188.92" text-anchor="end">0.20</text>
+<line class="grid-line" x1="76" x2="846" y1="142.09" y2="142.09"/>
+<text class="tick-text" x="64" y="146.09" text-anchor="end">0.30</text>
+<line class="grid-line" x1="76" x2="846" y1="99.25" y2="99.25"/>
+<text class="tick-text" x="64" y="103.25" text-anchor="end">0.40</text>
+<line class="grid-line" x1="76" x2="846" y1="56.42" y2="56.42"/>
+<text class="tick-text" x="64" y="60.42" text-anchor="end">0.50</text>
+<line class="axis-line" x1="76" x2="846" y1="270.60" y2="270.60"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Li</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Si</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Si の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,270.60 230.00,366.89 268.50,374.65 332.67,364.36 846.00,270.60"/>
+<line class="tie-drop" x1="230.00" x2="230.00" y1="366.89" y2="412"/>
+<line class="tie-drop" x1="268.50" x2="268.50" y1="374.65" y2="412"/>
+<line class="tie-drop" x1="332.67" x2="332.67" y1="364.36" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 22"><title>Li4
+Li:Si = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 4 / 22</title><circle cx="76.00" cy="270.25" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="256.25" text-anchor="middle">Li4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Li5
+Li:Si = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="76.00" cy="270.21" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="290.21" text-anchor="middle">Li5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Li6
+Li:Si = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 64 → 139
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="270.08" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="290.08" text-anchor="middle">Li6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Li8
+Li:Si = 1.000 / 0.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="76.00" cy="269.83" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="289.83" text-anchor="middle">Li8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>Li2
+Li:Si = 1.000 / 0.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 166
+原子数 / 候補 2 / 9</title><circle cx="76.00" cy="269.23" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="289.23" text-anchor="middle">Li2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Li7
+Li:Si = 1.000 / 0.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="76.00" cy="269.14" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="289.14" text-anchor="middle">Li7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.009 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 9 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Li3
+Li:Si = 1.000 / 0.000
+E_form 0.009 eV/atom
+包から 9 meV/atom
+空間群 166
+原子数 / 候補 3 / 3</title><circle cx="76.00" cy="266.74" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="286.74" text-anchor="middle">Li3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li9Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.088 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 24 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Li9Si
+Li:Si = 0.900 / 0.100
+E_form -0.088 eV/atom
+包から 24 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="153.00" cy="308.42" r="5" fill="var(--h1)"/><text class="plabel" x="153.00" y="294.42" text-anchor="middle">Li9Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li8Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.046 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 79 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Li8Si
+Li:Si = 0.889 / 0.111
+E_form -0.046 eV/atom
+包から 79 meV/atom
+空間群 166
+原子数 / 候補 9 / 9</title><circle cx="161.56" cy="290.39" r="5" fill="var(--h2)"/><text class="plabel" x="161.56" y="310.39" text-anchor="middle">Li8Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li7Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.119 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 22 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Li7Si
+Li:Si = 0.875 / 0.125
+E_form -0.119 eV/atom
+包から 22 meV/atom
+空間群 12
+原子数 / 候補 8 / 9</title><circle cx="172.25" cy="321.49" r="5" fill="var(--h1)"/><text class="plabel" x="172.25" y="341.49" text-anchor="middle">Li7Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li6Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.148 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 13 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Li6Si
+Li:Si = 0.857 / 0.143
+E_form -0.148 eV/atom
+包から 13 meV/atom
+空間群 166
+原子数 / 候補 7 / 9</title><circle cx="186.00" cy="333.87" r="5" fill="var(--h1)"/><text class="plabel" x="186.00" y="353.87" text-anchor="middle">Li6Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li5Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.129 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 59 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 16"><title>Li5Si
+Li:Si = 0.833 / 0.167
+E_form -0.129 eV/atom
+包から 59 meV/atom
+空間群 166
+原子数 / 候補 6 / 16</title><circle cx="204.33" cy="325.73" r="5" fill="var(--h2)"/><text class="plabel" x="204.33" y="345.73" text-anchor="middle">Li5Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li8Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.225 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Li8Si2
+Li:Si = 0.800 / 0.200
+E_form -0.225 eV/atom
+包から 0 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="366.89" r="5" fill="var(--h1)"/><text class="plabel" x="230.00" y="352.89" text-anchor="middle">Li8Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li7Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.147 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 86 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Li7Si2
+Li:Si = 0.778 / 0.222
+E_form -0.147 eV/atom
+包から 86 meV/atom
+空間群 166
+原子数 / 候補 9 / 3</title><circle cx="247.11" cy="333.39" r="5" fill="var(--h2)"/><text class="plabel" x="247.11" y="319.39" text-anchor="middle">Li7Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li6Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.243 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Li6Si2
+Li:Si = 0.750 / 0.250
+E_form -0.243 eV/atom
+包から 0 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="374.60" r="5" fill="var(--h1)"/><text class="plabel" x="268.50" y="360.60" text-anchor="middle">Li6Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li5Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.029 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 262 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Li5Si2
+Li:Si = 0.714 / 0.286
+E_form 0.029 eV/atom
+包から 262 meV/atom
+空間群 189 → 191
+原子数 / 候補 7 / 3</title><circle cx="296.00" cy="258.00" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="244.00" text-anchor="middle">Li5Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li7Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.173 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 55 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Li7Si3
+Li:Si = 0.700 / 0.300
+E_form -0.173 eV/atom
+包から 55 meV/atom
+空間群 164
+原子数 / 候補 10 / 3</title><circle cx="307.00" cy="344.83" r="5" fill="var(--h2)"/><text class="plabel" x="307.00" y="330.83" text-anchor="middle">Li7Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.200 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 19 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 22"><title>Li2Si
+Li:Si = 0.667 / 0.333
+E_form -0.200 eV/atom
+包から 19 meV/atom
+空間群 38 → 65
+原子数 / 候補 3 / 22</title><circle cx="332.67" cy="356.40" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="342.40" text-anchor="middle">Li2Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li6Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.189 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 30 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Li6Si3
+Li:Si = 0.667 / 0.333
+E_form -0.189 eV/atom
+包から 30 meV/atom
+空間群 189
+原子数 / 候補 9 / 3</title><circle cx="332.67" cy="351.56" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="371.56" text-anchor="middle">Li6Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li5Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.204 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Li5Si3
+Li:Si = 0.625 / 0.375
+E_form -0.204 eV/atom
+包から 1 meV/atom
+空間群 189
+原子数 / 候補 8 / 3</title><circle cx="364.75" cy="358.07" r="5" fill="var(--h1)"/><text class="plabel" x="364.75" y="378.07" text-anchor="middle">Li5Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li6Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.037 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 160 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Li6Si4
+Li:Si = 0.600 / 0.400
+E_form -0.037 eV/atom
+包から 160 meV/atom
+空間群 63
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="286.57" r="5" fill="var(--h3)"/><text class="plabel" x="384.00" y="272.57" text-anchor="middle">Li6Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.018 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 206 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Li4Si3
+Li:Si = 0.571 / 0.429
+E_form 0.018 eV/atom
+包から 206 meV/atom
+空間群 189
+原子数 / 候補 7 / 3</title><circle cx="406.00" cy="262.80" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="282.80" text-anchor="middle">Li4Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li5Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.130 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 53 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Li5Si4
+Li:Si = 0.556 / 0.444
+E_form -0.130 eV/atom
+包から 53 meV/atom
+空間群 189
+原子数 / 候補 9 / 3</title><circle cx="418.22" cy="326.15" r="5" fill="var(--h2)"/><text class="plabel" x="418.22" y="312.15" text-anchor="middle">Li5Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.080 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 85 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Li4Si4
+Li:Si = 0.500 / 0.500
+E_form -0.080 eV/atom
+包から 85 meV/atom
+空間群 63
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="304.69" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="290.69" text-anchor="middle">Li4Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiSi&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 164 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 22"><title>LiSi
+Li:Si = 0.500 / 0.500
+E_form 0.000 eV/atom
+包から 164 meV/atom
+空間群 187
+原子数 / 候補 2 / 22</title><circle cx="461.00" cy="270.51" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="256.51" text-anchor="middle">LiSi</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 165 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189 → 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>Li3Si3
+Li:Si = 0.500 / 0.500
+E_form 0.000 eV/atom
+包から 165 meV/atom
+空間群 189 → 187
+原子数 / 候補 6 / 3</title><circle cx="461.00" cy="270.47" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="290.47" text-anchor="middle">Li3Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.006 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 170 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 129 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Li2Si2
+Li:Si = 0.500 / 0.500
+E_form 0.006 eV/atom
+包から 170 meV/atom
+空間群 129 → 123
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="268.15" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="288.15" text-anchor="middle">Li2Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4Si5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.050 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 96 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Li4Si5
+Li:Si = 0.444 / 0.556
+E_form -0.050 eV/atom
+包から 96 meV/atom
+空間群 189
+原子数 / 候補 9 / 3</title><circle cx="503.78" cy="291.89" r="5" fill="var(--h2)"/><text class="plabel" x="503.78" y="277.89" text-anchor="middle">Li4Si5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.094 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 234 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Li3Si4
+Li:Si = 0.429 / 0.571
+E_form 0.094 eV/atom
+包から 234 meV/atom
+空間群 189
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="230.54" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="216.54" text-anchor="middle">Li3Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.004 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 136 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 10&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 8"><title>Li2Si3
+Li:Si = 0.400 / 0.600
+E_form 0.004 eV/atom
+包から 136 meV/atom
+空間群 10
+原子数 / 候補 5 / 8</title><circle cx="538.00" cy="268.71" r="5" fill="var(--h3)"/><text class="plabel" x="538.00" y="254.71" text-anchor="middle">Li2Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4Si6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.092 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 224 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 43&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Li4Si6
+Li:Si = 0.400 / 0.600
+E_form 0.092 eV/atom
+包から 224 meV/atom
+空間群 43
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="231.06" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="251.06" text-anchor="middle">Li4Si6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3Si5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.022 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 145 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Li3Si5
+Li:Si = 0.375 / 0.625
+E_form 0.022 eV/atom
+包から 145 meV/atom
+空間群 189
+原子数 / 候補 8 / 3</title><circle cx="557.25" cy="261.34" r="5" fill="var(--h3)"/><text class="plabel" x="557.25" y="281.34" text-anchor="middle">Li3Si5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.039 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 149 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 10&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Li2Si4
+Li:Si = 0.333 / 0.667
+E_form 0.039 eV/atom
+包から 149 meV/atom
+空間群 10
+原子数 / 候補 6 / 6</title><circle cx="589.33" cy="253.72" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="239.72" text-anchor="middle">Li2Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiSi2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.131 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 241 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 10"><title>LiSi2
+Li:Si = 0.333 / 0.667
+E_form 0.131 eV/atom
+包から 241 meV/atom
+空間群 139
+原子数 / 候補 3 / 10</title><circle cx="589.33" cy="214.31" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="200.31" text-anchor="middle">LiSi2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3Si6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.181 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 290 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 153&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Li3Si6
+Li:Si = 0.333 / 0.667
+E_form 0.181 eV/atom
+包から 290 meV/atom
+空間群 153
+原子数 / 候補 9 / 3</title><circle cx="589.33" cy="193.28" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="213.28" text-anchor="middle">Li3Si6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Si5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.126 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 220 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 10&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Li2Si5
+Li:Si = 0.286 / 0.714
+E_form 0.126 eV/atom
+包から 220 meV/atom
+空間群 10
+原子数 / 候補 7 / 3</title><circle cx="626.00" cy="216.45" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="202.45" text-anchor="middle">Li2Si5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Si6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.069 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 151 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Li2Si6
+Li:Si = 0.250 / 0.750
+E_form 0.069 eV/atom
+包から 151 meV/atom
+空間群 12
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="241.17" r="5" fill="var(--h3)"/><text class="plabel" x="653.50" y="227.17" text-anchor="middle">Li2Si6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiSi3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.193 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 275 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 13"><title>LiSi3
+Li:Si = 0.250 / 0.750
+E_form 0.193 eV/atom
+包から 275 meV/atom
+空間群 139
+原子数 / 候補 4 / 13</title><circle cx="653.50" cy="187.84" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="207.84" text-anchor="middle">LiSi3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Si7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.149 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 222 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Li2Si7
+Li:Si = 0.222 / 0.778
+E_form 0.149 eV/atom
+包から 222 meV/atom
+空間群 12 → 2
+原子数 / 候補 9 / 9</title><circle cx="674.89" cy="206.86" r="5" fill="var(--meta)"/><text class="plabel" x="674.89" y="226.86" text-anchor="middle">Li2Si7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiSi4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.018 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 84 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 119&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 24"><title>LiSi4
+Li:Si = 0.200 / 0.800
+E_form 0.018 eV/atom
+包から 84 meV/atom
+空間群 82 → 119
+原子数 / 候補 5 / 24</title><circle cx="692.00" cy="262.93" r="5" fill="var(--h2)"/><text class="plabel" x="692.00" y="248.93" text-anchor="middle">LiSi4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Si8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.050 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 115 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Li2Si8
+Li:Si = 0.200 / 0.800
+E_form 0.050 eV/atom
+包から 115 meV/atom
+空間群 1
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="249.39" r="5" fill="var(--h3)"/><text class="plabel" x="692.00" y="269.39" text-anchor="middle">Li2Si8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiSi5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.224 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 278 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 19"><title>LiSi5
+Li:Si = 0.167 / 0.833
+E_form 0.224 eV/atom
+包から 278 meV/atom
+空間群 12
+原子数 / 候補 6 / 19</title><circle cx="717.67" cy="174.86" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="160.86" text-anchor="middle">LiSi5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiSi6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.210 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 257 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>LiSi6
+Li:Si = 0.143 / 0.857
+E_form 0.210 eV/atom
+包から 257 meV/atom
+空間群 1
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="180.47" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="166.47" text-anchor="middle">LiSi6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiSi7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.182 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 224 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>LiSi7
+Li:Si = 0.125 / 0.875
+E_form 0.182 eV/atom
+包から 224 meV/atom
+空間群 1
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="192.46" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="178.46" text-anchor="middle">LiSi7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiSi8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.255 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 292 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>LiSi8
+Li:Si = 0.111 / 0.889
+E_form 0.255 eV/atom
+包から 292 meV/atom
+空間群 12
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="161.19" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="181.19" text-anchor="middle">LiSi8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiSi9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.244 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 277 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>LiSi9
+Li:Si = 0.100 / 0.900
+E_form 0.244 eV/atom
+包から 277 meV/atom
+空間群 1
+原子数 / 候補 10 / 6</title><circle cx="769.00" cy="165.90" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="185.90" text-anchor="middle">LiSi9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.293 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 293 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 51&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 11"><title>Si4
+Li:Si = 0.000 / 1.000
+E_form 0.293 eV/atom
+包から 293 meV/atom
+空間群 64 → 51
+原子数 / 候補 4 / 11</title><circle cx="846.00" cy="145.26" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="131.26" text-anchor="middle">Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.296 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 296 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 24"><title>Si8
+Li:Si = 0.000 / 1.000
+E_form 0.296 eV/atom
+包から 296 meV/atom
+空間群 12 → 63
+原子数 / 候補 8 / 24</title><circle cx="846.00" cy="143.93" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="163.93" text-anchor="middle">Si8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.297 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 297 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Si6
+Li:Si = 0.000 / 1.000
+E_form 0.297 eV/atom
+包から 297 meV/atom
+空間群 63
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="143.50" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="163.50" text-anchor="middle">Si6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.297 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 297 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Si5
+Li:Si = 0.000 / 1.000
+E_form 0.297 eV/atom
+包から 297 meV/atom
+空間群 12 → 65
+原子数 / 候補 5 / 6</title><circle cx="846.00" cy="143.46" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="163.46" text-anchor="middle">Si5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.406 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 406 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Si7
+Li:Si = 0.000 / 1.000
+E_form 0.406 eV/atom
+包から 406 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="846.00" cy="96.68" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="82.68" text-anchor="middle">Si7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.472 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 472 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 42 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 18"><title>Si
+Li:Si = 0.000 / 1.000
+E_form 0.472 eV/atom
+包から 472 meV/atom
+空間群 42 → 139
+原子数 / 候補 1 / 18</title><circle cx="846.00" cy="68.24" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="88.24" text-anchor="middle">Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.484 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 484 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 200 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Si3
+Li:Si = 0.000 / 1.000
+E_form 0.484 eV/atom
+包から 484 meV/atom
+空間群 200 → 221
+原子数 / 候補 3 / 3</title><circle cx="846.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="49.35" text-anchor="middle">Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 18"><title>Li
+Li:Si = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 229
+原子数 / 候補 1 / 18</title><circle cx="76.00" cy="270.60" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="290.60" text-anchor="middle">Li</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.225 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 14"><title>Li4Si
+Li:Si = 0.800 / 0.200
+E_form -0.225 eV/atom
+包から 0（凸包上）
+空間群 166
+原子数 / 候補 5 / 14</title><circle cx="230.00" cy="366.89" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="230.00" y="386.89" text-anchor="middle">Li4Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.243 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 20"><title>Li3Si
+Li:Si = 0.750 / 0.250
+E_form -0.243 eV/atom
+包から 0（凸包上）
+空間群 166
+原子数 / 候補 4 / 20</title><circle cx="268.50" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="268.50" y="394.65" text-anchor="middle">Li3Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.219 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Li4Si2
+Li:Si = 0.667 / 0.333
+E_form -0.219 eV/atom
+包から 0（凸包上）
+空間群 63 → 65
+原子数 / 候補 6 / 9</title><circle cx="332.67" cy="364.36" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="332.67" y="384.36" text-anchor="middle">Li4Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 227&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 20"><title>Si2
+Li:Si = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 227
+原子数 / 候補 2 / 20</title><circle cx="846.00" cy="270.60" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="256.60" text-anchor="middle">Si2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Li</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Li4Si</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Li3Si</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Li4Si2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Si2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Li8Si2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li6Si2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li5</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li5Si3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li7</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li3</span><span class="bar-track"><span class="bar-fill" style="width:1.86%;background:var(--h1)"></span></span><span class="bar-val">9 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li6Si</span><span class="bar-track"><span class="bar-fill" style="width:2.67%;background:var(--h1)"></span></span><span class="bar-val">13 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Si</span><span class="bar-track"><span class="bar-fill" style="width:3.84%;background:var(--h1)"></span></span><span class="bar-val">19 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li7Si</span><span class="bar-track"><span class="bar-fill" style="width:4.49%;background:var(--h1)"></span></span><span class="bar-val">22 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li9Si</span><span class="bar-track"><span class="bar-fill" style="width:4.98%;background:var(--h1)"></span></span><span class="bar-val">24 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li6Si3</span><span class="bar-track"><span class="bar-fill" style="width:6.18%;background:var(--h1)"></span></span><span class="bar-val">30 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li5Si4</span><span class="bar-track"><span class="bar-fill" style="width:10.89%;background:var(--h2)"></span></span><span class="bar-val">53 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li7Si3</span><span class="bar-track"><span class="bar-fill" style="width:11.43%;background:var(--h2)"></span></span><span class="bar-val">55 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li5Si</span><span class="bar-track"><span class="bar-fill" style="width:12.13%;background:var(--h2)"></span></span><span class="bar-val">59 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li8Si</span><span class="bar-track"><span class="bar-fill" style="width:16.27%;background:var(--h2)"></span></span><span class="bar-val">79 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiSi4</span><span class="bar-track"><span class="bar-fill" style="width:17.28%;background:var(--h2)"></span></span><span class="bar-val">84 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li4Si4</span><span class="bar-track"><span class="bar-fill" style="width:17.49%;background:var(--h2)"></span></span><span class="bar-val">85 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li7Si2</span><span class="bar-track"><span class="bar-fill" style="width:17.84%;background:var(--h2)"></span></span><span class="bar-val">86 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li4Si5</span><span class="bar-track"><span class="bar-fill" style="width:19.88%;background:var(--h2)"></span></span><span class="bar-val">96 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Si8</span><span class="bar-track"><span class="bar-fill" style="width:23.81%;background:var(--h3)"></span></span><span class="bar-val">115 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Si3</span><span class="bar-track"><span class="bar-fill" style="width:28.05%;background:var(--h3)"></span></span><span class="bar-val">136 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li3Si5</span><span class="bar-track"><span class="bar-fill" style="width:29.93%;background:var(--h3)"></span></span><span class="bar-val">145 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Si4</span><span class="bar-track"><span class="bar-fill" style="width:30.78%;background:var(--h3)"></span></span><span class="bar-val">149 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Si6</span><span class="bar-track"><span class="bar-fill" style="width:31.17%;background:var(--h3)"></span></span><span class="bar-val">151 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li6Si4</span><span class="bar-track"><span class="bar-fill" style="width:33.03%;background:var(--h3)"></span></span><span class="bar-val">160 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiSi</span><span class="bar-track"><span class="bar-fill" style="width:33.98%;background:var(--h3)"></span></span><span class="bar-val">164 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li3Si3</span><span class="bar-track"><span class="bar-fill" style="width:34.00%;background:var(--h3)"></span></span><span class="bar-val">165 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Si2</span><span class="bar-track"><span class="bar-fill" style="width:35.12%;background:var(--h3)"></span></span><span class="bar-val">170 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li4Si3</span><span class="bar-track"><span class="bar-fill" style="width:42.56%;background:var(--meta)"></span></span><span class="bar-val">206 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Si5</span><span class="bar-track"><span class="bar-fill" style="width:45.54%;background:var(--meta)"></span></span><span class="bar-val">220 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Si7</span><span class="bar-track"><span class="bar-fill" style="width:45.85%;background:var(--meta)"></span></span><span class="bar-val">222 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiSi7</span><span class="bar-track"><span class="bar-fill" style="width:46.20%;background:var(--meta)"></span></span><span class="bar-val">224 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li4Si6</span><span class="bar-track"><span class="bar-fill" style="width:46.22%;background:var(--meta)"></span></span><span class="bar-val">224 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li3Si4</span><span class="bar-track"><span class="bar-fill" style="width:48.43%;background:var(--meta)"></span></span><span class="bar-val">234 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiSi2</span><span class="bar-track"><span class="bar-fill" style="width:49.79%;background:var(--meta)"></span></span><span class="bar-val">241 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiSi6</span><span class="bar-track"><span class="bar-fill" style="width:53.18%;background:var(--meta)"></span></span><span class="bar-val">257 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li5Si2</span><span class="bar-track"><span class="bar-fill" style="width:54.15%;background:var(--meta)"></span></span><span class="bar-val">262 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiSi3</span><span class="bar-track"><span class="bar-fill" style="width:56.90%;background:var(--meta)"></span></span><span class="bar-val">275 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiSi9</span><span class="bar-track"><span class="bar-fill" style="width:57.30%;background:var(--meta)"></span></span><span class="bar-val">277 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiSi5</span><span class="bar-track"><span class="bar-fill" style="width:57.52%;background:var(--meta)"></span></span><span class="bar-val">278 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li3Si6</span><span class="bar-track"><span class="bar-fill" style="width:59.94%;background:var(--meta)"></span></span><span class="bar-val">290 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiSi8</span><span class="bar-track"><span class="bar-fill" style="width:60.31%;background:var(--meta)"></span></span><span class="bar-val">292 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si4</span><span class="bar-track"><span class="bar-fill" style="width:60.48%;background:var(--meta)"></span></span><span class="bar-val">293 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si8</span><span class="bar-track"><span class="bar-fill" style="width:61.12%;background:var(--meta)"></span></span><span class="bar-val">296 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si6</span><span class="bar-track"><span class="bar-fill" style="width:61.33%;background:var(--meta)"></span></span><span class="bar-val">297 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si5</span><span class="bar-track"><span class="bar-fill" style="width:61.35%;background:var(--meta)"></span></span><span class="bar-val">297 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si7</span><span class="bar-track"><span class="bar-fill" style="width:83.92%;background:var(--meta)"></span></span><span class="bar-val">406 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si</span><span class="bar-track"><span class="bar-fill" style="width:97.64%;background:var(--meta)"></span></span><span class="bar-val">472 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si3</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">484 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 5 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Li</th><th>Si</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Li <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>229</td><td>1</td></tr>
+<tr class="stable"><td class="name">Li4Si <span class="pill">凸包上</span></td><td>0.800</td><td>0.200</td><td>-0.2248</td><td>166</td><td>5</td></tr>
+<tr class="stable"><td class="name">Li3Si <span class="pill">凸包上</span></td><td>0.750</td><td>0.250</td><td>-0.2429</td><td>166</td><td>4</td></tr>
+<tr class="stable"><td class="name">Li4Si2 <span class="pill">凸包上</span></td><td>0.667</td><td>0.333</td><td>-0.2189</td><td>63 → 65</td><td>6</td></tr>
+<tr class="stable"><td class="name">Si2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>227</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点は珍しく 2 つとも当たった</h3><p>Li は 229（Im-3m、bcc）、Si は 2 原子セルの 227（Fd-3m、ダイヤモンド型）。<b>どちらも実在の単体そのもの</b>なので、この系の生成エネルギーの絶対値は素直に読んでよい。硫黄やホウ素を含む系のように端点を割り引く必要は無い。</p></div><div class="note"><h3>凸包に載った 3 つは、実在の平衡相ではない</h3><p>実際の Li–Si 系の平衡相は Li<sub>12</sub>Si<sub>7</sub>（19 原子）、Li<sub>7</sub>Si<sub>3</sub>（10 原子）、Li<sub>13</sub>Si<sub>4</sub>（17 原子）、Li<sub>22</sub>Si<sub>5</sub>（27 原子）である。<b>Li<sub>7</sub>Si<sub>3</sub> 以外はすべて 10 原子セルに入らない</b>ので、この掃引では原理的に出てこない。載った Li<sub>3</sub>Si・Li<sub>4</sub>Si・Li<sub>2</sub>Si は、探索範囲の中での最安定であって、実験相を当てたものではない。<b>この図を Li–Si の相図として読んではいけない。</b></p></div><div class="note"><h3>Li<sub>7</sub>Si<sub>3</sub> は組成としては出たが、空間群が違う</h3><p>唯一 10 原子で組める実在相 Li<sub>7</sub>Si<sub>3</sub> は +55 meV/atom に出ている。ただしその点の空間群は <b>164（P-3m1）で、実在相の R-3m（166）ではない</b>。空間群の予測が上位に 166 を挙げなければ、組成が範囲内でも実在相は組まれない。<b>組成の網羅と空間群の網羅は別の話である。</b></p></div><div class="note"><h3>包に張り付いた点が 2 つある</h3><p>Li<sub>5</sub>Si<sub>3</sub> が +1 meV、Li<sub>6</sub>Si が +13 meV。MatterSim の分解能はこの手法で数十 meV/atom なので、<b>これらを「載っていない」と言い切ることはできない</b>。Li<sub>2</sub>Si（Li<sub>4</sub>Si<sub>2</sub>）も要求 63 に対し検出 65 で、空間群の数字は額面どおりに受け取らない。</p></div><div class="note"><h3>穴はほとんど無い</h3><p>≤10 原子・既約の 33 組成のうち、点が 1 つも出なかったのは <b>Li<sub>3</sub>Si<sub>2</sub> と Li<sub>3</sub>Si<sub>7</sub> の 2 つだけ</b>。組成の網羅という意味ではよく撒けている。図の空白は、この 2 点を除けば「探したが載らなかった」であって「探していない」ではない。</p></div></section>
+ <footer><span>aiida-shotgun-csp 4.10.1 · MatterSim relaxed</span><span>58 組成 / 545 構造 / 安定 5（うち端点 2）</span><span>≤10 原子/セル。convex-hull-plot v1.0.2 + --meta（WSL 内で生成）</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

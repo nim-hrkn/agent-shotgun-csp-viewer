@@ -1,0 +1,603 @@
+<title>Ti–Al 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Ti–Al 相図</h1>
+  <p class="lede">Ti と Al の比を 45 通り（全原子数 10 まで）に刻み、両端点も別に計算した。凸包に載った化合物は <b>Ti3Al</b>・<b>TiAl</b>・<b>TiAl2</b>・<b>TiAl3</b> の 4 つで、実在の Ti–Al 系の中間相と組成が一致する。とくに <b>γ-TiAl = L1<sub>0</sub> (123)</b> は空間群まで当たった。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>55</dd></div><div class="fact"><dt>凸包上</dt><dd>6</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>26</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Al の原子分率。縦軸は端点（Ti, Al）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Ti–Al 相図">
+<line class="grid-line" x1="76" x2="846" y1="387.51" y2="387.51"/>
+<text class="tick-text" x="64" y="391.51" text-anchor="end">-0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="319.64" y2="319.64"/>
+<text class="tick-text" x="64" y="323.64" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="251.77" y2="251.77"/>
+<text class="tick-text" x="64" y="255.77" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="183.90" y2="183.90"/>
+<text class="tick-text" x="64" y="187.90" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="116.02" y2="116.02"/>
+<text class="tick-text" x="64" y="120.02" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="48.15" y2="48.15"/>
+<text class="tick-text" x="64" y="52.15" text-anchor="end">0.75</text>
+<line class="axis-line" x1="76" x2="846" y1="251.77" y2="251.77"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Ti</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Al</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Al の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,251.77 268.50,334.38 461.00,372.66 589.33,374.65 653.50,365.60 846.00,251.77"/>
+<line class="tie-drop" x1="268.50" x2="268.50" y1="334.38" y2="412"/>
+<line class="tie-drop" x1="461.00" x2="461.00" y1="372.66" y2="412"/>
+<line class="tie-drop" x1="589.33" x2="589.33" y1="374.65" y2="412"/>
+<line class="tie-drop" x1="653.50" x2="653.50" y1="365.60" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.008 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 8 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>Ti
+Ti:Al = 1.000 / 0.000
+E_form 0.008 eV/atom
+包から 8 meV/atom
+空間群 225
+原子数 / 候補 1 / 9</title><circle cx="76.00" cy="249.73" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="235.73" text-anchor="middle">Ti</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti9Al&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.015 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 137 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 99 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ti9Al
+Ti:Al = 0.900 / 0.100
+E_form 0.015 eV/atom
+包から 137 meV/atom
+空間群 99 → 123
+原子数 / 候補 10 / 9</title><circle cx="153.00" cy="247.59" r="5" fill="var(--h3)"/><text class="plabel" x="153.00" y="233.59" text-anchor="middle">Ti9Al</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti8Al&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.274 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 410 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 99&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ti8Al
+Ti:Al = 0.889 / 0.111
+E_form 0.274 eV/atom
+包から 410 meV/atom
+空間群 99
+原子数 / 候補 9 / 6</title><circle cx="161.56" cy="177.30" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="163.30" text-anchor="middle">Ti8Al</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti7Al&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.120 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 32 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 99 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ti7Al
+Ti:Al = 0.875 / 0.125
+E_form -0.120 eV/atom
+包から 32 meV/atom
+空間群 99 → 123
+原子数 / 候補 8 / 9</title><circle cx="172.25" cy="284.35" r="5" fill="var(--h1)"/><text class="plabel" x="172.25" y="270.35" text-anchor="middle">Ti7Al</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti6Al&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.054 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 228 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Ti6Al
+Ti:Al = 0.857 / 0.143
+E_form 0.054 eV/atom
+包から 228 meV/atom
+空間群 123
+原子数 / 候補 7 / 9</title><circle cx="186.00" cy="237.19" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="257.19" text-anchor="middle">Ti6Al</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti5Al&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.127 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 76 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 7"><title>Ti5Al
+Ti:Al = 0.833 / 0.167
+E_form -0.127 eV/atom
+包から 76 meV/atom
+空間群 123
+原子数 / 候補 6 / 7</title><circle cx="204.33" cy="286.17" r="5" fill="var(--h2)"/><text class="plabel" x="204.33" y="306.17" text-anchor="middle">Ti5Al</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti8Al2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.176 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 68 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 18"><title>Ti8Al2
+Ti:Al = 0.800 / 0.200
+E_form -0.176 eV/atom
+包から 68 meV/atom
+空間群 12
+原子数 / 候補 10 / 18</title><circle cx="230.00" cy="299.47" r="5" fill="var(--h2)"/><text class="plabel" x="230.00" y="319.47" text-anchor="middle">Ti8Al2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti4Al&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.694 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 938 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>Ti4Al
+Ti:Al = 0.800 / 0.200
+E_form 0.694 eV/atom
+包から 938 meV/atom
+空間群 221
+原子数 / 候補 5 / 9</title><circle cx="230.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="49.35" text-anchor="middle">Ti4Al</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti7Al2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.180 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 90 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ti7Al2
+Ti:Al = 0.778 / 0.222
+E_form -0.180 eV/atom
+包から 90 meV/atom
+空間群 12
+原子数 / 候補 9 / 6</title><circle cx="247.11" cy="300.66" r="5" fill="var(--h2)"/><text class="plabel" x="247.11" y="286.66" text-anchor="middle">Ti7Al2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti6Al2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.303 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 15"><title>Ti6Al2
+Ti:Al = 0.750 / 0.250
+E_form -0.303 eV/atom
+包から 1 meV/atom
+空間群 139
+原子数 / 候補 8 / 15</title><circle cx="268.50" cy="334.03" r="5" fill="var(--h1)"/><text class="plabel" x="268.50" y="320.03" text-anchor="middle">Ti6Al2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti5Al2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.326 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 651 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 4"><title>Ti5Al2
+Ti:Al = 0.714 / 0.286
+E_form 0.326 eV/atom
+包から 651 meV/atom
+空間群 139
+原子数 / 候補 7 / 4</title><circle cx="296.00" cy="163.15" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="149.15" text-anchor="middle">Ti5Al2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti7Al3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.223 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 109 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Ti7Al3
+Ti:Al = 0.700 / 0.300
+E_form -0.223 eV/atom
+包から 109 meV/atom
+空間群 12
+原子数 / 候補 10 / 3</title><circle cx="307.00" cy="312.37" r="5" fill="var(--h3)"/><text class="plabel" x="307.00" y="298.37" text-anchor="middle">Ti7Al3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti4Al2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.331 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 20 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 11"><title>Ti4Al2
+Ti:Al = 0.667 / 0.333
+E_form -0.331 eV/atom
+包から 20 meV/atom
+空間群 194
+原子数 / 候補 6 / 11</title><circle cx="332.67" cy="341.69" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="327.69" text-anchor="middle">Ti4Al2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Al&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.236 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 116 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>Ti2Al
+Ti:Al = 0.667 / 0.333
+E_form -0.236 eV/atom
+包から 116 meV/atom
+空間群 164
+原子数 / 候補 3 / 9</title><circle cx="332.67" cy="315.79" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="335.79" text-anchor="middle">Ti2Al</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti6Al3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.148 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 204 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ti6Al3
+Ti:Al = 0.667 / 0.333
+E_form -0.148 eV/atom
+包から 204 meV/atom
+空間群 12
+原子数 / 候補 9 / 3</title><circle cx="332.67" cy="291.81" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="311.81" text-anchor="middle">Ti6Al3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti5Al3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.303 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 72 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Ti5Al3
+Ti:Al = 0.625 / 0.375
+E_form -0.303 eV/atom
+包から 72 meV/atom
+空間群 12
+原子数 / 候補 8 / 6</title><circle cx="364.75" cy="334.00" r="5" fill="var(--h2)"/><text class="plabel" x="364.75" y="354.00" text-anchor="middle">Ti5Al3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti6Al4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.362 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 27 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 15"><title>Ti6Al4
+Ti:Al = 0.600 / 0.400
+E_form -0.362 eV/atom
+包から 27 meV/atom
+空間群 12
+原子数 / 候補 10 / 15</title><circle cx="384.00" cy="350.02" r="5" fill="var(--h1)"/><text class="plabel" x="384.00" y="370.02" text-anchor="middle">Ti6Al4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti3Al2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.465 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 854 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 8"><title>Ti3Al2
+Ti:Al = 0.600 / 0.400
+E_form 0.465 eV/atom
+包から 854 meV/atom
+空間群 139
+原子数 / 候補 5 / 8</title><circle cx="384.00" cy="125.44" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="111.44" text-anchor="middle">Ti3Al2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti4Al3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.389 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 17 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Ti4Al3
+Ti:Al = 0.571 / 0.429
+E_form -0.389 eV/atom
+包から 17 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="406.00" cy="357.24" r="5" fill="var(--h1)"/><text class="plabel" x="406.00" y="377.24" text-anchor="middle">Ti4Al3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti5Al4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.217 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 197 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ti5Al4
+Ti:Al = 0.556 / 0.444
+E_form -0.217 eV/atom
+包から 197 meV/atom
+空間群 12
+原子数 / 候補 9 / 3</title><circle cx="418.22" cy="310.74" r="5" fill="var(--h3)"/><text class="plabel" x="418.22" y="296.74" text-anchor="middle">Ti5Al4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiAl&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.445 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 18"><title>TiAl
+Ti:Al = 0.500 / 0.500
+E_form -0.445 eV/atom
+包から 0 meV/atom
+空間群 123
+原子数 / 候補 2 / 18</title><circle cx="461.00" cy="372.66" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="358.66" text-anchor="middle">TiAl</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti4Al4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.444 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 18"><title>Ti4Al4
+Ti:Al = 0.500 / 0.500
+E_form -0.444 eV/atom
+包から 1 meV/atom
+空間群 63 → 123
+原子数 / 候補 8 / 18</title><circle cx="461.00" cy="372.39" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="392.39" text-anchor="middle">Ti4Al4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti3Al3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.346 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 100 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Ti3Al3
+Ti:Al = 0.500 / 0.500
+E_form -0.346 eV/atom
+包から 100 meV/atom
+空間群 12 → 123
+原子数 / 候補 6 / 6</title><circle cx="461.00" cy="345.62" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="365.62" text-anchor="middle">Ti3Al3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti5Al5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.249 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 197 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Ti5Al5
+Ti:Al = 0.500 / 0.500
+E_form -0.249 eV/atom
+包から 197 meV/atom
+空間群 12
+原子数 / 候補 10 / 3</title><circle cx="461.00" cy="319.26" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="305.26" text-anchor="middle">Ti5Al5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti4Al5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.228 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 220 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ti4Al5
+Ti:Al = 0.444 / 0.556
+E_form -0.228 eV/atom
+包から 220 meV/atom
+空間群 12 → 2
+原子数 / 候補 9 / 6</title><circle cx="503.78" cy="313.61" r="5" fill="var(--meta)"/><text class="plabel" x="503.78" y="299.61" text-anchor="middle">Ti4Al5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti3Al4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.372 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 76 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Ti3Al4
+Ti:Al = 0.429 / 0.571
+E_form -0.372 eV/atom
+包から 76 meV/atom
+空間群 139
+原子数 / 候補 7 / 6</title><circle cx="516.00" cy="352.82" r="5" fill="var(--h2)"/><text class="plabel" x="516.00" y="338.82" text-anchor="middle">Ti3Al4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti4Al6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.446 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 15"><title>Ti4Al6
+Ti:Al = 0.400 / 0.600
+E_form -0.446 eV/atom
+包から 4 meV/atom
+空間群 8 → 12
+原子数 / 候補 10 / 15</title><circle cx="538.00" cy="372.74" r="5" fill="var(--h1)"/><text class="plabel" x="538.00" y="358.74" text-anchor="middle">Ti4Al6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Al3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.053 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 503 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 4"><title>Ti2Al3
+Ti:Al = 0.400 / 0.600
+E_form 0.053 eV/atom
+包から 503 meV/atom
+空間群 139
+原子数 / 候補 5 / 4</title><circle cx="538.00" cy="237.33" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="223.33" text-anchor="middle">Ti2Al3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti3Al5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.410 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 41 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ti3Al5
+Ti:Al = 0.375 / 0.625
+E_form -0.410 eV/atom
+包から 41 meV/atom
+空間群 12 → 123
+原子数 / 候補 8 / 9</title><circle cx="557.25" cy="362.94" r="5" fill="var(--h1)"/><text class="plabel" x="557.25" y="382.94" text-anchor="middle">Ti3Al5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiAl2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.426 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 27 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 107 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 10"><title>TiAl2
+Ti:Al = 0.333 / 0.667
+E_form -0.426 eV/atom
+包から 27 meV/atom
+空間群 107 → 139
+原子数 / 候補 3 / 10</title><circle cx="589.33" cy="367.42" r="5" fill="var(--h1)"/><text class="plabel" x="589.33" y="387.42" text-anchor="middle">TiAl2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti3Al6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.226 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 226 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Ti3Al6
+Ti:Al = 0.333 / 0.667
+E_form -0.226 eV/atom
+包から 226 meV/atom
+空間群 12
+原子数 / 候補 9 / 9</title><circle cx="589.33" cy="313.23" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="299.23" text-anchor="middle">Ti3Al6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti3Al7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.376 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 64 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ti3Al7
+Ti:Al = 0.300 / 0.700
+E_form -0.376 eV/atom
+包から 64 meV/atom
+空間群 12
+原子数 / 候補 10 / 9</title><circle cx="615.00" cy="353.74" r="5" fill="var(--h2)"/><text class="plabel" x="615.00" y="339.74" text-anchor="middle">Ti3Al7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Al5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.347 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 86 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 12"><title>Ti2Al5
+Ti:Al = 0.286 / 0.714
+E_form -0.347 eV/atom
+包から 86 meV/atom
+空間群 12 → 11
+原子数 / 候補 7 / 12</title><circle cx="626.00" cy="346.06" r="5" fill="var(--h2)"/><text class="plabel" x="626.00" y="366.06" text-anchor="middle">Ti2Al5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiAl3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.406 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 14 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>TiAl3
+Ti:Al = 0.250 / 0.750
+E_form -0.406 eV/atom
+包から 14 meV/atom
+空間群 139
+原子数 / 候補 4 / 9</title><circle cx="653.50" cy="361.91" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="381.91" text-anchor="middle">TiAl3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Al7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.191 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 182 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ti2Al7
+Ti:Al = 0.222 / 0.778
+E_form -0.191 eV/atom
+包から 182 meV/atom
+空間群 12 → 11
+原子数 / 候補 9 / 6</title><circle cx="674.89" cy="303.49" r="5" fill="var(--h3)"/><text class="plabel" x="674.89" y="289.49" text-anchor="middle">Ti2Al7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Al8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.281 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 55 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 18"><title>Ti2Al8
+Ti:Al = 0.200 / 0.800
+E_form -0.281 eV/atom
+包から 55 meV/atom
+空間群 12 → 2
+原子数 / 候補 10 / 18</title><circle cx="692.00" cy="327.92" r="5" fill="var(--h2)"/><text class="plabel" x="692.00" y="313.92" text-anchor="middle">Ti2Al8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiAl4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.077 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 412 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 83&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>TiAl4
+Ti:Al = 0.200 / 0.800
+E_form 0.077 eV/atom
+包から 412 meV/atom
+空間群 83
+原子数 / 候補 5 / 6</title><circle cx="692.00" cy="230.97" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="216.97" text-anchor="middle">TiAl4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiAl5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.195 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 84 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>TiAl5
+Ti:Al = 0.167 / 0.833
+E_form -0.195 eV/atom
+包から 84 meV/atom
+空間群 12
+原子数 / 候補 6 / 9</title><circle cx="717.67" cy="304.76" r="5" fill="var(--h2)"/><text class="plabel" x="717.67" y="324.76" text-anchor="middle">TiAl5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiAl6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.161 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 79 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>TiAl6
+Ti:Al = 0.143 / 0.857
+E_form -0.161 eV/atom
+包から 79 meV/atom
+空間群 12
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="295.45" r="5" fill="var(--h2)"/><text class="plabel" x="736.00" y="281.45" text-anchor="middle">TiAl6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiAl7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.116 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 94 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>TiAl7
+Ti:Al = 0.125 / 0.875
+E_form -0.116 eV/atom
+包から 94 meV/atom
+空間群 8
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="283.18" r="5" fill="var(--h2)"/><text class="plabel" x="749.75" y="303.18" text-anchor="middle">TiAl7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiAl8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.159 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 27 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>TiAl8
+Ti:Al = 0.111 / 0.889
+E_form -0.159 eV/atom
+包から 27 meV/atom
+空間群 8 → 2
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="294.99" r="5" fill="var(--h1)"/><text class="plabel" x="760.44" y="314.99" text-anchor="middle">TiAl8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiAl9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.128 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 40 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 13&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>TiAl9
+Ti:Al = 0.100 / 0.900
+E_form -0.128 eV/atom
+包から 40 meV/atom
+空間群 12 → 13
+原子数 / 候補 10 / 9</title><circle cx="769.00" cy="286.52" r="5" fill="var(--h1)"/><text class="plabel" x="769.00" y="306.52" text-anchor="middle">TiAl9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 15"><title>Al2
+Ti:Al = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 2 / 15</title><circle cx="846.00" cy="251.74" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="237.74" text-anchor="middle">Al2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 18"><title>Al4
+Ti:Al = 0.000 / 1.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 63
+原子数 / 候補 4 / 18</title><circle cx="846.00" cy="251.39" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="271.39" text-anchor="middle">Al4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>Al3
+Ti:Al = 0.000 / 1.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 166
+原子数 / 候補 3 / 9</title><circle cx="846.00" cy="251.23" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="271.23" text-anchor="middle">Al3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 18"><title>Al
+Ti:Al = 0.000 / 1.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 225
+原子数 / 候補 1 / 18</title><circle cx="846.00" cy="251.01" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="271.01" text-anchor="middle">Al</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 18"><title>Al6
+Ti:Al = 0.000 / 1.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 64 → 69
+原子数 / 候補 6 / 18</title><circle cx="846.00" cy="250.87" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="270.87" text-anchor="middle">Al6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Al5
+Ti:Al = 0.000 / 1.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 12 → 166
+原子数 / 候補 5 / 6</title><circle cx="846.00" cy="250.85" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="270.85" text-anchor="middle">Al5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.094 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 94 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Al7
+Ti:Al = 0.000 / 1.000
+E_form 0.094 eV/atom
+包から 94 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="846.00" cy="226.19" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="246.19" text-anchor="middle">Al7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>Ti2
+Ti:Al = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 2 / 9</title><circle cx="76.00" cy="251.77" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="237.77" text-anchor="middle">Ti2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti3Al&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.304 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 13"><title>Ti3Al
+Ti:Al = 0.750 / 0.250
+E_form -0.304 eV/atom
+包から 0（凸包上）
+空間群 221
+原子数 / 候補 4 / 13</title><circle cx="268.50" cy="334.38" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="268.50" y="354.38" text-anchor="middle">Ti3Al</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Al2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.445 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 129 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 14"><title>Ti2Al2
+Ti:Al = 0.500 / 0.500
+E_form -0.445 eV/atom
+包から 0（凸包上）
+空間群 129 → 123
+原子数 / 候補 4 / 14</title><circle cx="461.00" cy="372.66" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="461.00" y="392.66" text-anchor="middle">Ti2Al2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Al4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.453 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 18"><title>Ti2Al4
+Ti:Al = 0.333 / 0.667
+E_form -0.453 eV/atom
+包から 0（凸包上）
+空間群 12 → 65
+原子数 / 候補 6 / 18</title><circle cx="589.33" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="589.33" y="394.65" text-anchor="middle">Ti2Al4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Al6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.419 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 17"><title>Ti2Al6
+Ti:Al = 0.250 / 0.750
+E_form -0.419 eV/atom
+包から 0（凸包上）
+空間群 63
+原子数 / 候補 8 / 17</title><circle cx="653.50" cy="365.60" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="653.50" y="385.60" text-anchor="middle">Ti2Al6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Al&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 18"><title>Al8
+Ti:Al = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 64 → 63
+原子数 / 候補 8 / 18</title><circle cx="846.00" cy="251.77" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="271.77" text-anchor="middle">Al8</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Ti2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Ti3Al</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Ti2Al2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">TiAl</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Ti2Al4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Ti2Al6</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Al8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Al2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti4Al4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti6Al2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al5</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti4Al6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">4 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti</span><span class="bar-track"><span class="bar-fill" style="width:0.80%;background:var(--h1)"></span></span><span class="bar-val">8 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiAl3</span><span class="bar-track"><span class="bar-fill" style="width:1.45%;background:var(--h1)"></span></span><span class="bar-val">14 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti4Al3</span><span class="bar-track"><span class="bar-fill" style="width:1.76%;background:var(--h1)"></span></span><span class="bar-val">17 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti4Al2</span><span class="bar-track"><span class="bar-fill" style="width:2.14%;background:var(--h1)"></span></span><span class="bar-val">20 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiAl2</span><span class="bar-track"><span class="bar-fill" style="width:2.84%;background:var(--h1)"></span></span><span class="bar-val">27 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti6Al4</span><span class="bar-track"><span class="bar-fill" style="width:2.88%;background:var(--h1)"></span></span><span class="bar-val">27 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiAl8</span><span class="bar-track"><span class="bar-fill" style="width:2.90%;background:var(--h1)"></span></span><span class="bar-val">27 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti7Al</span><span class="bar-track"><span class="bar-fill" style="width:3.43%;background:var(--h1)"></span></span><span class="bar-val">32 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiAl9</span><span class="bar-track"><span class="bar-fill" style="width:4.23%;background:var(--h1)"></span></span><span class="bar-val">40 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti3Al5</span><span class="bar-track"><span class="bar-fill" style="width:4.39%;background:var(--h1)"></span></span><span class="bar-val">41 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti2Al8</span><span class="bar-track"><span class="bar-fill" style="width:5.86%;background:var(--h2)"></span></span><span class="bar-val">55 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti3Al7</span><span class="bar-track"><span class="bar-fill" style="width:6.78%;background:var(--h2)"></span></span><span class="bar-val">64 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti8Al2</span><span class="bar-track"><span class="bar-fill" style="width:7.22%;background:var(--h2)"></span></span><span class="bar-val">68 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti5Al3</span><span class="bar-track"><span class="bar-fill" style="width:7.67%;background:var(--h2)"></span></span><span class="bar-val">72 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti5Al</span><span class="bar-track"><span class="bar-fill" style="width:8.13%;background:var(--h2)"></span></span><span class="bar-val">76 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti3Al4</span><span class="bar-track"><span class="bar-fill" style="width:8.14%;background:var(--h2)"></span></span><span class="bar-val">76 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiAl6</span><span class="bar-track"><span class="bar-fill" style="width:8.39%;background:var(--h2)"></span></span><span class="bar-val">79 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiAl5</span><span class="bar-track"><span class="bar-fill" style="width:8.99%;background:var(--h2)"></span></span><span class="bar-val">84 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti2Al5</span><span class="bar-track"><span class="bar-fill" style="width:9.21%;background:var(--h2)"></span></span><span class="bar-val">86 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti7Al2</span><span class="bar-track"><span class="bar-fill" style="width:9.64%;background:var(--h2)"></span></span><span class="bar-val">90 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiAl7</span><span class="bar-track"><span class="bar-fill" style="width:10.02%;background:var(--h2)"></span></span><span class="bar-val">94 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al7</span><span class="bar-track"><span class="bar-fill" style="width:10.05%;background:var(--h2)"></span></span><span class="bar-val">94 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti3Al3</span><span class="bar-track"><span class="bar-fill" style="width:10.63%;background:var(--h2)"></span></span><span class="bar-val">100 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti7Al3</span><span class="bar-track"><span class="bar-fill" style="width:11.66%;background:var(--h3)"></span></span><span class="bar-val">109 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti2Al</span><span class="bar-track"><span class="bar-fill" style="width:12.32%;background:var(--h3)"></span></span><span class="bar-val">116 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti9Al</span><span class="bar-track"><span class="bar-fill" style="width:14.62%;background:var(--h3)"></span></span><span class="bar-val">137 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti2Al7</span><span class="bar-track"><span class="bar-fill" style="width:19.43%;background:var(--h3)"></span></span><span class="bar-val">182 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti5Al4</span><span class="bar-track"><span class="bar-fill" style="width:20.99%;background:var(--h3)"></span></span><span class="bar-val">197 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti5Al5</span><span class="bar-track"><span class="bar-fill" style="width:20.99%;background:var(--h3)"></span></span><span class="bar-val">197 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti6Al3</span><span class="bar-track"><span class="bar-fill" style="width:21.74%;background:var(--meta)"></span></span><span class="bar-val">204 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti4Al5</span><span class="bar-track"><span class="bar-fill" style="width:23.47%;background:var(--meta)"></span></span><span class="bar-val">220 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti3Al6</span><span class="bar-track"><span class="bar-fill" style="width:24.13%;background:var(--meta)"></span></span><span class="bar-val">226 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti6Al</span><span class="bar-track"><span class="bar-fill" style="width:24.28%;background:var(--meta)"></span></span><span class="bar-val">228 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti8Al</span><span class="bar-track"><span class="bar-fill" style="width:43.69%;background:var(--meta)"></span></span><span class="bar-val">410 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiAl4</span><span class="bar-track"><span class="bar-fill" style="width:43.95%;background:var(--meta)"></span></span><span class="bar-val">412 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti2Al3</span><span class="bar-track"><span class="bar-fill" style="width:53.64%;background:var(--meta)"></span></span><span class="bar-val">503 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti5Al2</span><span class="bar-track"><span class="bar-fill" style="width:69.42%;background:var(--meta)"></span></span><span class="bar-val">651 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti3Al2</span><span class="bar-track"><span class="bar-fill" style="width:91.11%;background:var(--meta)"></span></span><span class="bar-val">854 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti4Al</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">938 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 6 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Ti</th><th>Al</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Ti2 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>194</td><td>2</td></tr>
+<tr class="stable"><td class="name">Ti3Al <span class="pill">凸包上</span></td><td>0.750</td><td>0.250</td><td>-0.3043</td><td>221</td><td>4</td></tr>
+<tr class="stable"><td class="name">Ti2Al2 <span class="pill">凸包上</span></td><td>0.500</td><td>0.500</td><td>-0.4453</td><td>129 → 123</td><td>4</td></tr>
+<tr class="stable"><td class="name">Ti2Al4 <span class="pill">凸包上</span></td><td>0.333</td><td>0.667</td><td>-0.4526</td><td>12 → 65</td><td>6</td></tr>
+<tr class="stable"><td class="name">Ti2Al6 <span class="pill">凸包上</span></td><td>0.250</td><td>0.750</td><td>-0.4193</td><td>63</td><td>8</td></tr>
+<tr class="stable"><td class="name">Al8 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>64 → 63</td><td>8</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>当たったもの</h3><p><b>TiAl</b> は 4 原子セル <b>Ti2Al2</b> が最安定で、緩和後の検出空間群は <b>123 (P4/mmm)</b> —— 実在の γ-TiAl（L1<sub>0</sub>）そのもの。2 原子の <b>TiAl</b> も同じ 123 で、差はわずか <b>0.007 meV/atom</b>。Ti 端点も <b>Ti2 → 194 (hcp)</b> で α-Ti に当たっている。</p></div><div class="note"><h3>Ti3Al は組成は合っているが構造型が違う</h3><p>凸包に載ったのは <b>Ti3Al / 221（L1<sub>2</sub>, Cu3Au 型）</b>。実在の α<sub>2</sub>-Ti3Al は <b>D0<sub>19</sub>（P6<sub>3</sub>/mmc, 194）で 8 原子</b>必要で、4 原子セルには載らない。8 原子の <b>Ti6Al2</b> も撒いてあるが 139 に落ち、221 との差は <b>1.3 meV/atom</b> —— 分解能以下で、どちらが下かは判定できない。</p></div><div class="note"><h3>TiAl3 は 13.6 meV 差で外れた</h3><p>x=0.75 で凸包に載ったのは 8 原子の <b>Ti2Al6 / 63</b>。実在の <b>D0<sub>22</sub>（I4/mmm, 139）</b>に対応する 4 原子の <b>TiAl3</b> は <b>139 で検出</b>されており、包からわずか <b>13.6 meV/atom</b>。<b>この差では順位を言い切れない。</b>実質は当たっていると読むほうが自然。</p></div><div class="note"><h3>TiAl2 は枠の外</h3><p>実在の TiAl2 は Ga<sub>2</sub>Hf 型 <b>I4<sub>1</sub>/amd (141)・12 原子</b>で、<b>全原子数 10 の枠では組めない</b>。ここで x=0.667 に載っている <b>Ti2Al4 / C2/m (12→65)</b> は代役であって、構造型としては別物。</p></div><div class="note"><h3>Al 端点は分解能以下の差</h3><p>端点は <b>Al8</b>（64 → 緩和後 63）。真の fcc <b>Al</b>（1 原子, 225）はそこから <b>+2.8 meV/atom</b> しかない。系全体の高さへの影響は小さい。</p></div><div class="note"><h3>穴は無かった</h3><p>45 通りの二元組成すべてに点が出ている（counts 0/0/0 の組成は無し）。<b>spg_ranks=[1..6]</b> と広めに取った効果で、Ti 側・Al 側とも端まで埋まった。</p></div></section>
+ <footer><span>aiida-shotgun-csp 4.5.0</span><span>sweep = Ti–Al ≤10 atoms, 45 compositions + terminals</span><span>spg_ranks = 1–6 / mygardenx1-async + mygardenx2-async / MatterSim relax</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

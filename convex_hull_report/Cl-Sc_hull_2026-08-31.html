@@ -1,0 +1,646 @@
+<title>Cl–Sc 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Cl–Sc 相図</h1>
+  <p class="lede">凸包に載った化合物は Cl<sub>2</sub>Sc、Cl<sub>6</sub>Sc<sub>2</sub>。既存の三元系の辺として、これまで単独の相図が無かった二元系。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>60</dd></div><div class="fact"><dt>凸包上</dt><dd>4</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>12</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Cl の原子分率。縦軸は端点（Sc, Cl）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Cl–Sc 相図">
+<line class="grid-line" x1="76" x2="846" y1="390.08" y2="390.08"/>
+<text class="tick-text" x="64" y="394.08" text-anchor="end">-2.25</text>
+<line class="grid-line" x1="76" x2="846" y1="358.22" y2="358.22"/>
+<text class="tick-text" x="64" y="362.22" text-anchor="end">-2.00</text>
+<line class="grid-line" x1="76" x2="846" y1="326.36" y2="326.36"/>
+<text class="tick-text" x="64" y="330.36" text-anchor="end">-1.75</text>
+<line class="grid-line" x1="76" x2="846" y1="294.50" y2="294.50"/>
+<text class="tick-text" x="64" y="298.50" text-anchor="end">-1.50</text>
+<line class="grid-line" x1="76" x2="846" y1="262.65" y2="262.65"/>
+<text class="tick-text" x="64" y="266.65" text-anchor="end">-1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="230.79" y2="230.79"/>
+<text class="tick-text" x="64" y="234.79" text-anchor="end">-1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="198.93" y2="198.93"/>
+<text class="tick-text" x="64" y="202.93" text-anchor="end">-0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="167.07" y2="167.07"/>
+<text class="tick-text" x="64" y="171.07" text-anchor="end">-0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="135.21" y2="135.21"/>
+<text class="tick-text" x="64" y="139.21" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="103.36" y2="103.36"/>
+<text class="tick-text" x="64" y="107.36" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="71.50" y2="71.50"/>
+<text class="tick-text" x="64" y="75.50" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="39.64" y2="39.64"/>
+<text class="tick-text" x="64" y="43.64" text-anchor="end">0.50</text>
+<line class="axis-line" x1="76" x2="846" y1="103.36" y2="103.36"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Sc</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Cl</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Cl の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,103.36 589.33,348.61 653.50,374.65 846.00,103.36"/>
+<line class="tie-drop" x1="589.33" x2="589.33" y1="348.61" y2="412"/>
+<line class="tie-drop" x1="653.50" x2="653.50" y1="374.65" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>Sc
+Sc:Cl = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 225
+原子数 / 候補 1 / 9</title><circle cx="76.00" cy="103.36" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="89.36" text-anchor="middle">Sc</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.047 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 47 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 7"><title>Sc10
+Sc:Cl = 1.000 / 0.000
+E_form 0.047 eV/atom
+包から 47 meV/atom
+空間群 64
+原子数 / 候補 10 / 7</title><circle cx="76.00" cy="97.38" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="117.38" text-anchor="middle">Sc10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.052 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 52 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 7"><title>Sc6
+Sc:Cl = 1.000 / 0.000
+E_form 0.052 eV/atom
+包から 52 meV/atom
+空間群 63 → 229
+原子数 / 候補 6 / 7</title><circle cx="76.00" cy="96.75" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="116.75" text-anchor="middle">Sc6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.053 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 53 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Sc5
+Sc:Cl = 1.000 / 0.000
+E_form 0.053 eV/atom
+包から 53 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="76.00" cy="96.67" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="116.67" text-anchor="middle">Sc5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc9Cl&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.097 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 192 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Sc9Cl
+Sc:Cl = 0.900 / 0.100
+E_form -0.097 eV/atom
+包から 192 meV/atom
+空間群 155
+原子数 / 候補 10 / 6</title><circle cx="153.00" cy="115.73" r="5" fill="var(--h3)"/><text class="plabel" x="153.00" y="101.73" text-anchor="middle">Sc9Cl</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc8Cl&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.118 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 203 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Sc8Cl
+Sc:Cl = 0.889 / 0.111
+E_form -0.118 eV/atom
+包から 203 meV/atom
+空間群 12 → 1
+原子数 / 候補 9 / 9</title><circle cx="161.56" cy="118.41" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="104.41" text-anchor="middle">Sc8Cl</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc7Cl&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.081 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 280 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Sc7Cl
+Sc:Cl = 0.875 / 0.125
+E_form -0.081 eV/atom
+包から 280 meV/atom
+空間群 12
+原子数 / 候補 8 / 9</title><circle cx="172.25" cy="113.70" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="133.70" text-anchor="middle">Sc7Cl</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc6Cl&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.135 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 278 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Sc6Cl
+Sc:Cl = 0.857 / 0.143
+E_form -0.135 eV/atom
+包から 278 meV/atom
+空間群 155
+原子数 / 候補 7 / 6</title><circle cx="186.00" cy="120.51" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="140.51" text-anchor="middle">Sc6Cl</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc5Cl&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.162 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 319 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Sc5Cl
+Sc:Cl = 0.833 / 0.167
+E_form -0.162 eV/atom
+包から 319 meV/atom
+空間群 155 → 166
+原子数 / 候補 6 / 6</title><circle cx="204.33" cy="124.00" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="144.00" text-anchor="middle">Sc5Cl</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc8Cl2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.362 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 215 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Sc8Cl2
+Sc:Cl = 0.800 / 0.200
+E_form -0.362 eV/atom
+包から 215 meV/atom
+空間群 12 → 1
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="149.50" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="169.50" text-anchor="middle">Sc8Cl2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc4Cl&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.314 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 891 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Sc4Cl
+Sc:Cl = 0.800 / 0.200
+E_form 0.314 eV/atom
+包から 891 meV/atom
+空間群 189 → 191
+原子数 / 候補 5 / 3</title><circle cx="230.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="49.35" text-anchor="middle">Sc4Cl</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc7Cl2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.346 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 296 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Sc7Cl2
+Sc:Cl = 0.778 / 0.222
+E_form -0.346 eV/atom
+包から 296 meV/atom
+空間群 12
+原子数 / 候補 9 / 6</title><circle cx="247.11" cy="147.45" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="133.45" text-anchor="middle">Sc7Cl2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc3Cl&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.577 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 145 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Sc3Cl
+Sc:Cl = 0.750 / 0.250
+E_form -0.577 eV/atom
+包から 145 meV/atom
+空間群 12
+原子数 / 候補 4 / 9</title><circle cx="268.50" cy="176.87" r="5" fill="var(--h3)"/><text class="plabel" x="268.50" y="162.87" text-anchor="middle">Sc3Cl</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc6Cl2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.572 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 150 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Sc6Cl2
+Sc:Cl = 0.750 / 0.250
+E_form -0.572 eV/atom
+包から 150 meV/atom
+空間群 12
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="176.20" r="5" fill="var(--h3)"/><text class="plabel" x="268.50" y="196.20" text-anchor="middle">Sc6Cl2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc5Cl2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.581 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 244 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Sc5Cl2
+Sc:Cl = 0.714 / 0.286
+E_form -0.581 eV/atom
+包から 244 meV/atom
+空間群 12 → 6
+原子数 / 候補 7 / 9</title><circle cx="296.00" cy="177.36" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="197.36" text-anchor="middle">Sc5Cl2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc7Cl3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.655 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 211 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Sc7Cl3
+Sc:Cl = 0.700 / 0.300
+E_form -0.655 eV/atom
+包から 211 meV/atom
+空間群 12 → 6
+原子数 / 候補 10 / 6</title><circle cx="307.00" cy="186.82" r="5" fill="var(--meta)"/><text class="plabel" x="307.00" y="206.82" text-anchor="middle">Sc7Cl3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc2Cl&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.779 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 184 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>Sc2Cl
+Sc:Cl = 0.667 / 0.333
+E_form -0.779 eV/atom
+包から 184 meV/atom
+空間群 164
+原子数 / 候補 3 / 9</title><circle cx="332.67" cy="202.57" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="222.57" text-anchor="middle">Sc2Cl</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc4Cl2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.749 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 213 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Sc4Cl2
+Sc:Cl = 0.667 / 0.333
+E_form -0.749 eV/atom
+包から 213 meV/atom
+空間群 164
+原子数 / 候補 6 / 9</title><circle cx="332.67" cy="198.79" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="218.79" text-anchor="middle">Sc4Cl2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc6Cl3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.711 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 252 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Sc6Cl3
+Sc:Cl = 0.667 / 0.333
+E_form -0.711 eV/atom
+包から 252 meV/atom
+空間群 12
+原子数 / 候補 9 / 6</title><circle cx="332.67" cy="193.93" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="213.93" text-anchor="middle">Sc6Cl3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc5Cl3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.793 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 290 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Sc5Cl3
+Sc:Cl = 0.625 / 0.375
+E_form -0.793 eV/atom
+包から 290 meV/atom
+空間群 12
+原子数 / 候補 8 / 6</title><circle cx="364.75" cy="204.40" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="224.40" text-anchor="middle">Sc5Cl3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc3Cl2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.132 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 23 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>Sc3Cl2
+Sc:Cl = 0.600 / 0.400
+E_form -1.132 eV/atom
+包から 23 meV/atom
+空間群 164
+原子数 / 候補 5 / 9</title><circle cx="384.00" cy="247.60" r="5" fill="var(--h1)"/><text class="plabel" x="384.00" y="233.60" text-anchor="middle">Sc3Cl2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc6Cl4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.790 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 365 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Sc6Cl4
+Sc:Cl = 0.600 / 0.400
+E_form -0.790 eV/atom
+包から 365 meV/atom
+空間群 12
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="203.98" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="189.98" text-anchor="middle">Sc6Cl4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc4Cl3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.999 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 238 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Sc4Cl3
+Sc:Cl = 0.571 / 0.429
+E_form -0.999 eV/atom
+包から 238 meV/atom
+空間群 12
+原子数 / 候補 7 / 9</title><circle cx="406.00" cy="230.70" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="250.70" text-anchor="middle">Sc4Cl3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc5Cl4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.174 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 109 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Sc5Cl4
+Sc:Cl = 0.556 / 0.444
+E_form -1.174 eV/atom
+包から 109 meV/atom
+空間群 2
+原子数 / 候補 9 / 9</title><circle cx="418.22" cy="252.97" r="5" fill="var(--h3)"/><text class="plabel" x="418.22" y="272.97" text-anchor="middle">Sc5Cl4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc4Cl4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.411 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 33 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>Sc4Cl4
+Sc:Cl = 0.500 / 0.500
+E_form -1.411 eV/atom
+包から 33 meV/atom
+空間群 148 → 166
+原子数 / 候補 8 / 8</title><circle cx="461.00" cy="283.10" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="269.10" text-anchor="middle">Sc4Cl4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc5Cl5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.161 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 283 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Sc5Cl5
+Sc:Cl = 0.500 / 0.500
+E_form -1.161 eV/atom
+包から 283 meV/atom
+空間群 12
+原子数 / 候補 10 / 9</title><circle cx="461.00" cy="251.30" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="237.30" text-anchor="middle">Sc5Cl5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc3Cl3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.035 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 409 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Sc3Cl3
+Sc:Cl = 0.500 / 0.500
+E_form -1.035 eV/atom
+包から 409 meV/atom
+空間群 12
+原子数 / 候補 6 / 6</title><circle cx="461.00" cy="235.23" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="255.23" text-anchor="middle">Sc3Cl3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ScCl&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.028 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 415 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>ScCl
+Sc:Cl = 0.500 / 0.500
+E_form -1.028 eV/atom
+包から 415 meV/atom
+空間群 123
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="234.41" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="254.41" text-anchor="middle">ScCl</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc2Cl2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.011 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 432 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Sc2Cl2
+Sc:Cl = 0.500 / 0.500
+E_form -1.011 eV/atom
+包から 432 meV/atom
+空間群 164
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="232.20" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="252.20" text-anchor="middle">Sc2Cl2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc4Cl5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.307 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 297 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 7"><title>Sc4Cl5
+Sc:Cl = 0.444 / 0.556
+E_form -1.307 eV/atom
+包から 297 meV/atom
+空間群 2
+原子数 / 候補 9 / 7</title><circle cx="503.78" cy="269.90" r="5" fill="var(--meta)"/><text class="plabel" x="503.78" y="255.90" text-anchor="middle">Sc4Cl5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc3Cl4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.638 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 12 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Sc3Cl4
+Sc:Cl = 0.429 / 0.571
+E_form -1.638 eV/atom
+包から 12 meV/atom
+空間群 12
+原子数 / 候補 7 / 9</title><circle cx="516.00" cy="312.03" r="5" fill="var(--h1)"/><text class="plabel" x="516.00" y="298.03" text-anchor="middle">Sc3Cl4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc4Cl6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.547 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 185 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Sc4Cl6
+Sc:Cl = 0.400 / 0.600
+E_form -1.547 eV/atom
+包から 185 meV/atom
+空間群 2
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="300.52" r="5" fill="var(--h3)"/><text class="plabel" x="538.00" y="320.52" text-anchor="middle">Sc4Cl6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc2Cl3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.509 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 223 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>Sc2Cl3
+Sc:Cl = 0.400 / 0.600
+E_form -1.509 eV/atom
+包から 223 meV/atom
+空間群 166
+原子数 / 候補 5 / 9</title><circle cx="538.00" cy="295.66" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="315.66" text-anchor="middle">Sc2Cl3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc3Cl5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.608 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 196 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Sc3Cl5
+Sc:Cl = 0.375 / 0.625
+E_form -1.608 eV/atom
+包から 196 meV/atom
+空間群 2
+原子数 / 候補 8 / 9</title><circle cx="557.25" cy="308.29" r="5" fill="var(--h3)"/><text class="plabel" x="557.25" y="328.29" text-anchor="middle">Sc3Cl5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc3Cl6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.924 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Sc3Cl6
+Sc:Cl = 0.333 / 0.667
+E_form -1.924 eV/atom
+包から 1 meV/atom
+空間群 2
+原子数 / 候補 9 / 9</title><circle cx="589.33" cy="348.51" r="5" fill="var(--h1)"/><text class="plabel" x="589.33" y="334.51" text-anchor="middle">Sc3Cl6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc2Cl4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.610 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 315 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 7"><title>Sc2Cl4
+Sc:Cl = 0.333 / 0.667
+E_form -1.610 eV/atom
+包から 315 meV/atom
+空間群 12
+原子数 / 候補 6 / 7</title><circle cx="589.33" cy="308.55" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="294.55" text-anchor="middle">Sc2Cl4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc3Cl7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.863 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 144 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Sc3Cl7
+Sc:Cl = 0.300 / 0.700
+E_form -1.863 eV/atom
+包から 144 meV/atom
+空間群 148
+原子数 / 候補 10 / 9</title><circle cx="615.00" cy="340.74" r="5" fill="var(--h3)"/><text class="plabel" x="615.00" y="360.74" text-anchor="middle">Sc3Cl7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc2Cl5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.897 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 145 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Sc2Cl5
+Sc:Cl = 0.286 / 0.714
+E_form -1.897 eV/atom
+包から 145 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="626.00" cy="345.07" r="5" fill="var(--h3)"/><text class="plabel" x="626.00" y="365.07" text-anchor="middle">Sc2Cl5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ScCl3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.823 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 306 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>ScCl3
+Sc:Cl = 0.250 / 0.750
+E_form -1.823 eV/atom
+包から 306 meV/atom
+空間群 164
+原子数 / 候補 4 / 6</title><circle cx="653.50" cy="335.60" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="321.60" text-anchor="middle">ScCl3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc2Cl7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.801 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 91 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 4&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Sc2Cl7
+Sc:Cl = 0.222 / 0.778
+E_form -1.801 eV/atom
+包から 91 meV/atom
+空間群 12 → 4
+原子数 / 候補 9 / 9</title><circle cx="674.89" cy="332.87" r="5" fill="var(--h2)"/><text class="plabel" x="674.89" y="352.87" text-anchor="middle">Sc2Cl7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc2Cl8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.547 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 156 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Sc2Cl8
+Sc:Cl = 0.200 / 0.800
+E_form -1.547 eV/atom
+包から 156 meV/atom
+空間群 2 → 1
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="300.51" r="5" fill="var(--h3)"/><text class="plabel" x="692.00" y="286.51" text-anchor="middle">Sc2Cl8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ScCl4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.305 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 398 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>ScCl4
+Sc:Cl = 0.200 / 0.800
+E_form -1.305 eV/atom
+包から 398 meV/atom
+空間群 148 → 221
+原子数 / 候補 5 / 6</title><circle cx="692.00" cy="269.67" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="255.67" text-anchor="middle">ScCl4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ScCl5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.945 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 475 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>ScCl5
+Sc:Cl = 0.167 / 0.833
+E_form -0.945 eV/atom
+包から 475 meV/atom
+空間群 148 → 166
+原子数 / 候補 6 / 6</title><circle cx="717.67" cy="223.73" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="209.73" text-anchor="middle">ScCl5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ScCl6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.979 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 237 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>ScCl6
+Sc:Cl = 0.143 / 0.857
+E_form -0.979 eV/atom
+包から 237 meV/atom
+空間群 148 → 1
+原子数 / 候補 7 / 6</title><circle cx="736.00" cy="228.16" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="214.16" text-anchor="middle">ScCl6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ScCl7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.914 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 151 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>ScCl7
+Sc:Cl = 0.125 / 0.875
+E_form -0.914 eV/atom
+包から 151 meV/atom
+空間群 2
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="219.79" r="5" fill="var(--h3)"/><text class="plabel" x="749.75" y="239.79" text-anchor="middle">ScCl7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ScCl8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.847 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 99 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>ScCl8
+Sc:Cl = 0.111 / 0.889
+E_form -0.847 eV/atom
+包から 99 meV/atom
+空間群 2 → 1
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="211.28" r="5" fill="var(--h2)"/><text class="plabel" x="760.44" y="231.28" text-anchor="middle">ScCl8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ScCl9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.704 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 148 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>ScCl9
+Sc:Cl = 0.100 / 0.900
+E_form -0.704 eV/atom
+包から 148 meV/atom
+空間群 2 → 1
+原子数 / 候補 10 / 6</title><circle cx="769.00" cy="193.00" r="5" fill="var(--h3)"/><text class="plabel" x="769.00" y="179.00" text-anchor="middle">ScCl9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cl6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.004 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Cl6
+Sc:Cl = 0.000 / 1.000
+E_form 0.004 eV/atom
+包から 4 meV/atom
+空間群 166 → 1
+原子数 / 候補 6 / 6</title><circle cx="846.00" cy="102.91" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="88.91" text-anchor="middle">Cl6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cl4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.029 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 29 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Cl4
+Sc:Cl = 0.000 / 1.000
+E_form 0.029 eV/atom
+包から 29 meV/atom
+空間群 166
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="99.72" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="119.72" text-anchor="middle">Cl4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cl9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.061 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 61 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 160&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Cl9
+Sc:Cl = 0.000 / 1.000
+E_form 0.061 eV/atom
+包から 61 meV/atom
+空間群 166 → 160
+原子数 / 候補 9 / 3</title><circle cx="846.00" cy="95.54" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="115.54" text-anchor="middle">Cl9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cl7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.076 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 76 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Cl7
+Sc:Cl = 0.000 / 1.000
+E_form 0.076 eV/atom
+包から 76 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="93.72" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="113.72" text-anchor="middle">Cl7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cl10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.115 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 115 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Cl10
+Sc:Cl = 0.000 / 1.000
+E_form 0.115 eV/atom
+包から 115 meV/atom
+空間群 166
+原子数 / 候補 10 / 6</title><circle cx="846.00" cy="88.70" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="108.70" text-anchor="middle">Cl10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cl5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.124 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 124 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 160&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Cl5
+Sc:Cl = 0.000 / 1.000
+E_form 0.124 eV/atom
+包から 124 meV/atom
+空間群 166 → 160
+原子数 / 候補 5 / 3</title><circle cx="846.00" cy="87.50" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="107.50" text-anchor="middle">Cl5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cl3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.200 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 200 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Cl3
+Sc:Cl = 0.000 / 1.000
+E_form 0.200 eV/atom
+包から 200 meV/atom
+空間群 166
+原子数 / 候補 3 / 3</title><circle cx="846.00" cy="77.91" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="97.91" text-anchor="middle">Cl3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cl&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.203 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 203 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>Cl
+Sc:Cl = 0.000 / 1.000
+E_form 0.203 eV/atom
+包から 203 meV/atom
+空間群 2
+原子数 / 候補 1 / 9</title><circle cx="846.00" cy="77.51" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="97.51" text-anchor="middle">Cl</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cl2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.204 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 204 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>Cl2
+Sc:Cl = 0.000 / 1.000
+E_form 0.204 eV/atom
+包から 204 meV/atom
+空間群 2
+原子数 / 候補 2 / 9</title><circle cx="846.00" cy="77.31" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="97.31" text-anchor="middle">Cl2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Sc8
+Sc:Cl = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 64 → 71
+原子数 / 候補 8 / 6</title><circle cx="76.00" cy="103.36" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="123.36" text-anchor="middle">Sc8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;ScCl2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.925 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>ScCl2
+Sc:Cl = 0.333 / 0.667
+E_form -1.925 eV/atom
+包から 0（凸包上）
+空間群 164
+原子数 / 候補 3 / 9</title><circle cx="589.33" cy="348.61" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="589.33" y="368.61" text-anchor="middle">ScCl2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Sc2Cl6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.129 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Sc2Cl6
+Sc:Cl = 0.250 / 0.750
+E_form -2.129 eV/atom
+包から 0（凸包上）
+空間群 148
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="653.50" y="394.65" text-anchor="middle">Sc2Cl6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cl8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Sc:Cl&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Cl8
+Sc:Cl = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="103.36" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="123.36" text-anchor="middle">Cl8</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Sc8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Sc</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">ScCl2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Sc2Cl6</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Cl8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Sc3Cl6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cl6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">4 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc3Cl4</span><span class="bar-track"><span class="bar-fill" style="width:1.37%;background:var(--h1)"></span></span><span class="bar-val">12 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc3Cl2</span><span class="bar-track"><span class="bar-fill" style="width:2.57%;background:var(--h1)"></span></span><span class="bar-val">23 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cl4</span><span class="bar-track"><span class="bar-fill" style="width:3.20%;background:var(--h1)"></span></span><span class="bar-val">29 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc4Cl4</span><span class="bar-track"><span class="bar-fill" style="width:3.70%;background:var(--h1)"></span></span><span class="bar-val">33 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc10</span><span class="bar-track"><span class="bar-fill" style="width:5.26%;background:var(--h1)"></span></span><span class="bar-val">47 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc6</span><span class="bar-track"><span class="bar-fill" style="width:5.81%;background:var(--h2)"></span></span><span class="bar-val">52 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc5</span><span class="bar-track"><span class="bar-fill" style="width:5.89%;background:var(--h2)"></span></span><span class="bar-val">53 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cl9</span><span class="bar-track"><span class="bar-fill" style="width:6.88%;background:var(--h2)"></span></span><span class="bar-val">61 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cl7</span><span class="bar-track"><span class="bar-fill" style="width:8.48%;background:var(--h2)"></span></span><span class="bar-val">76 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc2Cl7</span><span class="bar-track"><span class="bar-fill" style="width:10.23%;background:var(--h2)"></span></span><span class="bar-val">91 meV</span></li>
+<li class="bar-row"><span class="bar-name">ScCl8</span><span class="bar-track"><span class="bar-fill" style="width:11.13%;background:var(--h2)"></span></span><span class="bar-val">99 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc5Cl4</span><span class="bar-track"><span class="bar-fill" style="width:12.23%;background:var(--h3)"></span></span><span class="bar-val">109 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cl10</span><span class="bar-track"><span class="bar-fill" style="width:12.90%;background:var(--h3)"></span></span><span class="bar-val">115 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cl5</span><span class="bar-track"><span class="bar-fill" style="width:13.96%;background:var(--h3)"></span></span><span class="bar-val">124 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc3Cl7</span><span class="bar-track"><span class="bar-fill" style="width:16.10%;background:var(--h3)"></span></span><span class="bar-val">144 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc2Cl5</span><span class="bar-track"><span class="bar-fill" style="width:16.23%;background:var(--h3)"></span></span><span class="bar-val">145 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc3Cl</span><span class="bar-track"><span class="bar-fill" style="width:16.26%;background:var(--h3)"></span></span><span class="bar-val">145 meV</span></li>
+<li class="bar-row"><span class="bar-name">ScCl9</span><span class="bar-track"><span class="bar-fill" style="width:16.62%;background:var(--h3)"></span></span><span class="bar-val">148 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc6Cl2</span><span class="bar-track"><span class="bar-fill" style="width:16.84%;background:var(--h3)"></span></span><span class="bar-val">150 meV</span></li>
+<li class="bar-row"><span class="bar-name">ScCl7</span><span class="bar-track"><span class="bar-fill" style="width:16.92%;background:var(--h3)"></span></span><span class="bar-val">151 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc2Cl8</span><span class="bar-track"><span class="bar-fill" style="width:17.50%;background:var(--h3)"></span></span><span class="bar-val">156 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc2Cl</span><span class="bar-track"><span class="bar-fill" style="width:20.61%;background:var(--h3)"></span></span><span class="bar-val">184 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc4Cl6</span><span class="bar-track"><span class="bar-fill" style="width:20.76%;background:var(--h3)"></span></span><span class="bar-val">185 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc9Cl</span><span class="bar-track"><span class="bar-fill" style="width:21.50%;background:var(--h3)"></span></span><span class="bar-val">192 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc3Cl5</span><span class="bar-track"><span class="bar-fill" style="width:22.02%;background:var(--h3)"></span></span><span class="bar-val">196 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cl3</span><span class="bar-track"><span class="bar-fill" style="width:22.41%;background:var(--h3)"></span></span><span class="bar-val">200 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc8Cl</span><span class="bar-track"><span class="bar-fill" style="width:22.74%;background:var(--meta)"></span></span><span class="bar-val">203 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cl</span><span class="bar-track"><span class="bar-fill" style="width:22.76%;background:var(--meta)"></span></span><span class="bar-val">203 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cl2</span><span class="bar-track"><span class="bar-fill" style="width:22.94%;background:var(--meta)"></span></span><span class="bar-val">204 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc7Cl3</span><span class="bar-track"><span class="bar-fill" style="width:23.69%;background:var(--meta)"></span></span><span class="bar-val">211 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc4Cl2</span><span class="bar-track"><span class="bar-fill" style="width:23.95%;background:var(--meta)"></span></span><span class="bar-val">213 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc8Cl2</span><span class="bar-track"><span class="bar-fill" style="width:24.16%;background:var(--meta)"></span></span><span class="bar-val">215 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc2Cl3</span><span class="bar-track"><span class="bar-fill" style="width:25.02%;background:var(--meta)"></span></span><span class="bar-val">223 meV</span></li>
+<li class="bar-row"><span class="bar-name">ScCl6</span><span class="bar-track"><span class="bar-fill" style="width:26.60%;background:var(--meta)"></span></span><span class="bar-val">237 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc4Cl3</span><span class="bar-track"><span class="bar-fill" style="width:26.69%;background:var(--meta)"></span></span><span class="bar-val">238 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc5Cl2</span><span class="bar-track"><span class="bar-fill" style="width:27.40%;background:var(--meta)"></span></span><span class="bar-val">244 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc6Cl3</span><span class="bar-track"><span class="bar-fill" style="width:28.22%;background:var(--meta)"></span></span><span class="bar-val">252 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc6Cl</span><span class="bar-track"><span class="bar-fill" style="width:31.18%;background:var(--meta)"></span></span><span class="bar-val">278 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc7Cl</span><span class="bar-track"><span class="bar-fill" style="width:31.38%;background:var(--meta)"></span></span><span class="bar-val">280 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc5Cl5</span><span class="bar-track"><span class="bar-fill" style="width:31.70%;background:var(--meta)"></span></span><span class="bar-val">283 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc5Cl3</span><span class="bar-track"><span class="bar-fill" style="width:32.51%;background:var(--meta)"></span></span><span class="bar-val">290 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc7Cl2</span><span class="bar-track"><span class="bar-fill" style="width:33.16%;background:var(--meta)"></span></span><span class="bar-val">296 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc4Cl5</span><span class="bar-track"><span class="bar-fill" style="width:33.33%;background:var(--meta)"></span></span><span class="bar-val">297 meV</span></li>
+<li class="bar-row"><span class="bar-name">ScCl3</span><span class="bar-track"><span class="bar-fill" style="width:34.38%;background:var(--meta)"></span></span><span class="bar-val">306 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc2Cl4</span><span class="bar-track"><span class="bar-fill" style="width:35.29%;background:var(--meta)"></span></span><span class="bar-val">315 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc5Cl</span><span class="bar-track"><span class="bar-fill" style="width:35.81%;background:var(--meta)"></span></span><span class="bar-val">319 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc6Cl4</span><span class="bar-track"><span class="bar-fill" style="width:40.98%;background:var(--meta)"></span></span><span class="bar-val">365 meV</span></li>
+<li class="bar-row"><span class="bar-name">ScCl4</span><span class="bar-track"><span class="bar-fill" style="width:44.66%;background:var(--meta)"></span></span><span class="bar-val">398 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc3Cl3</span><span class="bar-track"><span class="bar-fill" style="width:45.85%;background:var(--meta)"></span></span><span class="bar-val">409 meV</span></li>
+<li class="bar-row"><span class="bar-name">ScCl</span><span class="bar-track"><span class="bar-fill" style="width:46.58%;background:var(--meta)"></span></span><span class="bar-val">415 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc2Cl2</span><span class="bar-track"><span class="bar-fill" style="width:48.52%;background:var(--meta)"></span></span><span class="bar-val">432 meV</span></li>
+<li class="bar-row"><span class="bar-name">ScCl5</span><span class="bar-track"><span class="bar-fill" style="width:53.27%;background:var(--meta)"></span></span><span class="bar-val">475 meV</span></li>
+<li class="bar-row"><span class="bar-name">Sc4Cl</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">891 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 4 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Sc</th><th>Cl</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Sc8 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>64 → 71</td><td>8</td></tr>
+<tr class="stable"><td class="name">ScCl2 <span class="pill">凸包上</span></td><td>0.333</td><td>0.667</td><td>-1.9246</td><td>164</td><td>3</td></tr>
+<tr class="stable"><td class="name">Sc2Cl6 <span class="pill">凸包上</span></td><td>0.250</td><td>0.750</td><td>-2.1289</td><td>148</td><td>8</td></tr>
+<tr class="stable"><td class="name">Cl8 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>166</td><td>8</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>Cl は分子性 Cl<sub>2</sub> 結晶が基準。塩化物の絶対深さは目安。Sc は実在の hcp（194）に当たらず検出 71。Sc 側はやや浅い可能性。</p></div><div class="note"><h3>この系の読み方</h3><p>ScCl<sub>3</sub>（148）・ScCl<sub>2</sub>（164）が載った。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に Cl<sub>6</sub>Sc<sub>3</sub>（+1 meV, spg 2）。分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴は 0</h3><p>≤10 原子・既約 33 組成すべてに点がある。</p></div><div class="note"><h3>この図の出自</h3><p>三元系の掃引で自動的に撒かれた辺の組成を集めたもので、この二元系そのものを狙った掃引ではない。密度は三元側の都合で決まっている。</p></div></section>
+ <footer><span>三元掃引の辺から再構成（spg_ranks=[1,2,3]・max_atoms=10、系により 15）</span><span>2026-08-31 取得 · group_by=structure 444 構造</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

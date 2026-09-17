@@ -1,0 +1,604 @@
+<title>Fe–Ni 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Fe–Ni 相図</h1>
+  <p class="lede">Fe–Ni を 56 組成分の緩和構造で評価した。下側凸包に載った化合物は FeNi3。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>56</dd></div><div class="fact"><dt>凸包上</dt><dd>3</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>10</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Ni の原子分率。縦軸は端点（Fe, Ni）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Fe–Ni 相図">
+<line class="grid-line" x1="76" x2="846" y1="354.96" y2="354.96"/>
+<text class="tick-text" x="64" y="358.96" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="293.75" y2="293.75"/>
+<text class="tick-text" x="64" y="297.75" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="232.54" y2="232.54"/>
+<text class="tick-text" x="64" y="236.54" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="171.33" y2="171.33"/>
+<text class="tick-text" x="64" y="175.33" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="110.12" y2="110.12"/>
+<text class="tick-text" x="64" y="114.12" text-anchor="end">1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="48.91" y2="48.91"/>
+<text class="tick-text" x="64" y="52.91" text-anchor="end">1.25</text>
+<line class="axis-line" x1="76" x2="846" y1="354.96" y2="354.96"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Fe</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Ni</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Ni の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,354.96 653.50,374.65 846.00,354.96"/>
+<line class="tie-drop" x1="653.50" x2="653.50" y1="374.65" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe15&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.126 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 126 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 15 / 3"><title>Fe15
+Fe:Ni = 1.000 / 0.000
+E_form 0.126 eV/atom
+包から 126 meV/atom
+空間群 221
+原子数 / 候補 15 / 3</title><circle cx="76.00" cy="324.21" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="310.21" text-anchor="middle">Fe15</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.140 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 140 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 3"><title>Fe2
+Fe:Ni = 1.000 / 0.000
+E_form 0.140 eV/atom
+包から 140 meV/atom
+空間群 194
+原子数 / 候補 2 / 3</title><circle cx="76.00" cy="320.68" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="340.68" text-anchor="middle">Fe2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.140 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 140 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Fe8
+Fe:Ni = 1.000 / 0.000
+E_form 0.140 eV/atom
+包から 140 meV/atom
+空間群 194
+原子数 / 候補 8 / 3</title><circle cx="76.00" cy="320.68" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="340.68" text-anchor="middle">Fe8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.177 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 177 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Fe6
+Fe:Ni = 1.000 / 0.000
+E_form 0.177 eV/atom
+包から 177 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="311.55" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="331.55" text-anchor="middle">Fe6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe14&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.272 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 272 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 224 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 5"><title>Fe14
+Fe:Ni = 1.000 / 0.000
+E_form 0.272 eV/atom
+包から 272 meV/atom
+空間群 224 → 229
+原子数 / 候補 14 / 5</title><circle cx="76.00" cy="288.39" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="274.39" text-anchor="middle">Fe14</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe12&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.450 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 450 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 7"><title>Fe12
+Fe:Ni = 1.000 / 0.000
+E_form 0.450 eV/atom
+包から 450 meV/atom
+空間群 194
+原子数 / 候補 12 / 7</title><circle cx="76.00" cy="244.73" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="230.73" text-anchor="middle">Fe12</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.651 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 651 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Fe10
+Fe:Ni = 1.000 / 0.000
+E_form 0.651 eV/atom
+包から 651 meV/atom
+空間群 194
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="195.54" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="181.54" text-anchor="middle">Fe10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe11&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.688 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 688 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 11 / 3"><title>Fe11
+Fe:Ni = 1.000 / 0.000
+E_form 0.688 eV/atom
+包から 688 meV/atom
+空間群 221
+原子数 / 候補 11 / 3</title><circle cx="76.00" cy="186.63" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="206.63" text-anchor="middle">Fe11</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.703 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 703 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>Fe3
+Fe:Ni = 1.000 / 0.000
+E_form 0.703 eV/atom
+包から 703 meV/atom
+空間群 221
+原子数 / 候補 3 / 6</title><circle cx="76.00" cy="182.91" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="202.91" text-anchor="middle">Fe3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.706 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 706 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 1"><title>Fe4
+Fe:Ni = 1.000 / 0.000
+E_form 0.706 eV/atom
+包から 706 meV/atom
+空間群 194
+原子数 / 候補 4 / 1</title><circle cx="76.00" cy="182.10" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="202.10" text-anchor="middle">Fe4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.812 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 812 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Fe9
+Fe:Ni = 1.000 / 0.000
+E_form 0.812 eV/atom
+包から 812 meV/atom
+空間群 221
+原子数 / 候補 9 / 3</title><circle cx="76.00" cy="156.27" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="142.27" text-anchor="middle">Fe9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.887 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 887 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Fe7
+Fe:Ni = 1.000 / 0.000
+E_form 0.887 eV/atom
+包から 887 meV/atom
+空間群 221
+原子数 / 候補 7 / 3</title><circle cx="76.00" cy="137.86" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="157.86" text-anchor="middle">Fe7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.191 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1191 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Fe5
+Fe:Ni = 1.000 / 0.000
+E_form 1.191 eV/atom
+包から 1191 meV/atom
+空間群 221
+原子数 / 候補 5 / 3</title><circle cx="76.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="49.35" text-anchor="middle">Fe5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe9Ni&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.846 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 857 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Fe9Ni
+Fe:Ni = 0.900 / 0.100
+E_form 0.846 eV/atom
+包から 857 meV/atom
+空間群 221
+原子数 / 候補 10 / 3</title><circle cx="153.00" cy="147.90" r="5" fill="var(--meta)"/><text class="plabel" x="153.00" y="133.90" text-anchor="middle">Fe9Ni</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe8Ni&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.755 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 767 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Fe8Ni
+Fe:Ni = 0.889 / 0.111
+E_form 0.755 eV/atom
+包から 767 meV/atom
+空間群 221
+原子数 / 候補 9 / 3</title><circle cx="161.56" cy="170.03" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="156.03" text-anchor="middle">Fe8Ni</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe7Ni&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.692 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 706 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Fe7Ni
+Fe:Ni = 0.875 / 0.125
+E_form 0.692 eV/atom
+包から 706 meV/atom
+空間群 221
+原子数 / 候補 8 / 3</title><circle cx="172.25" cy="185.43" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="171.43" text-anchor="middle">Fe7Ni</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe6Ni&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.867 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 882 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Fe6Ni
+Fe:Ni = 0.857 / 0.143
+E_form 0.867 eV/atom
+包から 882 meV/atom
+空間群 221
+原子数 / 候補 7 / 3</title><circle cx="186.00" cy="142.73" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="162.73" text-anchor="middle">Fe6Ni</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe8Ni2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.328 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 349 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Fe8Ni2
+Fe:Ni = 0.800 / 0.200
+E_form 0.328 eV/atom
+包から 349 meV/atom
+空間群 194
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="274.75" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="260.75" text-anchor="middle">Fe8Ni2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4Ni&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.673 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 695 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Fe4Ni
+Fe:Ni = 0.800 / 0.200
+E_form 0.673 eV/atom
+包から 695 meV/atom
+空間群 123
+原子数 / 候補 5 / 6</title><circle cx="230.00" cy="190.16" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="176.16" text-anchor="middle">Fe4Ni</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3Ni&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.039 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 66 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>Fe3Ni
+Fe:Ni = 0.750 / 0.250
+E_form 0.039 eV/atom
+包から 66 meV/atom
+空間群 221
+原子数 / 候補 4 / 6</title><circle cx="268.50" cy="345.41" r="5" fill="var(--h2)"/><text class="plabel" x="268.50" y="331.41" text-anchor="middle">Fe3Ni</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe6Ni2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.041 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 68 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Fe6Ni2
+Fe:Ni = 0.750 / 0.250
+E_form 0.041 eV/atom
+包から 68 meV/atom
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="344.97" r="5" fill="var(--h2)"/><text class="plabel" x="268.50" y="364.97" text-anchor="middle">Fe6Ni2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4Ni2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.082 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 118 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Fe4Ni2
+Fe:Ni = 0.667 / 0.333
+E_form 0.082 eV/atom
+包から 118 meV/atom
+空間群 194
+原子数 / 候補 6 / 6</title><circle cx="332.67" cy="334.81" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="320.81" text-anchor="middle">Fe4Ni2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2Ni&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.554 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 589 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Fe2Ni
+Fe:Ni = 0.667 / 0.333
+E_form 0.554 eV/atom
+包から 589 meV/atom
+空間群 123
+原子数 / 候補 3 / 3</title><circle cx="332.67" cy="219.44" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="205.44" text-anchor="middle">Fe2Ni</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe5Ni3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.636 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 676 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Fe5Ni3
+Fe:Ni = 0.625 / 0.375
+E_form 0.636 eV/atom
+包から 676 meV/atom
+空間群 221
+原子数 / 候補 8 / 3</title><circle cx="364.75" cy="199.34" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="219.34" text-anchor="middle">Fe5Ni3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe6Ni4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.617 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 660 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Fe6Ni4
+Fe:Ni = 0.600 / 0.400
+E_form 0.617 eV/atom
+包から 660 meV/atom
+空間群 194 → 191
+原子数 / 候補 10 / 6</title><circle cx="384.00" cy="203.99" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="223.99" text-anchor="middle">Fe6Ni4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3Ni2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.716 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 759 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Fe3Ni2
+Fe:Ni = 0.600 / 0.400
+E_form 0.716 eV/atom
+包から 759 meV/atom
+空間群 123
+原子数 / 候補 5 / 6</title><circle cx="384.00" cy="179.61" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="165.61" text-anchor="middle">Fe3Ni2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4Ni3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.759 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 805 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Fe4Ni3
+Fe:Ni = 0.571 / 0.429
+E_form 0.759 eV/atom
+包から 805 meV/atom
+空間群 221
+原子数 / 候補 7 / 3</title><circle cx="406.00" cy="169.05" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="189.05" text-anchor="middle">Fe4Ni3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeNi&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.024 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 30 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 7"><title>FeNi
+Fe:Ni = 0.500 / 0.500
+E_form -0.024 eV/atom
+包から 30 meV/atom
+空間群 123
+原子数 / 候補 2 / 7</title><circle cx="461.00" cy="360.84" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="346.84" text-anchor="middle">FeNi</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2Ni2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.019 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 73 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>Fe2Ni2
+Fe:Ni = 0.500 / 0.500
+E_form 0.019 eV/atom
+包から 73 meV/atom
+空間群 194
+原子数 / 候補 4 / 6</title><circle cx="461.00" cy="350.26" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="370.26" text-anchor="middle">Fe2Ni2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4Ni4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.611 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 664 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Fe4Ni4
+Fe:Ni = 0.500 / 0.500
+E_form 0.611 eV/atom
+包から 664 meV/atom
+空間群 221 → 225
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="205.41" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="191.41" text-anchor="middle">Fe4Ni4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3Ni3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.020 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1073 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>Fe3Ni3
+Fe:Ni = 0.500 / 0.500
+E_form 1.020 eV/atom
+包から 1073 meV/atom
+空間群 221
+原子数 / 候補 6 / 3</title><circle cx="461.00" cy="105.34" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="91.34" text-anchor="middle">Fe3Ni3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3Ni4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.801 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 863 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Fe3Ni4
+Fe:Ni = 0.429 / 0.571
+E_form 0.801 eV/atom
+包から 863 meV/atom
+空間群 221
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="158.74" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="144.74" text-anchor="middle">Fe3Ni4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe4Ni6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.568 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 633 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Fe4Ni6
+Fe:Ni = 0.400 / 0.600
+E_form 0.568 eV/atom
+包から 633 meV/atom
+空間群 194
+原子数 / 候補 10 / 6</title><circle cx="538.00" cy="215.82" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="201.82" text-anchor="middle">Fe4Ni6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2Ni3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.121 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1185 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Fe2Ni3
+Fe:Ni = 0.400 / 0.600
+E_form 1.121 eV/atom
+包から 1185 meV/atom
+空間群 221
+原子数 / 候補 5 / 6</title><circle cx="538.00" cy="80.47" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="66.47" text-anchor="middle">Fe2Ni3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3Ni5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.639 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 706 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Fe3Ni5
+Fe:Ni = 0.375 / 0.625
+E_form 0.639 eV/atom
+包から 706 meV/atom
+空間群 221
+原子数 / 候補 8 / 3</title><circle cx="557.25" cy="198.58" r="5" fill="var(--meta)"/><text class="plabel" x="557.25" y="218.58" text-anchor="middle">Fe3Ni5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2Ni4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.010 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 81 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Fe2Ni4
+Fe:Ni = 0.333 / 0.667
+E_form 0.010 eV/atom
+包から 81 meV/atom
+空間群 194
+原子数 / 候補 6 / 6</title><circle cx="589.33" cy="352.59" r="5" fill="var(--h2)"/><text class="plabel" x="589.33" y="338.59" text-anchor="middle">Fe2Ni4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeNi2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.456 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 528 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>FeNi2
+Fe:Ni = 0.333 / 0.667
+E_form 0.456 eV/atom
+包から 528 meV/atom
+空間群 123
+原子数 / 候補 3 / 3</title><circle cx="589.33" cy="243.21" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="229.21" text-anchor="middle">FeNi2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe3Ni7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.090 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 165 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Fe3Ni7
+Fe:Ni = 0.300 / 0.700
+E_form 0.090 eV/atom
+包から 165 meV/atom
+空間群 123
+原子数 / 候補 10 / 3</title><circle cx="615.00" cy="332.90" r="5" fill="var(--h3)"/><text class="plabel" x="615.00" y="352.90" text-anchor="middle">Fe3Ni7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2Ni6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.080 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Fe2Ni6
+Fe:Ni = 0.250 / 0.750
+E_form -0.080 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="374.57" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="360.57" text-anchor="middle">Fe2Ni6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2Ni7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.201 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 273 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Fe2Ni7
+Fe:Ni = 0.222 / 0.778
+E_form 0.201 eV/atom
+包から 273 meV/atom
+空間群 123
+原子数 / 候補 9 / 3</title><circle cx="674.89" cy="305.70" r="5" fill="var(--meta)"/><text class="plabel" x="674.89" y="291.70" text-anchor="middle">Fe2Ni7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe2Ni8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.258 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 322 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Fe2Ni8
+Fe:Ni = 0.200 / 0.800
+E_form 0.258 eV/atom
+包から 322 meV/atom
+空間群 194
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="291.77" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="311.77" text-anchor="middle">Fe2Ni8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeNi4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.754 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 819 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>FeNi4
+Fe:Ni = 0.200 / 0.800
+E_form 0.754 eV/atom
+包から 819 meV/atom
+空間群 123
+原子数 / 候補 5 / 6</title><circle cx="692.00" cy="170.30" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="156.30" text-anchor="middle">FeNi4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeNi5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.813 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 867 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>FeNi5
+Fe:Ni = 0.167 / 0.833
+E_form 0.813 eV/atom
+包から 867 meV/atom
+空間群 123
+原子数 / 候補 6 / 3</title><circle cx="717.67" cy="155.93" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="175.93" text-anchor="middle">FeNi5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeNi6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.543 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 589 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>FeNi6
+Fe:Ni = 0.143 / 0.857
+E_form 0.543 eV/atom
+包から 589 meV/atom
+空間群 123
+原子数 / 候補 7 / 6</title><circle cx="736.00" cy="222.04" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="208.04" text-anchor="middle">FeNi6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeNi7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.039 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>FeNi7
+Fe:Ni = 0.125 / 0.875
+E_form -0.039 eV/atom
+包から 1 meV/atom
+空間群 123
+原子数 / 候補 8 / 6</title><circle cx="749.75" cy="364.53" r="5" fill="var(--h1)"/><text class="plabel" x="749.75" y="350.53" text-anchor="middle">FeNi7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeNi8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.397 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 433 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>FeNi8
+Fe:Ni = 0.111 / 0.889
+E_form 0.397 eV/atom
+包から 433 meV/atom
+空間群 123
+原子数 / 候補 9 / 6</title><circle cx="760.44" cy="257.68" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="243.68" text-anchor="middle">FeNi8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeNi9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.497 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 529 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123 → 25&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>FeNi9
+Fe:Ni = 0.100 / 0.900
+E_form 0.497 eV/atom
+包から 529 meV/atom
+空間群 123 → 25
+原子数 / 候補 10 / 6</title><circle cx="769.00" cy="233.40" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="253.40" text-anchor="middle">FeNi9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>Ni
+Fe:Ni = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 225
+原子数 / 候補 1 / 6</title><circle cx="846.00" cy="354.94" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="340.94" text-anchor="middle">Ni</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 40"><title>Ni2
+Fe:Ni = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 166 → 225
+原子数 / 候補 2 / 40</title><circle cx="846.00" cy="354.91" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="374.91" text-anchor="middle">Ni2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 68 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ni8
+Fe:Ni = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 68 → 139
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="354.89" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="374.89" text-anchor="middle">Ni8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 68 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ni6
+Fe:Ni = 0.000 / 1.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 68 → 139
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="354.79" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="374.79" text-anchor="middle">Ni6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.320 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 320 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ni10
+Fe:Ni = 0.000 / 1.000
+E_form 0.320 eV/atom
+包から 320 meV/atom
+空間群 194
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="276.59" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="262.59" text-anchor="middle">Ni10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.533 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 533 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Ni3
+Fe:Ni = 0.000 / 1.000
+E_form 0.533 eV/atom
+包から 533 meV/atom
+空間群 221
+原子数 / 候補 3 / 3</title><circle cx="846.00" cy="224.51" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="210.51" text-anchor="middle">Ni3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Fe&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 3"><title>Fe
+Fe:Ni = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 229
+原子数 / 候補 1 / 3</title><circle cx="76.00" cy="354.96" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="374.96" text-anchor="middle">Fe</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;FeNi3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.080 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>FeNi3
+Fe:Ni = 0.250 / 0.750
+E_form -0.080 eV/atom
+包から 0（凸包上）
+空間群 221
+原子数 / 候補 4 / 6</title><circle cx="653.50" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="653.50" y="394.65" text-anchor="middle">FeNi3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Fe:Ni&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 48"><title>Ni4
+Fe:Ni = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 221 → 225
+原子数 / 候補 4 / 48</title><circle cx="846.00" cy="354.96" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="374.96" text-anchor="middle">Ni4</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Fe</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">FeNi3</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Ni4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Ni</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2Ni6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeNi7</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeNi</span><span class="bar-track"><span class="bar-fill" style="width:2.49%;background:var(--h1)"></span></span><span class="bar-val">30 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3Ni</span><span class="bar-track"><span class="bar-fill" style="width:5.52%;background:var(--h2)"></span></span><span class="bar-val">66 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe6Ni2</span><span class="bar-track"><span class="bar-fill" style="width:5.67%;background:var(--h2)"></span></span><span class="bar-val">68 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2Ni2</span><span class="bar-track"><span class="bar-fill" style="width:6.11%;background:var(--h2)"></span></span><span class="bar-val">73 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2Ni4</span><span class="bar-track"><span class="bar-fill" style="width:6.82%;background:var(--h2)"></span></span><span class="bar-val">81 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4Ni2</span><span class="bar-track"><span class="bar-fill" style="width:9.91%;background:var(--h3)"></span></span><span class="bar-val">118 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe15</span><span class="bar-track"><span class="bar-fill" style="width:10.55%;background:var(--h3)"></span></span><span class="bar-val">126 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2</span><span class="bar-track"><span class="bar-fill" style="width:11.75%;background:var(--h3)"></span></span><span class="bar-val">140 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe8</span><span class="bar-track"><span class="bar-fill" style="width:11.75%;background:var(--h3)"></span></span><span class="bar-val">140 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3Ni7</span><span class="bar-track"><span class="bar-fill" style="width:13.86%;background:var(--h3)"></span></span><span class="bar-val">165 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe6</span><span class="bar-track"><span class="bar-fill" style="width:14.89%;background:var(--h3)"></span></span><span class="bar-val">177 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe14</span><span class="bar-track"><span class="bar-fill" style="width:22.83%;background:var(--meta)"></span></span><span class="bar-val">272 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2Ni7</span><span class="bar-track"><span class="bar-fill" style="width:22.90%;background:var(--meta)"></span></span><span class="bar-val">273 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni10</span><span class="bar-track"><span class="bar-fill" style="width:26.88%;background:var(--meta)"></span></span><span class="bar-val">320 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2Ni8</span><span class="bar-track"><span class="bar-fill" style="width:27.07%;background:var(--meta)"></span></span><span class="bar-val">322 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe8Ni2</span><span class="bar-track"><span class="bar-fill" style="width:29.30%;background:var(--meta)"></span></span><span class="bar-val">349 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeNi8</span><span class="bar-track"><span class="bar-fill" style="width:36.36%;background:var(--meta)"></span></span><span class="bar-val">433 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe12</span><span class="bar-track"><span class="bar-fill" style="width:37.80%;background:var(--meta)"></span></span><span class="bar-val">450 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeNi2</span><span class="bar-track"><span class="bar-fill" style="width:44.32%;background:var(--meta)"></span></span><span class="bar-val">528 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeNi9</span><span class="bar-track"><span class="bar-fill" style="width:44.39%;background:var(--meta)"></span></span><span class="bar-val">529 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni3</span><span class="bar-track"><span class="bar-fill" style="width:44.74%;background:var(--meta)"></span></span><span class="bar-val">533 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeNi6</span><span class="bar-track"><span class="bar-fill" style="width:49.44%;background:var(--meta)"></span></span><span class="bar-val">589 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2Ni</span><span class="bar-track"><span class="bar-fill" style="width:49.48%;background:var(--meta)"></span></span><span class="bar-val">589 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4Ni6</span><span class="bar-track"><span class="bar-fill" style="width:53.12%;background:var(--meta)"></span></span><span class="bar-val">633 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe10</span><span class="bar-track"><span class="bar-fill" style="width:54.67%;background:var(--meta)"></span></span><span class="bar-val">651 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe6Ni4</span><span class="bar-track"><span class="bar-fill" style="width:55.37%;background:var(--meta)"></span></span><span class="bar-val">660 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4Ni4</span><span class="bar-track"><span class="bar-fill" style="width:55.79%;background:var(--meta)"></span></span><span class="bar-val">664 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe5Ni3</span><span class="bar-track"><span class="bar-fill" style="width:56.74%;background:var(--meta)"></span></span><span class="bar-val">676 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe11</span><span class="bar-track"><span class="bar-fill" style="width:57.72%;background:var(--meta)"></span></span><span class="bar-val">688 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4Ni</span><span class="bar-track"><span class="bar-fill" style="width:58.32%;background:var(--meta)"></span></span><span class="bar-val">695 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3</span><span class="bar-track"><span class="bar-fill" style="width:59.00%;background:var(--meta)"></span></span><span class="bar-val">703 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3Ni5</span><span class="bar-track"><span class="bar-fill" style="width:59.25%;background:var(--meta)"></span></span><span class="bar-val">706 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe7Ni</span><span class="bar-track"><span class="bar-fill" style="width:59.26%;background:var(--meta)"></span></span><span class="bar-val">706 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4</span><span class="bar-track"><span class="bar-fill" style="width:59.28%;background:var(--meta)"></span></span><span class="bar-val">706 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3Ni2</span><span class="bar-track"><span class="bar-fill" style="width:63.73%;background:var(--meta)"></span></span><span class="bar-val">759 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe8Ni</span><span class="bar-track"><span class="bar-fill" style="width:64.42%;background:var(--meta)"></span></span><span class="bar-val">767 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe4Ni3</span><span class="bar-track"><span class="bar-fill" style="width:67.62%;background:var(--meta)"></span></span><span class="bar-val">805 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe9</span><span class="bar-track"><span class="bar-fill" style="width:68.14%;background:var(--meta)"></span></span><span class="bar-val">812 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeNi4</span><span class="bar-track"><span class="bar-fill" style="width:68.72%;background:var(--meta)"></span></span><span class="bar-val">819 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe9Ni</span><span class="bar-track"><span class="bar-fill" style="width:71.91%;background:var(--meta)"></span></span><span class="bar-val">857 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3Ni4</span><span class="bar-track"><span class="bar-fill" style="width:72.43%;background:var(--meta)"></span></span><span class="bar-val">863 meV</span></li>
+<li class="bar-row"><span class="bar-name">FeNi5</span><span class="bar-track"><span class="bar-fill" style="width:72.75%;background:var(--meta)"></span></span><span class="bar-val">867 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe6Ni</span><span class="bar-track"><span class="bar-fill" style="width:74.06%;background:var(--meta)"></span></span><span class="bar-val">882 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe7</span><span class="bar-track"><span class="bar-fill" style="width:74.45%;background:var(--meta)"></span></span><span class="bar-val">887 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe3Ni3</span><span class="bar-track"><span class="bar-fill" style="width:90.10%;background:var(--meta)"></span></span><span class="bar-val">1073 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe2Ni3</span><span class="bar-track"><span class="bar-fill" style="width:99.53%;background:var(--meta)"></span></span><span class="bar-val">1185 meV</span></li>
+<li class="bar-row"><span class="bar-name">Fe5</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">1191 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 3 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Fe</th><th>Ni</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Fe <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>229</td><td>1</td></tr>
+<tr class="stable"><td class="name">FeNi3 <span class="pill">凸包上</span></td><td>0.250</td><td>0.750</td><td>-0.0804</td><td>221</td><td>4</td></tr>
+<tr class="stable"><td class="name">Ni4 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>221 → 225</td><td>4</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点が信用できるか</h3><p>実在相に当たったもの<br><b>Fe</b>：検出 229（1 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 194（10 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 221（11 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 194（12 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 229（14 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 221（15 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 194（2 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 221（3 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 194（4 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 221（5 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 191（6 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 221（7 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 194（8 原子）。体心立方に当たった（α-Fe）。<br><b>Fe</b>：検出 221（9 原子）。体心立方に当たった（α-Fe）。<br><b>Ni</b>：検出 225（1 原子）。面心立方に当たった。<br><b>Ni</b>：検出 194（10 原子）。面心立方に当たった。<br><b>Ni</b>：検出 225（2 原子）。面心立方に当たった。<br><b>Ni</b>：検出 221（3 原子）。面心立方に当たった。<br><b>Ni</b>：検出 225（4 原子）。面心立方に当たった。<br><b>Ni</b>：検出 139（6 原子）。面心立方に当たった。<br><b>Ni</b>：検出 139（8 原子）。面心立方に当たった。</p></div><div class="note"><h3>穴</h3><p>撒いたはずの 65 組成のうち <b>13 組成で構造が 1 件も出なかった</b>（Fe2Ni5、Fe3Ni6、Fe4Ni5、Fe5Ni、Fe5Ni2、Fe5Ni4、Fe5Ni5、Fe6Ni3、Fe7Ni2、Fe7Ni3、Ni5、Ni7…）。これは「そこに相が無い」ではなく「<b>その組成では全空間群で Wyckoff 配置が作れなかった</b>」である。図の余白をそのまま相の不在と読まないこと。</p></div><div class="note"><h3>どの三元の辺か</h3><p>この 2 元系は <b>Co-Fe-Ni</b> の辺である。三角図の対応する縁と突き合わせて読むこと。</p></div><div class="note"><h3>分解能</h3><p>数十 meV/atom の差はこの手法の分解能に近い。「包に載った／載らない」を 10 meV 差で言い切らないこと。また探索は 10 原子以下の基本胞に限っているので、それより大きい胞でしか組めない実在相には届かない。</p></div></section>
+ <footer><span>aiida-shotgun-csp 6.24.0</span><span>sweep = 既存</span><span>stage = relaxed / 2026-09-11</span><span>spg_ranks = [1,2,3]</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

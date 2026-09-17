@@ -1,0 +1,662 @@
+<title>O–W 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>O–W 相図</h1>
+  <p class="lede">凸包に載った化合物は O<sub>3</sub>W。w2-2026-08-31 掃引の完了を受けた相図。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>56</dd></div><div class="fact"><dt>凸包上</dt><dd>3</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>8</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は O の原子分率。縦軸は端点（W, O）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="O–W 相図">
+<line class="grid-line" x1="76" x2="846" y1="404.89" y2="404.89"/>
+<text class="tick-text" x="64" y="408.89" text-anchor="end">-1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="393.92" y2="393.92"/>
+<text class="tick-text" x="64" y="397.92" text-anchor="end">-1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="382.95" y2="382.95"/>
+<text class="tick-text" x="64" y="386.95" text-anchor="end">-0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="371.99" y2="371.99"/>
+<text class="tick-text" x="64" y="375.99" text-anchor="end">-0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="361.02" y2="361.02"/>
+<text class="tick-text" x="64" y="365.02" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="350.05" y2="350.05"/>
+<text class="tick-text" x="64" y="354.05" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="339.08" y2="339.08"/>
+<text class="tick-text" x="64" y="343.08" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="328.11" y2="328.11"/>
+<text class="tick-text" x="64" y="332.11" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="317.14" y2="317.14"/>
+<text class="tick-text" x="64" y="321.14" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="306.18" y2="306.18"/>
+<text class="tick-text" x="64" y="310.18" text-anchor="end">1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="295.21" y2="295.21"/>
+<text class="tick-text" x="64" y="299.21" text-anchor="end">1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="284.24" y2="284.24"/>
+<text class="tick-text" x="64" y="288.24" text-anchor="end">1.50</text>
+<line class="grid-line" x1="76" x2="846" y1="273.27" y2="273.27"/>
+<text class="tick-text" x="64" y="277.27" text-anchor="end">1.75</text>
+<line class="grid-line" x1="76" x2="846" y1="262.30" y2="262.30"/>
+<text class="tick-text" x="64" y="266.30" text-anchor="end">2.00</text>
+<line class="grid-line" x1="76" x2="846" y1="251.33" y2="251.33"/>
+<text class="tick-text" x="64" y="255.33" text-anchor="end">2.25</text>
+<line class="grid-line" x1="76" x2="846" y1="240.36" y2="240.36"/>
+<text class="tick-text" x="64" y="244.36" text-anchor="end">2.50</text>
+<line class="grid-line" x1="76" x2="846" y1="229.40" y2="229.40"/>
+<text class="tick-text" x="64" y="233.40" text-anchor="end">2.75</text>
+<line class="grid-line" x1="76" x2="846" y1="218.43" y2="218.43"/>
+<text class="tick-text" x="64" y="222.43" text-anchor="end">3.00</text>
+<line class="grid-line" x1="76" x2="846" y1="207.46" y2="207.46"/>
+<text class="tick-text" x="64" y="211.46" text-anchor="end">3.25</text>
+<line class="grid-line" x1="76" x2="846" y1="196.49" y2="196.49"/>
+<text class="tick-text" x="64" y="200.49" text-anchor="end">3.50</text>
+<line class="grid-line" x1="76" x2="846" y1="185.52" y2="185.52"/>
+<text class="tick-text" x="64" y="189.52" text-anchor="end">3.75</text>
+<line class="grid-line" x1="76" x2="846" y1="174.55" y2="174.55"/>
+<text class="tick-text" x="64" y="178.55" text-anchor="end">4.00</text>
+<line class="grid-line" x1="76" x2="846" y1="163.58" y2="163.58"/>
+<text class="tick-text" x="64" y="167.58" text-anchor="end">4.25</text>
+<line class="grid-line" x1="76" x2="846" y1="152.62" y2="152.62"/>
+<text class="tick-text" x="64" y="156.62" text-anchor="end">4.50</text>
+<line class="grid-line" x1="76" x2="846" y1="141.65" y2="141.65"/>
+<text class="tick-text" x="64" y="145.65" text-anchor="end">4.75</text>
+<line class="grid-line" x1="76" x2="846" y1="130.68" y2="130.68"/>
+<text class="tick-text" x="64" y="134.68" text-anchor="end">5.00</text>
+<line class="grid-line" x1="76" x2="846" y1="119.71" y2="119.71"/>
+<text class="tick-text" x="64" y="123.71" text-anchor="end">5.25</text>
+<line class="grid-line" x1="76" x2="846" y1="108.74" y2="108.74"/>
+<text class="tick-text" x="64" y="112.74" text-anchor="end">5.50</text>
+<line class="grid-line" x1="76" x2="846" y1="97.77" y2="97.77"/>
+<text class="tick-text" x="64" y="101.77" text-anchor="end">5.75</text>
+<line class="grid-line" x1="76" x2="846" y1="86.81" y2="86.81"/>
+<text class="tick-text" x="64" y="90.81" text-anchor="end">6.00</text>
+<line class="grid-line" x1="76" x2="846" y1="75.84" y2="75.84"/>
+<text class="tick-text" x="64" y="79.84" text-anchor="end">6.25</text>
+<line class="grid-line" x1="76" x2="846" y1="64.87" y2="64.87"/>
+<text class="tick-text" x="64" y="68.87" text-anchor="end">6.50</text>
+<line class="grid-line" x1="76" x2="846" y1="53.90" y2="53.90"/>
+<text class="tick-text" x="64" y="57.90" text-anchor="end">6.75</text>
+<line class="grid-line" x1="76" x2="846" y1="42.93" y2="42.93"/>
+<text class="tick-text" x="64" y="46.93" text-anchor="end">7.00</text>
+<line class="grid-line" x1="76" x2="846" y1="31.96" y2="31.96"/>
+<text class="tick-text" x="64" y="35.96" text-anchor="end">7.25</text>
+<line class="axis-line" x1="76" x2="846" y1="350.05" y2="350.05"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">W</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">O</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">O の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,350.05 653.50,374.65 846.00,350.05"/>
+<line class="tie-drop" x1="653.50" x2="653.50" y1="374.65" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>W
+W:O = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 229
+原子数 / 候補 1 / 6</title><circle cx="76.00" cy="350.05" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="336.05" text-anchor="middle">W</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.652 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 652 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 4"><title>W10
+W:O = 1.000 / 0.000
+E_form 0.652 eV/atom
+包から 652 meV/atom
+空間群 194
+原子数 / 候補 10 / 4</title><circle cx="76.00" cy="321.46" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="341.46" text-anchor="middle">W10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W9O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 2.703 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2777 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 156&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>W9O
+W:O = 0.900 / 0.100
+E_form 2.703 eV/atom
+包から 2777 meV/atom
+空間群 156
+原子数 / 候補 10 / 6</title><circle cx="153.00" cy="231.48" r="5" fill="var(--meta)"/><text class="plabel" x="153.00" y="217.48" text-anchor="middle">W9O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W8O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 6.451 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6534 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>W8O
+W:O = 0.889 / 0.111
+E_form 6.451 eV/atom
+包から 6534 meV/atom
+空間群 82
+原子数 / 候補 9 / 6</title><circle cx="161.56" cy="67.01" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="53.01" text-anchor="middle">W8O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W7O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 6.535 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6628 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 5"><title>W7O
+W:O = 0.875 / 0.125
+E_form 6.535 eV/atom
+包から 6628 meV/atom
+空間群 155
+原子数 / 候補 8 / 5</title><circle cx="172.25" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="83.35" text-anchor="middle">W7O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W6O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 6.182 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6289 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>W6O
+W:O = 0.857 / 0.143
+E_form 6.182 eV/atom
+包から 6289 meV/atom
+空間群 155
+原子数 / 候補 7 / 3</title><circle cx="186.00" cy="78.81" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="98.81" text-anchor="middle">W6O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W5O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 6.062 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6186 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>W5O
+W:O = 0.833 / 0.167
+E_form 6.062 eV/atom
+包から 6186 meV/atom
+空間群 155 → 166
+原子数 / 候補 6 / 3</title><circle cx="204.33" cy="84.09" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="104.09" text-anchor="middle">W5O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W8O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 5.439 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 5588 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 140 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>W8O2
+W:O = 0.800 / 0.200
+E_form 5.439 eV/atom
+包から 5588 meV/atom
+空間群 140 → 1
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="111.44" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="131.44" text-anchor="middle">W8O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W4O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 5.677 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 5826 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>W4O
+W:O = 0.800 / 0.200
+E_form 5.677 eV/atom
+包から 5826 meV/atom
+空間群 155 → 166
+原子数 / 候補 5 / 3</title><circle cx="230.00" cy="100.99" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="120.99" text-anchor="middle">W4O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W7O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 5.122 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 5288 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>W7O2
+W:O = 0.778 / 0.222
+E_form 5.122 eV/atom
+包から 5288 meV/atom
+空間群 155
+原子数 / 候補 9 / 3</title><circle cx="247.11" cy="125.34" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="145.34" text-anchor="middle">W7O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W6O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 4.826 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 5013 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>W6O2
+W:O = 0.750 / 0.250
+E_form 4.826 eV/atom
+包から 5013 meV/atom
+空間群 155 → 167
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="138.31" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="158.31" text-anchor="middle">W6O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W3O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 4.968 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 5155 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>W3O
+W:O = 0.750 / 0.250
+E_form 4.968 eV/atom
+包から 5155 meV/atom
+空間群 187
+原子数 / 候補 4 / 9</title><circle cx="268.50" cy="132.08" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="152.08" text-anchor="middle">W3O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W5O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 4.894 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 5107 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>W5O2
+W:O = 0.714 / 0.286
+E_form 4.894 eV/atom
+包から 5107 meV/atom
+空間群 155 → 166
+原子数 / 候補 7 / 3</title><circle cx="296.00" cy="135.35" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="121.35" text-anchor="middle">W5O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W7O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 4.712 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4937 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>W7O3
+W:O = 0.700 / 0.300
+E_form 4.712 eV/atom
+包から 4937 meV/atom
+空間群 164 → 1
+原子数 / 候補 10 / 3</title><circle cx="307.00" cy="143.30" r="5" fill="var(--meta)"/><text class="plabel" x="307.00" y="129.30" text-anchor="middle">W7O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W2O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 4.053 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4302 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>W2O
+W:O = 0.667 / 0.333
+E_form 4.053 eV/atom
+包から 4302 meV/atom
+空間群 187
+原子数 / 候補 3 / 9</title><circle cx="332.67" cy="172.23" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="158.23" text-anchor="middle">W2O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W4O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 4.076 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4325 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 136&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 5"><title>W4O2
+W:O = 0.667 / 0.333
+E_form 4.076 eV/atom
+包から 4325 meV/atom
+空間群 136
+原子数 / 候補 6 / 5</title><circle cx="332.67" cy="171.21" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="191.21" text-anchor="middle">W4O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W6O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 4.405 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4654 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>W6O3
+W:O = 0.667 / 0.333
+E_form 4.405 eV/atom
+包から 4654 meV/atom
+空間群 164
+原子数 / 候補 9 / 3</title><circle cx="332.67" cy="156.79" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="176.79" text-anchor="middle">W6O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W5O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 4.023 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4303 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>W5O3
+W:O = 0.625 / 0.375
+E_form 4.023 eV/atom
+包から 4303 meV/atom
+空間群 148 → 166
+原子数 / 候補 8 / 6</title><circle cx="364.75" cy="173.55" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="193.55" text-anchor="middle">W5O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W6O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 3.425 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3724 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63 → 31&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>W6O4
+W:O = 0.600 / 0.400
+E_form 3.425 eV/atom
+包から 3724 meV/atom
+空間群 63 → 31
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="199.79" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="219.79" text-anchor="middle">W6O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W3O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 4.055 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4354 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>W3O2
+W:O = 0.600 / 0.400
+E_form 4.055 eV/atom
+包から 4354 meV/atom
+空間群 65
+原子数 / 候補 5 / 3</title><circle cx="384.00" cy="172.13" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="158.13" text-anchor="middle">W3O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W4O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 3.203 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3523 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>W4O3
+W:O = 0.571 / 0.429
+E_form 3.203 eV/atom
+包から 3523 meV/atom
+空間群 65
+原子数 / 候補 7 / 3</title><circle cx="406.00" cy="209.53" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="229.53" text-anchor="middle">W4O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W5O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 3.561 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3894 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 2"><title>W5O4
+W:O = 0.556 / 0.444
+E_form 3.561 eV/atom
+包から 3894 meV/atom
+空間群 65
+原子数 / 候補 9 / 2</title><circle cx="418.22" cy="193.80" r="5" fill="var(--meta)"/><text class="plabel" x="418.22" y="179.80" text-anchor="middle">W5O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W4O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 2.185 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2559 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 14 → 15&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>W4O4
+W:O = 0.500 / 0.500
+E_form 2.185 eV/atom
+包から 2559 meV/atom
+空間群 14 → 15
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="254.18" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="240.18" text-anchor="middle">W4O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;WO&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 2.498 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2872 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>WO
+W:O = 0.500 / 0.500
+E_form 2.498 eV/atom
+包から 2872 meV/atom
+空間群 187
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="240.46" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="260.46" text-anchor="middle">WO</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W2O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 2.501 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2875 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>W2O2
+W:O = 0.500 / 0.500
+E_form 2.501 eV/atom
+包から 2875 meV/atom
+空間群 166
+原子数 / 候補 4 / 6</title><circle cx="461.00" cy="240.31" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="260.31" text-anchor="middle">W2O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W3O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 2.514 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2888 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>W3O3
+W:O = 0.500 / 0.500
+E_form 2.514 eV/atom
+包から 2888 meV/atom
+空間群 65
+原子数 / 候補 6 / 3</title><circle cx="461.00" cy="239.76" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="259.76" text-anchor="middle">W3O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W5O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 2.910 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3283 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>W5O5
+W:O = 0.500 / 0.500
+E_form 2.910 eV/atom
+包から 3283 meV/atom
+空間群 148 → 166
+原子数 / 候補 10 / 3</title><circle cx="461.00" cy="222.40" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="208.40" text-anchor="middle">W5O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W4O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 2.298 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2713 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>W4O5
+W:O = 0.444 / 0.556
+E_form 2.298 eV/atom
+包から 2713 meV/atom
+空間群 148 → 166
+原子数 / 候補 9 / 3</title><circle cx="503.78" cy="249.24" r="5" fill="var(--meta)"/><text class="plabel" x="503.78" y="235.24" text-anchor="middle">W4O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W3O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.744 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2171 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>W3O4
+W:O = 0.429 / 0.571
+E_form 1.744 eV/atom
+包から 2171 meV/atom
+空間群 65
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="273.55" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="259.55" text-anchor="middle">W3O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W4O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.736 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1184 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>W4O6
+W:O = 0.400 / 0.600
+E_form 0.736 eV/atom
+包から 1184 meV/atom
+空間群 148 → 167
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="317.77" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="303.77" text-anchor="middle">W4O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W2O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.298 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1747 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>W2O3
+W:O = 0.400 / 0.600
+E_form 1.298 eV/atom
+包から 1747 meV/atom
+空間群 65
+原子数 / 候補 5 / 3</title><circle cx="538.00" cy="293.09" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="313.09" text-anchor="middle">W2O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W3O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.624 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2091 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>W3O5
+W:O = 0.375 / 0.625
+E_form 1.624 eV/atom
+包から 2091 meV/atom
+空間群 65
+原子数 / 候補 8 / 3</title><circle cx="557.25" cy="278.81" r="5" fill="var(--meta)"/><text class="plabel" x="557.25" y="264.81" text-anchor="middle">W3O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;WO2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.089 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 409 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>WO2
+W:O = 0.333 / 0.667
+E_form -0.089 eV/atom
+包から 409 meV/atom
+空間群 225
+原子数 / 候補 3 / 6</title><circle cx="589.33" cy="353.96" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="339.96" text-anchor="middle">WO2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W2O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.079 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 419 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 14&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>W2O4
+W:O = 0.333 / 0.667
+E_form -0.079 eV/atom
+包から 419 meV/atom
+空間群 14
+原子数 / 候補 6 / 9</title><circle cx="589.33" cy="353.53" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="373.53" text-anchor="middle">W2O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W3O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.767 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1266 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 38&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>W3O6
+W:O = 0.333 / 0.667
+E_form 0.767 eV/atom
+包から 1266 meV/atom
+空間群 65 → 38
+原子数 / 候補 9 / 3</title><circle cx="589.33" cy="316.38" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="302.38" text-anchor="middle">W3O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W2O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.434 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 968 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 4&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>W2O5
+W:O = 0.286 / 0.714
+E_form 0.434 eV/atom
+包から 968 meV/atom
+空間群 65 → 4
+原子数 / 候補 7 / 3</title><circle cx="626.00" cy="330.99" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="316.99" text-anchor="middle">W2O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W2O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.560 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 15&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>W2O6
+W:O = 0.250 / 0.750
+E_form -0.560 eV/atom
+包から 1 meV/atom
+空間群 15
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="374.62" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="360.62" text-anchor="middle">W2O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;WO4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.115 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 334 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 79 → 4&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>WO4
+W:O = 0.200 / 0.800
+E_form -0.115 eV/atom
+包から 334 meV/atom
+空間群 79 → 4
+原子数 / 候補 5 / 9</title><circle cx="692.00" cy="355.09" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="341.09" text-anchor="middle">WO4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W2O8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.094 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 355 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 13 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>W2O8
+W:O = 0.200 / 0.800
+E_form -0.094 eV/atom
+包から 355 meV/atom
+空間群 13 → 11
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="354.15" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="374.15" text-anchor="middle">W2O8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;WO5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.041 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 333 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>WO5
+W:O = 0.167 / 0.833
+E_form -0.041 eV/atom
+包から 333 meV/atom
+空間群 87 → 6
+原子数 / 候補 6 / 9</title><circle cx="717.67" cy="351.83" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="371.83" text-anchor="middle">WO5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;WO6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.034 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 354 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>WO6
+W:O = 0.143 / 0.857
+E_form 0.034 eV/atom
+包から 354 meV/atom
+空間群 65 → 1
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="348.58" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="334.58" text-anchor="middle">WO6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;WO7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.173 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 453 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 79 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>WO7
+W:O = 0.125 / 0.875
+E_form 0.173 eV/atom
+包から 453 meV/atom
+空間群 79 → 1
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="342.47" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="362.47" text-anchor="middle">WO7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;WO8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.039 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 288 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>WO8
+W:O = 0.111 / 0.889
+E_form 0.039 eV/atom
+包から 288 meV/atom
+空間群 65 → 1
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="348.36" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="368.36" text-anchor="middle">WO8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;WO9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.013 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 237 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>WO9
+W:O = 0.100 / 0.900
+E_form 0.013 eV/atom
+包から 237 meV/atom
+空間群 2 → 1
+原子数 / 候補 10 / 9</title><circle cx="769.00" cy="349.48" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="369.48" text-anchor="middle">WO9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.004 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 9&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>O4
+W:O = 0.000 / 1.000
+E_form 0.004 eV/atom
+包から 4 meV/atom
+空間群 9
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="349.88" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="335.88" text-anchor="middle">O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.006 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>O6
+W:O = 0.000 / 1.000
+E_form 0.006 eV/atom
+包から 6 meV/atom
+空間群 12
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="349.78" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="369.78" text-anchor="middle">O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.011 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 11 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>O8
+W:O = 0.000 / 1.000
+E_form 0.011 eV/atom
+包から 11 meV/atom
+空間群 12
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="349.58" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="369.58" text-anchor="middle">O8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.152 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 152 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>O9
+W:O = 0.000 / 1.000
+E_form 0.152 eV/atom
+包から 152 meV/atom
+空間群 12 → 2
+原子数 / 候補 9 / 6</title><circle cx="846.00" cy="343.38" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="363.38" text-anchor="middle">O9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.213 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 213 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>O5
+W:O = 0.000 / 1.000
+E_form 0.213 eV/atom
+包から 213 meV/atom
+空間群 12 → 11
+原子数 / 候補 5 / 3</title><circle cx="846.00" cy="340.71" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="360.71" text-anchor="middle">O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.237 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 237 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 5&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>O10
+W:O = 0.000 / 1.000
+E_form 0.237 eV/atom
+包から 237 meV/atom
+空間群 12 → 5
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="339.64" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="359.64" text-anchor="middle">O10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.386 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 386 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>O3
+W:O = 0.000 / 1.000
+E_form 0.386 eV/atom
+包から 386 meV/atom
+空間群 12 → 11
+原子数 / 候補 3 / 6</title><circle cx="846.00" cy="333.12" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="353.12" text-anchor="middle">O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.497 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 497 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>O7
+W:O = 0.000 / 1.000
+E_form 0.497 eV/atom
+包から 497 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="328.23" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="348.23" text-anchor="middle">O7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.472 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1472 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>O
+W:O = 0.000 / 1.000
+E_form 1.472 eV/atom
+包から 1472 meV/atom
+空間群 12
+原子数 / 候補 1 / 9</title><circle cx="846.00" cy="285.48" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="271.48" text-anchor="middle">O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;W8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 51 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>W8
+W:O = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 51 → 229
+原子数 / 候補 8 / 3</title><circle cx="76.00" cy="350.05" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="370.05" text-anchor="middle">W8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;WO3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.561 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>WO3
+W:O = 0.250 / 0.750
+E_form -0.561 eV/atom
+包から 0（凸包上）
+空間群 221
+原子数 / 候補 4 / 9</title><circle cx="653.50" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="653.50" y="394.65" text-anchor="middle">WO3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;W:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 17"><title>O2
+W:O = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 166 → 2
+原子数 / 候補 2 / 17</title><circle cx="846.00" cy="350.05" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="370.05" text-anchor="middle">O2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">W8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">W</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">WO3</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">O2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">W2O6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">O4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">4 meV</span></li>
+<li class="bar-row"><span class="bar-name">O6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">O8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">11 meV</span></li>
+<li class="bar-row"><span class="bar-name">O9</span><span class="bar-track"><span class="bar-fill" style="width:2.29%;background:var(--h3)"></span></span><span class="bar-val">152 meV</span></li>
+<li class="bar-row"><span class="bar-name">O5</span><span class="bar-track"><span class="bar-fill" style="width:3.21%;background:var(--meta)"></span></span><span class="bar-val">213 meV</span></li>
+<li class="bar-row"><span class="bar-name">O10</span><span class="bar-track"><span class="bar-fill" style="width:3.58%;background:var(--meta)"></span></span><span class="bar-val">237 meV</span></li>
+<li class="bar-row"><span class="bar-name">WO9</span><span class="bar-track"><span class="bar-fill" style="width:3.58%;background:var(--meta)"></span></span><span class="bar-val">237 meV</span></li>
+<li class="bar-row"><span class="bar-name">WO8</span><span class="bar-track"><span class="bar-fill" style="width:4.34%;background:var(--meta)"></span></span><span class="bar-val">288 meV</span></li>
+<li class="bar-row"><span class="bar-name">WO5</span><span class="bar-track"><span class="bar-fill" style="width:5.03%;background:var(--meta)"></span></span><span class="bar-val">333 meV</span></li>
+<li class="bar-row"><span class="bar-name">WO4</span><span class="bar-track"><span class="bar-fill" style="width:5.03%;background:var(--meta)"></span></span><span class="bar-val">334 meV</span></li>
+<li class="bar-row"><span class="bar-name">WO6</span><span class="bar-track"><span class="bar-fill" style="width:5.34%;background:var(--meta)"></span></span><span class="bar-val">354 meV</span></li>
+<li class="bar-row"><span class="bar-name">W2O8</span><span class="bar-track"><span class="bar-fill" style="width:5.36%;background:var(--meta)"></span></span><span class="bar-val">355 meV</span></li>
+<li class="bar-row"><span class="bar-name">O3</span><span class="bar-track"><span class="bar-fill" style="width:5.82%;background:var(--meta)"></span></span><span class="bar-val">386 meV</span></li>
+<li class="bar-row"><span class="bar-name">WO2</span><span class="bar-track"><span class="bar-fill" style="width:6.17%;background:var(--meta)"></span></span><span class="bar-val">409 meV</span></li>
+<li class="bar-row"><span class="bar-name">W2O4</span><span class="bar-track"><span class="bar-fill" style="width:6.32%;background:var(--meta)"></span></span><span class="bar-val">419 meV</span></li>
+<li class="bar-row"><span class="bar-name">WO7</span><span class="bar-track"><span class="bar-fill" style="width:6.84%;background:var(--meta)"></span></span><span class="bar-val">453 meV</span></li>
+<li class="bar-row"><span class="bar-name">O7</span><span class="bar-track"><span class="bar-fill" style="width:7.50%;background:var(--meta)"></span></span><span class="bar-val">497 meV</span></li>
+<li class="bar-row"><span class="bar-name">W10</span><span class="bar-track"><span class="bar-fill" style="width:9.83%;background:var(--meta)"></span></span><span class="bar-val">652 meV</span></li>
+<li class="bar-row"><span class="bar-name">W2O5</span><span class="bar-track"><span class="bar-fill" style="width:14.61%;background:var(--meta)"></span></span><span class="bar-val">968 meV</span></li>
+<li class="bar-row"><span class="bar-name">W4O6</span><span class="bar-track"><span class="bar-fill" style="width:17.87%;background:var(--meta)"></span></span><span class="bar-val">1184 meV</span></li>
+<li class="bar-row"><span class="bar-name">W3O6</span><span class="bar-track"><span class="bar-fill" style="width:19.10%;background:var(--meta)"></span></span><span class="bar-val">1266 meV</span></li>
+<li class="bar-row"><span class="bar-name">O</span><span class="bar-track"><span class="bar-fill" style="width:22.21%;background:var(--meta)"></span></span><span class="bar-val">1472 meV</span></li>
+<li class="bar-row"><span class="bar-name">W2O3</span><span class="bar-track"><span class="bar-fill" style="width:26.36%;background:var(--meta)"></span></span><span class="bar-val">1747 meV</span></li>
+<li class="bar-row"><span class="bar-name">W3O5</span><span class="bar-track"><span class="bar-fill" style="width:31.55%;background:var(--meta)"></span></span><span class="bar-val">2091 meV</span></li>
+<li class="bar-row"><span class="bar-name">W3O4</span><span class="bar-track"><span class="bar-fill" style="width:32.75%;background:var(--meta)"></span></span><span class="bar-val">2171 meV</span></li>
+<li class="bar-row"><span class="bar-name">W4O4</span><span class="bar-track"><span class="bar-fill" style="width:38.60%;background:var(--meta)"></span></span><span class="bar-val">2559 meV</span></li>
+<li class="bar-row"><span class="bar-name">W4O5</span><span class="bar-track"><span class="bar-fill" style="width:40.93%;background:var(--meta)"></span></span><span class="bar-val">2713 meV</span></li>
+<li class="bar-row"><span class="bar-name">W9O</span><span class="bar-track"><span class="bar-fill" style="width:41.90%;background:var(--meta)"></span></span><span class="bar-val">2777 meV</span></li>
+<li class="bar-row"><span class="bar-name">WO</span><span class="bar-track"><span class="bar-fill" style="width:43.33%;background:var(--meta)"></span></span><span class="bar-val">2872 meV</span></li>
+<li class="bar-row"><span class="bar-name">W2O2</span><span class="bar-track"><span class="bar-fill" style="width:43.38%;background:var(--meta)"></span></span><span class="bar-val">2875 meV</span></li>
+<li class="bar-row"><span class="bar-name">W3O3</span><span class="bar-track"><span class="bar-fill" style="width:43.57%;background:var(--meta)"></span></span><span class="bar-val">2888 meV</span></li>
+<li class="bar-row"><span class="bar-name">W5O5</span><span class="bar-track"><span class="bar-fill" style="width:49.54%;background:var(--meta)"></span></span><span class="bar-val">3283 meV</span></li>
+<li class="bar-row"><span class="bar-name">W4O3</span><span class="bar-track"><span class="bar-fill" style="width:53.16%;background:var(--meta)"></span></span><span class="bar-val">3523 meV</span></li>
+<li class="bar-row"><span class="bar-name">W6O4</span><span class="bar-track"><span class="bar-fill" style="width:56.19%;background:var(--meta)"></span></span><span class="bar-val">3724 meV</span></li>
+<li class="bar-row"><span class="bar-name">W5O4</span><span class="bar-track"><span class="bar-fill" style="width:58.74%;background:var(--meta)"></span></span><span class="bar-val">3894 meV</span></li>
+<li class="bar-row"><span class="bar-name">W2O</span><span class="bar-track"><span class="bar-fill" style="width:64.91%;background:var(--meta)"></span></span><span class="bar-val">4302 meV</span></li>
+<li class="bar-row"><span class="bar-name">W5O3</span><span class="bar-track"><span class="bar-fill" style="width:64.92%;background:var(--meta)"></span></span><span class="bar-val">4303 meV</span></li>
+<li class="bar-row"><span class="bar-name">W4O2</span><span class="bar-track"><span class="bar-fill" style="width:65.26%;background:var(--meta)"></span></span><span class="bar-val">4325 meV</span></li>
+<li class="bar-row"><span class="bar-name">W3O2</span><span class="bar-track"><span class="bar-fill" style="width:65.70%;background:var(--meta)"></span></span><span class="bar-val">4354 meV</span></li>
+<li class="bar-row"><span class="bar-name">W6O3</span><span class="bar-track"><span class="bar-fill" style="width:70.22%;background:var(--meta)"></span></span><span class="bar-val">4654 meV</span></li>
+<li class="bar-row"><span class="bar-name">W7O3</span><span class="bar-track"><span class="bar-fill" style="width:74.48%;background:var(--meta)"></span></span><span class="bar-val">4937 meV</span></li>
+<li class="bar-row"><span class="bar-name">W6O2</span><span class="bar-track"><span class="bar-fill" style="width:75.63%;background:var(--meta)"></span></span><span class="bar-val">5013 meV</span></li>
+<li class="bar-row"><span class="bar-name">W5O2</span><span class="bar-track"><span class="bar-fill" style="width:77.05%;background:var(--meta)"></span></span><span class="bar-val">5107 meV</span></li>
+<li class="bar-row"><span class="bar-name">W3O</span><span class="bar-track"><span class="bar-fill" style="width:77.78%;background:var(--meta)"></span></span><span class="bar-val">5155 meV</span></li>
+<li class="bar-row"><span class="bar-name">W7O2</span><span class="bar-track"><span class="bar-fill" style="width:79.78%;background:var(--meta)"></span></span><span class="bar-val">5288 meV</span></li>
+<li class="bar-row"><span class="bar-name">W8O2</span><span class="bar-track"><span class="bar-fill" style="width:84.31%;background:var(--meta)"></span></span><span class="bar-val">5588 meV</span></li>
+<li class="bar-row"><span class="bar-name">W4O</span><span class="bar-track"><span class="bar-fill" style="width:87.90%;background:var(--meta)"></span></span><span class="bar-val">5826 meV</span></li>
+<li class="bar-row"><span class="bar-name">W5O</span><span class="bar-track"><span class="bar-fill" style="width:93.34%;background:var(--meta)"></span></span><span class="bar-val">6186 meV</span></li>
+<li class="bar-row"><span class="bar-name">W6O</span><span class="bar-track"><span class="bar-fill" style="width:94.89%;background:var(--meta)"></span></span><span class="bar-val">6289 meV</span></li>
+<li class="bar-row"><span class="bar-name">W8O</span><span class="bar-track"><span class="bar-fill" style="width:98.58%;background:var(--meta)"></span></span><span class="bar-val">6534 meV</span></li>
+<li class="bar-row"><span class="bar-name">W7O</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">6628 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 3 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>W</th><th>O</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">W8 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>51 → 229</td><td>8</td></tr>
+<tr class="stable"><td class="name">WO3 <span class="pill">凸包上</span></td><td>0.250</td><td>0.750</td><td>-0.5606</td><td>221</td><td>4</td></tr>
+<tr class="stable"><td class="name">O2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>166 → 2</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>O は分子性 O<sub>2</sub> 結晶が基準。酸化物の絶対深さは割引き、序列だけを読む。W は検出 229（bcc）が実在で信用できる。</p></div><div class="note"><h3>この系の読み方</h3><p>WO<sub>3</sub>（ReO<sub>3</sub> 型立方 221, -561 meV）が載った。実在の室温相（P2<sub>1</sub>/n・32 原子）は範囲外で 221 はその母構造。実在の WO<sub>2</sub>（歪みルチル・12 原子胞）には当たっておらず（O<sub>2</sub>W は +409 meV）、W 過剰側は信用しない。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に O<sub>6</sub>W<sub>2</sub>（+1 meV, spg 15）。分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴が 2 組成</h3><p>≤10 原子・既約 33 組成のうち 2 組成に点が無い（exit 430 等）。そこは「相が無い」ではなく「探していない」。</p></div></section>
+ <footer><span>掃引 w2-2026-08-31（default: spg_ranks=[1,2,3]・scope=all・max_atoms=10）</span><span>2026-08-31 取得 · group_by=structure 348 構造</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

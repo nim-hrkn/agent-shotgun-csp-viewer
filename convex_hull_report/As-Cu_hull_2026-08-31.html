@@ -1,0 +1,627 @@
+<title>As–Cu 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>As–Cu 相図</h1>
+  <p class="lede">端点以外に安定な化合物は出なかった。既存の三元系の辺として、これまで単独の相図が無かった二元系。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>59</dd></div><div class="fact"><dt>凸包上</dt><dd>2</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>15</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は As の原子分率。縦軸は端点（Cu, As）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="As–Cu 相図">
+<line class="grid-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<text class="tick-text" x="64" y="378.65" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="329.29" y2="329.29"/>
+<text class="tick-text" x="64" y="333.29" text-anchor="end">0.05</text>
+<line class="grid-line" x1="76" x2="846" y1="283.94" y2="283.94"/>
+<text class="tick-text" x="64" y="287.94" text-anchor="end">0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="238.59" y2="238.59"/>
+<text class="tick-text" x="64" y="242.59" text-anchor="end">0.15</text>
+<line class="grid-line" x1="76" x2="846" y1="193.24" y2="193.24"/>
+<text class="tick-text" x="64" y="197.24" text-anchor="end">0.20</text>
+<line class="grid-line" x1="76" x2="846" y1="147.89" y2="147.89"/>
+<text class="tick-text" x="64" y="151.89" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="102.54" y2="102.54"/>
+<text class="tick-text" x="64" y="106.54" text-anchor="end">0.30</text>
+<line class="grid-line" x1="76" x2="846" y1="57.19" y2="57.19"/>
+<text class="tick-text" x="64" y="61.19" text-anchor="end">0.35</text>
+<line class="axis-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Cu</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">As</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">As の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,374.65 846.00,374.65"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 33"><title>Cu
+Cu:As = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 225
+原子数 / 候補 1 / 33</title><circle cx="76.00" cy="374.65" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="360.65" text-anchor="middle">Cu</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 24"><title>Cu2
+Cu:As = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 12 → 139
+原子数 / 候補 2 / 24</title><circle cx="76.00" cy="374.55" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.55" text-anchor="middle">Cu2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 24"><title>Cu6
+Cu:As = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 64 → 225
+原子数 / 候補 6 / 24</title><circle cx="76.00" cy="374.55" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.55" text-anchor="middle">Cu6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 18"><title>Cu5
+Cu:As = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 166
+原子数 / 候補 5 / 18</title><circle cx="76.00" cy="374.37" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.37" text-anchor="middle">Cu5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 27"><title>Cu8
+Cu:As = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 8 / 27</title><circle cx="76.00" cy="374.19" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.19" text-anchor="middle">Cu8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 21"><title>Cu3
+Cu:As = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 3 / 21</title><circle cx="76.00" cy="374.19" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.19" text-anchor="middle">Cu3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.036 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 36 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 15"><title>Cu7
+Cu:As = 1.000 / 0.000
+E_form 0.036 eV/atom
+包から 36 meV/atom
+空間群 166
+原子数 / 候補 7 / 15</title><circle cx="76.00" cy="342.08" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="328.08" text-anchor="middle">Cu7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.036 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 36 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Cu10
+Cu:As = 1.000 / 0.000
+E_form 0.036 eV/atom
+包から 36 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="341.90" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="361.90" text-anchor="middle">Cu10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.124 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 124 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Cu9
+Cu:As = 1.000 / 0.000
+E_form 0.124 eV/atom
+包から 124 meV/atom
+空間群 12 → 2
+原子数 / 候補 9 / 6</title><circle cx="76.00" cy="262.27" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="248.27" text-anchor="middle">Cu9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu9As&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.167 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 167 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Cu9As
+Cu:As = 0.900 / 0.100
+E_form 0.167 eV/atom
+包から 167 meV/atom
+空間群 82
+原子数 / 候補 10 / 9</title><circle cx="153.00" cy="222.90" r="5" fill="var(--h3)"/><text class="plabel" x="153.00" y="208.90" text-anchor="middle">Cu9As</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu8As&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.038 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 38 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Cu8As
+Cu:As = 0.889 / 0.111
+E_form 0.038 eV/atom
+包から 38 meV/atom
+空間群 82 → 139
+原子数 / 候補 9 / 9</title><circle cx="161.56" cy="340.00" r="5" fill="var(--h1)"/><text class="plabel" x="161.56" y="326.00" text-anchor="middle">Cu8As</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu7As&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.072 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 72 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Cu7As
+Cu:As = 0.875 / 0.125
+E_form 0.072 eV/atom
+包から 72 meV/atom
+空間群 123
+原子数 / 候補 8 / 9</title><circle cx="172.25" cy="309.79" r="5" fill="var(--h2)"/><text class="plabel" x="172.25" y="295.79" text-anchor="middle">Cu7As</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu6As&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.057 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 57 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 8"><title>Cu6As
+Cu:As = 0.857 / 0.143
+E_form 0.057 eV/atom
+包から 57 meV/atom
+空間群 123
+原子数 / 候補 7 / 8</title><circle cx="186.00" cy="322.85" r="5" fill="var(--h2)"/><text class="plabel" x="186.00" y="342.85" text-anchor="middle">Cu6As</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu5As&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.343 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 343 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 4"><title>Cu5As
+Cu:As = 0.833 / 0.167
+E_form 0.343 eV/atom
+包から 343 meV/atom
+空間群 87
+原子数 / 候補 6 / 4</title><circle cx="204.33" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="49.35" text-anchor="middle">Cu5As</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu4As&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.039 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 39 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Cu4As
+Cu:As = 0.800 / 0.200
+E_form 0.039 eV/atom
+包から 39 meV/atom
+空間群 87
+原子数 / 候補 5 / 6</title><circle cx="230.00" cy="339.45" r="5" fill="var(--h1)"/><text class="plabel" x="230.00" y="325.45" text-anchor="middle">Cu4As</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu8As2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.100 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 100 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 88&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Cu8As2
+Cu:As = 0.800 / 0.200
+E_form 0.100 eV/atom
+包から 100 meV/atom
+空間群 82 → 88
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="284.03" r="5" fill="var(--h2)"/><text class="plabel" x="230.00" y="270.03" text-anchor="middle">Cu8As2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu7As2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.210 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 210 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Cu7As2
+Cu:As = 0.778 / 0.222
+E_form 0.210 eV/atom
+包から 210 meV/atom
+空間群 123
+原子数 / 候補 9 / 9</title><circle cx="247.11" cy="183.81" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="169.81" text-anchor="middle">Cu7As2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu3As&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.065 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 65 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 8"><title>Cu3As
+Cu:As = 0.750 / 0.250
+E_form 0.065 eV/atom
+包から 65 meV/atom
+空間群 221
+原子数 / 候補 4 / 8</title><circle cx="268.50" cy="315.96" r="5" fill="var(--h2)"/><text class="plabel" x="268.50" y="301.96" text-anchor="middle">Cu3As</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu6As2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.066 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 66 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 121 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Cu6As2
+Cu:As = 0.750 / 0.250
+E_form 0.066 eV/atom
+包から 66 meV/atom
+空間群 121 → 123
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="314.78" r="5" fill="var(--h2)"/><text class="plabel" x="268.50" y="334.78" text-anchor="middle">Cu6As2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu5As2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.162 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 162 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Cu5As2
+Cu:As = 0.714 / 0.286
+E_form 0.162 eV/atom
+包から 162 meV/atom
+空間群 155 → 166
+原子数 / 候補 7 / 6</title><circle cx="296.00" cy="227.62" r="5" fill="var(--h3)"/><text class="plabel" x="296.00" y="213.62" text-anchor="middle">Cu5As2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu7As3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.237 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 237 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 121&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Cu7As3
+Cu:As = 0.700 / 0.300
+E_form 0.237 eV/atom
+包から 237 meV/atom
+空間群 121
+原子数 / 候補 10 / 3</title><circle cx="307.00" cy="159.95" r="5" fill="var(--meta)"/><text class="plabel" x="307.00" y="145.95" text-anchor="middle">Cu7As3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu2As&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.034 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 34 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>Cu2As
+Cu:As = 0.667 / 0.333
+E_form 0.034 eV/atom
+包から 34 meV/atom
+空間群 216 → 225
+原子数 / 候補 3 / 6</title><circle cx="332.67" cy="344.17" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="330.17" text-anchor="middle">Cu2As</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu4As2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.106 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 106 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Cu4As2
+Cu:As = 0.667 / 0.333
+E_form 0.106 eV/atom
+包から 106 meV/atom
+空間群 155 → 166
+原子数 / 候補 6 / 9</title><circle cx="332.67" cy="278.50" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="264.50" text-anchor="middle">Cu4As2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu6As3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.163 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 163 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Cu6As3
+Cu:As = 0.667 / 0.333
+E_form 0.163 eV/atom
+包から 163 meV/atom
+空間群 189
+原子数 / 候補 9 / 6</title><circle cx="332.67" cy="226.62" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="212.62" text-anchor="middle">Cu6As3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu5As3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.153 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 153 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Cu5As3
+Cu:As = 0.625 / 0.375
+E_form 0.153 eV/atom
+包から 153 meV/atom
+空間群 189
+原子数 / 候補 8 / 6</title><circle cx="364.75" cy="235.51" r="5" fill="var(--h3)"/><text class="plabel" x="364.75" y="221.51" text-anchor="middle">Cu5As3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu6As4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.127 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 127 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 121 → 115&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Cu6As4
+Cu:As = 0.600 / 0.400
+E_form 0.127 eV/atom
+包から 127 meV/atom
+空間群 121 → 115
+原子数 / 候補 10 / 6</title><circle cx="384.00" cy="259.45" r="5" fill="var(--h3)"/><text class="plabel" x="384.00" y="245.45" text-anchor="middle">Cu6As4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu3As2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.211 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 211 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Cu3As2
+Cu:As = 0.600 / 0.400
+E_form 0.211 eV/atom
+包から 211 meV/atom
+空間群 155
+原子数 / 候補 5 / 6</title><circle cx="384.00" cy="183.44" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="169.44" text-anchor="middle">Cu3As2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu4As3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.202 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 202 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Cu4As3
+Cu:As = 0.571 / 0.429
+E_form 0.202 eV/atom
+包から 202 meV/atom
+空間群 189
+原子数 / 候補 7 / 3</title><circle cx="406.00" cy="191.43" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="177.43" text-anchor="middle">Cu4As3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu5As4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.226 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 226 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Cu5As4
+Cu:As = 0.556 / 0.444
+E_form 0.226 eV/atom
+包から 226 meV/atom
+空間群 189
+原子数 / 候補 9 / 3</title><circle cx="418.22" cy="169.75" r="5" fill="var(--meta)"/><text class="plabel" x="418.22" y="189.75" text-anchor="middle">Cu5As4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu2As2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.062 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 62 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Cu2As2
+Cu:As = 0.500 / 0.500
+E_form 0.062 eV/atom
+包から 62 meV/atom
+空間群 194
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="318.77" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="304.77" text-anchor="middle">Cu2As2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CuAs&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.136 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 136 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>CuAs
+Cu:As = 0.500 / 0.500
+E_form 0.136 eV/atom
+包から 136 meV/atom
+空間群 187
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="251.74" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="237.74" text-anchor="middle">CuAs</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu4As4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.165 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 165 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 26 → 55&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Cu4As4
+Cu:As = 0.500 / 0.500
+E_form 0.165 eV/atom
+包から 165 meV/atom
+空間群 26 → 55
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="224.80" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="244.80" text-anchor="middle">Cu4As4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu4As6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.148 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 148 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 14 → 4&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Cu4As6
+Cu:As = 0.400 / 0.600
+E_form 0.148 eV/atom
+包から 148 meV/atom
+空間群 14 → 4
+原子数 / 候補 10 / 3</title><circle cx="538.00" cy="240.59" r="5" fill="var(--h3)"/><text class="plabel" x="538.00" y="226.59" text-anchor="middle">Cu4As6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu2As3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.209 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 209 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Cu2As3
+Cu:As = 0.400 / 0.600
+E_form 0.209 eV/atom
+包から 209 meV/atom
+空間群 12
+原子数 / 候補 5 / 3</title><circle cx="538.00" cy="185.17" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="171.17" text-anchor="middle">Cu2As3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu3As5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.181 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 181 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Cu3As5
+Cu:As = 0.375 / 0.625
+E_form 0.181 eV/atom
+包から 181 meV/atom
+空間群 12 → 1
+原子数 / 候補 8 / 3</title><circle cx="557.25" cy="210.93" r="5" fill="var(--h3)"/><text class="plabel" x="557.25" y="230.93" text-anchor="middle">Cu3As5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu2As4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.061 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 61 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 58&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 5"><title>Cu2As4
+Cu:As = 0.333 / 0.667
+E_form 0.061 eV/atom
+包から 61 meV/atom
+空間群 58
+原子数 / 候補 6 / 5</title><circle cx="589.33" cy="319.41" r="5" fill="var(--h2)"/><text class="plabel" x="589.33" y="305.41" text-anchor="middle">Cu2As4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CuAs2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.183 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 183 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>CuAs2
+Cu:As = 0.333 / 0.667
+E_form 0.183 eV/atom
+包から 183 meV/atom
+空間群 166
+原子数 / 候補 3 / 6</title><circle cx="589.33" cy="209.11" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="195.11" text-anchor="middle">CuAs2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu2As5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.159 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 159 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Cu2As5
+Cu:As = 0.286 / 0.714
+E_form 0.159 eV/atom
+包から 159 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="626.00" cy="230.25" r="5" fill="var(--h3)"/><text class="plabel" x="626.00" y="216.25" text-anchor="middle">Cu2As5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu2As6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.135 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 135 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Cu2As6
+Cu:As = 0.250 / 0.750
+E_form 0.135 eV/atom
+包から 135 meV/atom
+空間群 12
+原子数 / 候補 8 / 6</title><circle cx="653.50" cy="252.65" r="5" fill="var(--h3)"/><text class="plabel" x="653.50" y="238.65" text-anchor="middle">Cu2As6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CuAs3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.181 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 181 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>CuAs3
+Cu:As = 0.250 / 0.750
+E_form 0.181 eV/atom
+包から 181 meV/atom
+空間群 12 → 69
+原子数 / 候補 4 / 6</title><circle cx="653.50" cy="210.38" r="5" fill="var(--h3)"/><text class="plabel" x="653.50" y="230.38" text-anchor="middle">CuAs3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu2As7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.158 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 158 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 146 → 148&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Cu2As7
+Cu:As = 0.222 / 0.778
+E_form 0.158 eV/atom
+包から 158 meV/atom
+空間群 146 → 148
+原子数 / 候補 9 / 6</title><circle cx="674.89" cy="231.61" r="5" fill="var(--h3)"/><text class="plabel" x="674.89" y="251.61" text-anchor="middle">Cu2As7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu2As8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.052 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 52 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 146&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Cu2As8
+Cu:As = 0.200 / 0.800
+E_form 0.052 eV/atom
+包から 52 meV/atom
+空間群 146
+原子数 / 候補 10 / 6</title><circle cx="692.00" cy="327.48" r="5" fill="var(--h2)"/><text class="plabel" x="692.00" y="313.48" text-anchor="middle">Cu2As8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CuAs4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.168 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 168 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>CuAs4
+Cu:As = 0.200 / 0.800
+E_form 0.168 eV/atom
+包から 168 meV/atom
+空間群 12
+原子数 / 候補 5 / 6</title><circle cx="692.00" cy="221.90" r="5" fill="var(--h3)"/><text class="plabel" x="692.00" y="207.90" text-anchor="middle">CuAs4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CuAs5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.146 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 146 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>CuAs5
+Cu:As = 0.167 / 0.833
+E_form 0.146 eV/atom
+包から 146 meV/atom
+空間群 12
+原子数 / 候補 6 / 6</title><circle cx="717.67" cy="242.31" r="5" fill="var(--h3)"/><text class="plabel" x="717.67" y="228.31" text-anchor="middle">CuAs5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CuAs6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.149 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 149 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 146&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>CuAs6
+Cu:As = 0.143 / 0.857
+E_form 0.149 eV/atom
+包から 149 meV/atom
+空間群 146
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="239.95" r="5" fill="var(--h3)"/><text class="plabel" x="736.00" y="259.95" text-anchor="middle">CuAs6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CuAs7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.154 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 154 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>CuAs7
+Cu:As = 0.125 / 0.875
+E_form 0.154 eV/atom
+包から 154 meV/atom
+空間群 148 → 166
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="235.42" r="5" fill="var(--h3)"/><text class="plabel" x="749.75" y="255.42" text-anchor="middle">CuAs7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CuAs8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.042 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 42 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 148 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>CuAs8
+Cu:As = 0.111 / 0.889
+E_form 0.042 eV/atom
+包から 42 meV/atom
+空間群 148 → 166
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="336.19" r="5" fill="var(--h1)"/><text class="plabel" x="760.44" y="322.19" text-anchor="middle">CuAs8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CuAs9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.126 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 126 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>CuAs9
+Cu:As = 0.100 / 0.900
+E_form 0.126 eV/atom
+包から 126 meV/atom
+空間群 12 → 2
+原子数 / 候補 10 / 9</title><circle cx="769.00" cy="260.18" r="5" fill="var(--h3)"/><text class="plabel" x="769.00" y="280.18" text-anchor="middle">CuAs9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;As8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>As8
+Cu:As = 0.000 / 1.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="373.47" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="359.47" text-anchor="middle">As8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;As5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.071 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 71 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>As5
+Cu:As = 0.000 / 1.000
+E_form 0.071 eV/atom
+包から 71 meV/atom
+空間群 166 → 221
+原子数 / 候補 5 / 6</title><circle cx="846.00" cy="310.25" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="296.25" text-anchor="middle">As5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;As4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.071 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 71 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 51&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>As4
+Cu:As = 0.000 / 1.000
+E_form 0.071 eV/atom
+包から 71 meV/atom
+空間群 64 → 51
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="310.16" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="330.16" text-anchor="middle">As4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;As9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.077 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 77 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>As9
+Cu:As = 0.000 / 1.000
+E_form 0.077 eV/atom
+包から 77 meV/atom
+空間群 2
+原子数 / 候補 9 / 9</title><circle cx="846.00" cy="304.99" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="324.99" text-anchor="middle">As9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;As10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.124 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 124 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>As10
+Cu:As = 0.000 / 1.000
+E_form 0.124 eV/atom
+包から 124 meV/atom
+空間群 2 → 1
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="261.90" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="247.90" text-anchor="middle">As10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;As6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.131 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 131 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>As6
+Cu:As = 0.000 / 1.000
+E_form 0.131 eV/atom
+包から 131 meV/atom
+空間群 12
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="255.55" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="275.55" text-anchor="middle">As6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;As7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.195 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 195 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>As7
+Cu:As = 0.000 / 1.000
+E_form 0.195 eV/atom
+包から 195 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="846.00" cy="197.78" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="183.78" text-anchor="middle">As7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;As3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.221 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 221 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>As3
+Cu:As = 0.000 / 1.000
+E_form 0.221 eV/atom
+包から 221 meV/atom
+空間群 166
+原子数 / 候補 3 / 3</title><circle cx="846.00" cy="174.47" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="194.47" text-anchor="middle">As3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;As&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.271 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 271 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>As
+Cu:As = 0.000 / 1.000
+E_form 0.271 eV/atom
+包から 271 meV/atom
+空間群 187 → 191
+原子数 / 候補 1 / 9</title><circle cx="846.00" cy="129.20" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="115.20" text-anchor="middle">As</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Cu4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 27"><title>Cu4
+Cu:As = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 221 → 225
+原子数 / 候補 4 / 27</title><circle cx="76.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="394.65" text-anchor="middle">Cu4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;As2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Cu:As&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>As2
+Cu:As = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 166
+原子数 / 候補 2 / 9</title><circle cx="846.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="394.65" text-anchor="middle">As2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Cu4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Cu</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">As2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Cu2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu5</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">As8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu2As</span><span class="bar-track"><span class="bar-fill" style="width:9.79%;background:var(--h1)"></span></span><span class="bar-val">34 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu7</span><span class="bar-track"><span class="bar-fill" style="width:10.46%;background:var(--h1)"></span></span><span class="bar-val">36 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu10</span><span class="bar-track"><span class="bar-fill" style="width:10.52%;background:var(--h1)"></span></span><span class="bar-val">36 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu8As</span><span class="bar-track"><span class="bar-fill" style="width:11.13%;background:var(--h1)"></span></span><span class="bar-val">38 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu4As</span><span class="bar-track"><span class="bar-fill" style="width:11.31%;background:var(--h1)"></span></span><span class="bar-val">39 meV</span></li>
+<li class="bar-row"><span class="bar-name">CuAs8</span><span class="bar-track"><span class="bar-fill" style="width:12.35%;background:var(--h1)"></span></span><span class="bar-val">42 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu2As8</span><span class="bar-track"><span class="bar-fill" style="width:15.15%;background:var(--h2)"></span></span><span class="bar-val">52 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu6As</span><span class="bar-track"><span class="bar-fill" style="width:16.64%;background:var(--h2)"></span></span><span class="bar-val">57 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu2As4</span><span class="bar-track"><span class="bar-fill" style="width:17.74%;background:var(--h2)"></span></span><span class="bar-val">61 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu2As2</span><span class="bar-track"><span class="bar-fill" style="width:17.95%;background:var(--h2)"></span></span><span class="bar-val">62 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu3As</span><span class="bar-track"><span class="bar-fill" style="width:18.85%;background:var(--h2)"></span></span><span class="bar-val">65 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu6As2</span><span class="bar-track"><span class="bar-fill" style="width:19.23%;background:var(--h2)"></span></span><span class="bar-val">66 meV</span></li>
+<li class="bar-row"><span class="bar-name">As5</span><span class="bar-track"><span class="bar-fill" style="width:20.69%;background:var(--h2)"></span></span><span class="bar-val">71 meV</span></li>
+<li class="bar-row"><span class="bar-name">As4</span><span class="bar-track"><span class="bar-fill" style="width:20.72%;background:var(--h2)"></span></span><span class="bar-val">71 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu7As</span><span class="bar-track"><span class="bar-fill" style="width:20.83%;background:var(--h2)"></span></span><span class="bar-val">72 meV</span></li>
+<li class="bar-row"><span class="bar-name">As9</span><span class="bar-track"><span class="bar-fill" style="width:22.38%;background:var(--h2)"></span></span><span class="bar-val">77 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu8As2</span><span class="bar-track"><span class="bar-fill" style="width:29.11%;background:var(--h2)"></span></span><span class="bar-val">100 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu4As2</span><span class="bar-track"><span class="bar-fill" style="width:30.89%;background:var(--h3)"></span></span><span class="bar-val">106 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu9</span><span class="bar-track"><span class="bar-fill" style="width:36.10%;background:var(--h3)"></span></span><span class="bar-val">124 meV</span></li>
+<li class="bar-row"><span class="bar-name">As10</span><span class="bar-track"><span class="bar-fill" style="width:36.22%;background:var(--h3)"></span></span><span class="bar-val">124 meV</span></li>
+<li class="bar-row"><span class="bar-name">CuAs9</span><span class="bar-track"><span class="bar-fill" style="width:36.77%;background:var(--h3)"></span></span><span class="bar-val">126 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu6As4</span><span class="bar-track"><span class="bar-fill" style="width:37.00%;background:var(--h3)"></span></span><span class="bar-val">127 meV</span></li>
+<li class="bar-row"><span class="bar-name">As6</span><span class="bar-track"><span class="bar-fill" style="width:38.26%;background:var(--h3)"></span></span><span class="bar-val">131 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu2As6</span><span class="bar-track"><span class="bar-fill" style="width:39.19%;background:var(--h3)"></span></span><span class="bar-val">135 meV</span></li>
+<li class="bar-row"><span class="bar-name">CuAs</span><span class="bar-track"><span class="bar-fill" style="width:39.48%;background:var(--h3)"></span></span><span class="bar-val">136 meV</span></li>
+<li class="bar-row"><span class="bar-name">CuAs5</span><span class="bar-track"><span class="bar-fill" style="width:42.51%;background:var(--h3)"></span></span><span class="bar-val">146 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu4As6</span><span class="bar-track"><span class="bar-fill" style="width:43.07%;background:var(--h3)"></span></span><span class="bar-val">148 meV</span></li>
+<li class="bar-row"><span class="bar-name">CuAs6</span><span class="bar-track"><span class="bar-fill" style="width:43.27%;background:var(--h3)"></span></span><span class="bar-val">149 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu5As3</span><span class="bar-track"><span class="bar-fill" style="width:44.70%;background:var(--h3)"></span></span><span class="bar-val">153 meV</span></li>
+<li class="bar-row"><span class="bar-name">CuAs7</span><span class="bar-track"><span class="bar-fill" style="width:44.73%;background:var(--h3)"></span></span><span class="bar-val">154 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu2As7</span><span class="bar-track"><span class="bar-fill" style="width:45.95%;background:var(--h3)"></span></span><span class="bar-val">158 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu2As5</span><span class="bar-track"><span class="bar-fill" style="width:46.39%;background:var(--h3)"></span></span><span class="bar-val">159 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu5As2</span><span class="bar-track"><span class="bar-fill" style="width:47.23%;background:var(--h3)"></span></span><span class="bar-val">162 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu6As3</span><span class="bar-track"><span class="bar-fill" style="width:47.55%;background:var(--h3)"></span></span><span class="bar-val">163 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu4As4</span><span class="bar-track"><span class="bar-fill" style="width:48.14%;background:var(--h3)"></span></span><span class="bar-val">165 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu9As</span><span class="bar-track"><span class="bar-fill" style="width:48.75%;background:var(--h3)"></span></span><span class="bar-val">167 meV</span></li>
+<li class="bar-row"><span class="bar-name">CuAs4</span><span class="bar-track"><span class="bar-fill" style="width:49.07%;background:var(--h3)"></span></span><span class="bar-val">168 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu3As5</span><span class="bar-track"><span class="bar-fill" style="width:52.59%;background:var(--h3)"></span></span><span class="bar-val">181 meV</span></li>
+<li class="bar-row"><span class="bar-name">CuAs3</span><span class="bar-track"><span class="bar-fill" style="width:52.77%;background:var(--h3)"></span></span><span class="bar-val">181 meV</span></li>
+<li class="bar-row"><span class="bar-name">CuAs2</span><span class="bar-track"><span class="bar-fill" style="width:53.18%;background:var(--h3)"></span></span><span class="bar-val">183 meV</span></li>
+<li class="bar-row"><span class="bar-name">As7</span><span class="bar-track"><span class="bar-fill" style="width:56.82%;background:var(--h3)"></span></span><span class="bar-val">195 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu4As3</span><span class="bar-track"><span class="bar-fill" style="width:58.86%;background:var(--meta)"></span></span><span class="bar-val">202 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu2As3</span><span class="bar-track"><span class="bar-fill" style="width:60.87%;background:var(--meta)"></span></span><span class="bar-val">209 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu7As2</span><span class="bar-track"><span class="bar-fill" style="width:61.31%;background:var(--meta)"></span></span><span class="bar-val">210 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu3As2</span><span class="bar-track"><span class="bar-fill" style="width:61.42%;background:var(--meta)"></span></span><span class="bar-val">211 meV</span></li>
+<li class="bar-row"><span class="bar-name">As3</span><span class="bar-track"><span class="bar-fill" style="width:64.31%;background:var(--meta)"></span></span><span class="bar-val">221 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu5As4</span><span class="bar-track"><span class="bar-fill" style="width:65.82%;background:var(--meta)"></span></span><span class="bar-val">226 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu7As3</span><span class="bar-track"><span class="bar-fill" style="width:68.97%;background:var(--meta)"></span></span><span class="bar-val">237 meV</span></li>
+<li class="bar-row"><span class="bar-name">As</span><span class="bar-track"><span class="bar-fill" style="width:78.85%;background:var(--meta)"></span></span><span class="bar-val">271 meV</span></li>
+<li class="bar-row"><span class="bar-name">Cu5As</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">343 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 2 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Cu</th><th>As</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Cu4 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>221 → 225</td><td>4</td></tr>
+<tr class="stable"><td class="name">As2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>166</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>As は A7 型（166）で実在どおり。Cu は検出 225（fcc）が実在で信用できる。</p></div><div class="note"><h3>この系の読み方</h3><p>安定化合物ゼロ。実在の Cu<sub>3</sub>As（ドマイカイト、8 原子超）に当たっていない — 「届いていない」側。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に AsCu<sub>2</sub>（+34 meV, spg 216）。分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴が 3 組成</h3><p>≤10 原子・既約 33 組成のうち 3 組成に点が無い（exit 430 等）。そこは「相が無い」ではなく「探していない」。</p></div><div class="note"><h3>この図の出自</h3><p>三元系の掃引で自動的に撒かれた辺の組成を集めたもので、この二元系そのものを狙った掃引ではない。密度は三元側の都合で決まっている。</p></div></section>
+ <footer><span>三元掃引の辺から再構成（spg_ranks=[1,2,3]・max_atoms=10、系により 15）</span><span>2026-08-31 取得 · group_by=structure 538 構造</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

@@ -1,0 +1,601 @@
+<title>Co–Ti 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Co–Ti 相図</h1>
+  <p class="lede">凸包に載った化合物は Co<sub>6</sub>Ti<sub>2</sub>、CoTi、CoTi<sub>3</sub>。既存の三元図（Ti–Co–Sb）の辺を埋める二元図で、DB の既存データのみから構築した（新規計算なし）。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>55</dd></div><div class="fact"><dt>凸包上</dt><dd>5</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>16</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Co の原子分率。縦軸は端点（Ti, Co）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Co–Ti 相図">
+<line class="grid-line" x1="76" x2="846" y1="385.21" y2="385.21"/>
+<text class="tick-text" x="64" y="389.21" text-anchor="end">-0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="324.91" y2="324.91"/>
+<text class="tick-text" x="64" y="328.91" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="264.60" y2="264.60"/>
+<text class="tick-text" x="64" y="268.60" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="204.30" y2="204.30"/>
+<text class="tick-text" x="64" y="208.30" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="143.99" y2="143.99"/>
+<text class="tick-text" x="64" y="147.99" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="83.69" y2="83.69"/>
+<text class="tick-text" x="64" y="87.69" text-anchor="end">0.75</text>
+<line class="axis-line" x1="76" x2="846" y1="264.60" y2="264.60"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Ti</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Co</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Co の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,264.60 268.50,323.36 461.00,374.65 653.50,344.01 846.00,264.60"/>
+<line class="tie-drop" x1="268.50" x2="268.50" y1="323.36" y2="412"/>
+<line class="tie-drop" x1="461.00" x2="461.00" y1="374.65" y2="412"/>
+<line class="tie-drop" x1="653.50" x2="653.50" y1="344.01" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Ti6
+Ti:Co = 1.000 / 0.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 63
+原子数 / 候補 6 / 6</title><circle cx="76.00" cy="264.12" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="250.12" text-anchor="middle">Ti6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.007 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 7 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 7"><title>Ti8
+Ti:Co = 1.000 / 0.000
+E_form 0.007 eV/atom
+包から 7 meV/atom
+空間群 12 → 69
+原子数 / 候補 8 / 7</title><circle cx="76.00" cy="263.01" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="283.01" text-anchor="middle">Ti8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.008 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 8 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>Ti
+Ti:Co = 1.000 / 0.000
+E_form 0.008 eV/atom
+包から 8 meV/atom
+空間群 225
+原子数 / 候補 1 / 9</title><circle cx="76.00" cy="262.79" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="282.79" text-anchor="middle">Ti</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.009 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 9 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ti7
+Ti:Co = 1.000 / 0.000
+E_form 0.009 eV/atom
+包から 9 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="76.00" cy="262.55" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="282.55" text-anchor="middle">Ti7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.093 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 93 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ti10
+Ti:Co = 1.000 / 0.000
+E_form 0.093 eV/atom
+包から 93 meV/atom
+空間群 12
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="242.14" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="262.14" text-anchor="middle">Ti10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.110 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 110 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 2"><title>Ti9
+Ti:Co = 1.000 / 0.000
+E_form 0.110 eV/atom
+包から 110 meV/atom
+空間群 12 → 11
+原子数 / 候補 9 / 2</title><circle cx="76.00" cy="238.14" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="258.14" text-anchor="middle">Ti9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.128 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 128 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 4"><title>Ti4
+Ti:Co = 1.000 / 0.000
+E_form 0.128 eV/atom
+包から 128 meV/atom
+空間群 191
+原子数 / 候補 4 / 4</title><circle cx="76.00" cy="233.82" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="219.82" text-anchor="middle">Ti4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.349 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 349 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 1"><title>Ti3
+Ti:Co = 1.000 / 0.000
+E_form 0.349 eV/atom
+包から 349 meV/atom
+空間群 191
+原子数 / 候補 3 / 1</title><circle cx="76.00" cy="180.42" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="166.42" text-anchor="middle">Ti3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.659 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 659 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Ti5
+Ti:Co = 1.000 / 0.000
+E_form 0.659 eV/atom
+包から 659 meV/atom
+空間群 191
+原子数 / 候補 5 / 3</title><circle cx="76.00" cy="105.54" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="91.54" text-anchor="middle">Ti5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti9Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.275 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 373 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 25&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Ti9Co
+Ti:Co = 0.900 / 0.100
+E_form 0.275 eV/atom
+包から 373 meV/atom
+空間群 25
+原子数 / 候補 10 / 6</title><circle cx="153.00" cy="198.24" r="5" fill="var(--meta)"/><text class="plabel" x="153.00" y="184.24" text-anchor="middle">Ti9Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti8Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.022 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 87 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ti8Co
+Ti:Co = 0.889 / 0.111
+E_form -0.022 eV/atom
+包から 87 meV/atom
+空間群 189
+原子数 / 候補 9 / 6</title><circle cx="161.56" cy="269.79" r="5" fill="var(--h2)"/><text class="plabel" x="161.56" y="255.79" text-anchor="middle">Ti8Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti7Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.834 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 956 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 5"><title>Ti7Co
+Ti:Co = 0.875 / 0.125
+E_form 0.834 eV/atom
+包から 956 meV/atom
+空間群 216
+原子数 / 候補 8 / 5</title><circle cx="172.25" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="49.35" text-anchor="middle">Ti7Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti6Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.034 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 173 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 4"><title>Ti6Co
+Ti:Co = 0.857 / 0.143
+E_form 0.034 eV/atom
+包から 173 meV/atom
+空間群 38
+原子数 / 候補 7 / 4</title><circle cx="186.00" cy="256.35" r="5" fill="var(--h3)"/><text class="plabel" x="186.00" y="276.35" text-anchor="middle">Ti6Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti5Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.292 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 454 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>Ti5Co
+Ti:Co = 0.833 / 0.167
+E_form 0.292 eV/atom
+包から 454 meV/atom
+空間群 38 → 65
+原子数 / 候補 6 / 3</title><circle cx="204.33" cy="194.19" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="180.19" text-anchor="middle">Ti5Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti8Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.117 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 78 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 7"><title>Ti8Co2
+Ti:Co = 0.800 / 0.200
+E_form -0.117 eV/atom
+包から 78 meV/atom
+空間群 38 → 1
+原子数 / 候補 10 / 7</title><circle cx="230.00" cy="292.85" r="5" fill="var(--h2)"/><text class="plabel" x="230.00" y="278.85" text-anchor="middle">Ti8Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti4Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.120 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 315 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Ti4Co
+Ti:Co = 0.800 / 0.200
+E_form 0.120 eV/atom
+包から 315 meV/atom
+空間群 38
+原子数 / 候補 5 / 3</title><circle cx="230.00" cy="235.56" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="221.56" text-anchor="middle">Ti4Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti7Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.071 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 146 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ti7Co2
+Ti:Co = 0.778 / 0.222
+E_form -0.071 eV/atom
+包から 146 meV/atom
+空間群 38
+原子数 / 候補 9 / 6</title><circle cx="247.11" cy="281.66" r="5" fill="var(--h3)"/><text class="plabel" x="247.11" y="301.66" text-anchor="middle">Ti7Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti6Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.193 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 51 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Ti6Co2
+Ti:Co = 0.750 / 0.250
+E_form -0.193 eV/atom
+包から 51 meV/atom
+空間群 63
+原子数 / 候補 8 / 6</title><circle cx="268.50" cy="311.13" r="5" fill="var(--h2)"/><text class="plabel" x="268.50" y="331.13" text-anchor="middle">Ti6Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti5Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.050 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 224 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ti5Co2
+Ti:Co = 0.714 / 0.286
+E_form -0.050 eV/atom
+包から 224 meV/atom
+空間群 38 → 1
+原子数 / 候補 7 / 3</title><circle cx="296.00" cy="276.69" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="262.69" text-anchor="middle">Ti5Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti7Co3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.092 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 194 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Ti7Co3
+Ti:Co = 0.700 / 0.300
+E_form -0.092 eV/atom
+包から 194 meV/atom
+空間群 38 → 1
+原子数 / 候補 10 / 3</title><circle cx="307.00" cy="286.89" r="5" fill="var(--h3)"/><text class="plabel" x="307.00" y="272.89" text-anchor="middle">Ti7Co3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.265 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 49 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>Ti2Co
+Ti:Co = 0.667 / 0.333
+E_form -0.265 eV/atom
+包から 49 meV/atom
+空間群 225
+原子数 / 候補 3 / 9</title><circle cx="332.67" cy="328.52" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="314.52" text-anchor="middle">Ti2Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti4Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.180 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 135 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 2"><title>Ti4Co2
+Ti:Co = 0.667 / 0.333
+E_form -0.180 eV/atom
+包から 135 meV/atom
+空間群 11
+原子数 / 候補 6 / 2</title><circle cx="332.67" cy="307.95" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="327.95" text-anchor="middle">Ti4Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti6Co3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.042 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 357 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ti6Co3
+Ti:Co = 0.667 / 0.333
+E_form 0.042 eV/atom
+包から 357 meV/atom
+空間群 123 → 1
+原子数 / 候補 9 / 6</title><circle cx="332.67" cy="254.40" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="240.40" text-anchor="middle">Ti6Co3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti6Co4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.158 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 213 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Ti6Co4
+Ti:Co = 0.600 / 0.400
+E_form -0.158 eV/atom
+包から 213 meV/atom
+空間群 63
+原子数 / 候補 10 / 3</title><circle cx="384.00" cy="302.69" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="288.69" text-anchor="middle">Ti6Co4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti4Co3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.119 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 277 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ti4Co3
+Ti:Co = 0.571 / 0.429
+E_form -0.119 eV/atom
+包から 277 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="406.00" cy="293.23" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="313.23" text-anchor="middle">Ti4Co3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.456 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 8"><title>Ti2Co2
+Ti:Co = 0.500 / 0.500
+E_form -0.456 eV/atom
+包から 0 meV/atom
+空間群 225 → 221
+原子数 / 候補 4 / 8</title><circle cx="461.00" cy="374.65" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="360.65" text-anchor="middle">Ti2Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti4Co4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.360 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 97 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 62&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 4"><title>Ti4Co4
+Ti:Co = 0.500 / 0.500
+E_form -0.360 eV/atom
+包から 97 meV/atom
+空間群 62
+原子数 / 候補 8 / 4</title><circle cx="461.00" cy="351.34" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="371.34" text-anchor="middle">Ti4Co4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti3Co4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.031 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 389 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ti3Co4
+Ti:Co = 0.429 / 0.571
+E_form -0.031 eV/atom
+包から 389 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="272.06" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="258.06" text-anchor="middle">Ti3Co4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti4Co6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.017 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 422 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ti4Co6
+Ti:Co = 0.400 / 0.600
+E_form 0.017 eV/atom
+包から 422 meV/atom
+空間群 63
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="260.55" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="280.55" text-anchor="middle">Ti4Co6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Co4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.220 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 152 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 1"><title>Ti2Co4
+Ti:Co = 0.333 / 0.667
+E_form -0.220 eV/atom
+包から 152 meV/atom
+空間群 63
+原子数 / 候補 6 / 1</title><circle cx="589.33" cy="317.62" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="303.62" text-anchor="middle">Ti2Co4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti3Co6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.018 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 353 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ti3Co6
+Ti:Co = 0.333 / 0.667
+E_form -0.018 eV/atom
+包から 353 meV/atom
+空間群 216 → 225
+原子数 / 候補 9 / 3</title><circle cx="589.33" cy="268.97" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="254.97" text-anchor="middle">Ti3Co6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiCo2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.173 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 545 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>TiCo2
+Ti:Co = 0.333 / 0.667
+E_form 0.173 eV/atom
+包から 545 meV/atom
+空間群 225
+原子数 / 候補 3 / 6</title><circle cx="589.33" cy="222.82" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="208.82" text-anchor="middle">TiCo2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti3Co7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.227 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 581 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 4"><title>Ti3Co7
+Ti:Co = 0.300 / 0.700
+E_form 0.227 eV/atom
+包から 581 meV/atom
+空間群 123 → 6
+原子数 / 候補 10 / 4</title><circle cx="615.00" cy="209.92" r="5" fill="var(--meta)"/><text class="plabel" x="615.00" y="229.92" text-anchor="middle">Ti3Co7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiCo3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.317 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 12 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>TiCo3
+Ti:Co = 0.250 / 0.750
+E_form -0.317 eV/atom
+包から 12 meV/atom
+空間群 221
+原子数 / 候補 4 / 6</title><circle cx="653.50" cy="341.12" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="327.12" text-anchor="middle">TiCo3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Co7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.029 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 322 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ti2Co7
+Ti:Co = 0.222 / 0.778
+E_form 0.029 eV/atom
+包から 322 meV/atom
+空間群 216 → 225
+原子数 / 候補 9 / 6</title><circle cx="674.89" cy="257.53" r="5" fill="var(--meta)"/><text class="plabel" x="674.89" y="243.53" text-anchor="middle">Ti2Co7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Co8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.012 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 252 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 7"><title>Ti2Co8
+Ti:Co = 0.200 / 0.800
+E_form -0.012 eV/atom
+包から 252 meV/atom
+空間群 194
+原子数 / 候補 10 / 7</title><circle cx="692.00" cy="267.38" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="253.38" text-anchor="middle">Ti2Co8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiCo4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.402 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 665 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>TiCo4
+Ti:Co = 0.200 / 0.800
+E_form 0.402 eV/atom
+包から 665 meV/atom
+空間群 65 → 123
+原子数 / 候補 5 / 6</title><circle cx="692.00" cy="167.73" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="153.73" text-anchor="middle">TiCo4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiCo5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.555 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 774 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>TiCo5
+Ti:Co = 0.167 / 0.833
+E_form 0.555 eV/atom
+包から 774 meV/atom
+空間群 65
+原子数 / 候補 6 / 6</title><circle cx="717.67" cy="130.82" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="116.82" text-anchor="middle">TiCo5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiCo6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.120 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 68 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>TiCo6
+Ti:Co = 0.143 / 0.857
+E_form -0.120 eV/atom
+包から 68 meV/atom
+空間群 139
+原子数 / 候補 7 / 6</title><circle cx="736.00" cy="293.62" r="5" fill="var(--h2)"/><text class="plabel" x="736.00" y="279.62" text-anchor="middle">TiCo6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiCo7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.333 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 498 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>TiCo7
+Ti:Co = 0.125 / 0.875
+E_form 0.333 eV/atom
+包から 498 meV/atom
+空間群 139
+原子数 / 候補 8 / 6</title><circle cx="749.75" cy="184.28" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="170.28" text-anchor="middle">TiCo7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiCo8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.126 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 21 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>TiCo8
+Ti:Co = 0.111 / 0.889
+E_form -0.126 eV/atom
+包から 21 meV/atom
+空間群 139
+原子数 / 候補 9 / 6</title><circle cx="760.44" cy="294.87" r="5" fill="var(--h1)"/><text class="plabel" x="760.44" y="314.87" text-anchor="middle">TiCo8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiCo9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.391 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 523 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 4"><title>TiCo9
+Ti:Co = 0.100 / 0.900
+E_form 0.391 eV/atom
+包から 523 meV/atom
+空間群 139
+原子数 / 候補 10 / 4</title><circle cx="769.00" cy="170.19" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="190.19" text-anchor="middle">TiCo9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Co8
+Ti:Co = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="264.58" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="250.58" text-anchor="middle">Co8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Co4
+Ti:Co = 0.000 / 1.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 11
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="263.81" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="283.81" text-anchor="middle">Co4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.009 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 9 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>Co
+Ti:Co = 0.000 / 1.000
+E_form 0.009 eV/atom
+包から 9 meV/atom
+空間群 225
+原子数 / 候補 1 / 6</title><circle cx="846.00" cy="262.36" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="282.36" text-anchor="middle">Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.102 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 102 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Co6
+Ti:Co = 0.000 / 1.000
+E_form 0.102 eV/atom
+包から 102 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="240.00" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="260.00" text-anchor="middle">Co6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.295 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 295 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Co10
+Ti:Co = 0.000 / 1.000
+E_form 0.295 eV/atom
+包から 295 meV/atom
+空間群 194
+原子数 / 候補 10 / 6</title><circle cx="846.00" cy="193.56" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="179.56" text-anchor="middle">Co10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.441 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 441 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>Co3
+Ti:Co = 0.000 / 1.000
+E_form 0.441 eV/atom
+包から 441 meV/atom
+空間群 166 → 191
+原子数 / 候補 3 / 6</title><circle cx="846.00" cy="158.15" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="144.15" text-anchor="middle">Co3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.683 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 683 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Co9
+Ti:Co = 0.000 / 1.000
+E_form 0.683 eV/atom
+包から 683 meV/atom
+空間群 221
+原子数 / 候補 9 / 3</title><circle cx="846.00" cy="99.75" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="85.75" text-anchor="middle">Co9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.824 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 824 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Co7
+Ti:Co = 0.000 / 1.000
+E_form 0.824 eV/atom
+包から 824 meV/atom
+空間群 221
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="65.96" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="51.96" text-anchor="middle">Co7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>Ti2
+Ti:Co = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 2 / 9</title><circle cx="76.00" cy="264.60" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="284.60" text-anchor="middle">Ti2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti3Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.244 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>Ti3Co
+Ti:Co = 0.750 / 0.250
+E_form -0.244 eV/atom
+包から 0（凸包上）
+空間群 38 → 123
+原子数 / 候補 4 / 6</title><circle cx="268.50" cy="323.36" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="268.50" y="343.36" text-anchor="middle">Ti3Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TiCo&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.456 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 8"><title>TiCo
+Ti:Co = 0.500 / 0.500
+E_form -0.456 eV/atom
+包から 0（凸包上）
+空間群 221
+原子数 / 候補 2 / 8</title><circle cx="461.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="461.00" y="394.65" text-anchor="middle">TiCo</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2Co6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.329 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ti2Co6
+Ti:Co = 0.250 / 0.750
+E_form -0.329 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="344.01" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="653.50" y="330.01" text-anchor="middle">Ti2Co6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ti:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 12"><title>Co2
+Ti:Co = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 2 / 12</title><circle cx="846.00" cy="264.60" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="284.60" text-anchor="middle">Co2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Ti2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Ti3Co</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">TiCo</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Ti2Co2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Ti2Co6</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Co2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Co8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">7 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti</span><span class="bar-track"><span class="bar-fill" style="width:0.78%;background:var(--h1)"></span></span><span class="bar-val">8 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti7</span><span class="bar-track"><span class="bar-fill" style="width:0.89%;background:var(--h1)"></span></span><span class="bar-val">9 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co</span><span class="bar-track"><span class="bar-fill" style="width:0.97%;background:var(--h1)"></span></span><span class="bar-val">9 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiCo3</span><span class="bar-track"><span class="bar-fill" style="width:1.26%;background:var(--h1)"></span></span><span class="bar-val">12 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiCo8</span><span class="bar-track"><span class="bar-fill" style="width:2.18%;background:var(--h1)"></span></span><span class="bar-val">21 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti2Co</span><span class="bar-track"><span class="bar-fill" style="width:5.17%;background:var(--h1)"></span></span><span class="bar-val">49 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti6Co2</span><span class="bar-track"><span class="bar-fill" style="width:5.31%;background:var(--h2)"></span></span><span class="bar-val">51 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiCo6</span><span class="bar-track"><span class="bar-fill" style="width:7.09%;background:var(--h2)"></span></span><span class="bar-val">68 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti8Co2</span><span class="bar-track"><span class="bar-fill" style="width:8.14%;background:var(--h2)"></span></span><span class="bar-val">78 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti8Co</span><span class="bar-track"><span class="bar-fill" style="width:9.07%;background:var(--h2)"></span></span><span class="bar-val">87 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti10</span><span class="bar-track"><span class="bar-fill" style="width:9.74%;background:var(--h2)"></span></span><span class="bar-val">93 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti4Co4</span><span class="bar-track"><span class="bar-fill" style="width:10.11%;background:var(--h2)"></span></span><span class="bar-val">97 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co6</span><span class="bar-track"><span class="bar-fill" style="width:10.67%;background:var(--h3)"></span></span><span class="bar-val">102 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti9</span><span class="bar-track"><span class="bar-fill" style="width:11.47%;background:var(--h3)"></span></span><span class="bar-val">110 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti4</span><span class="bar-track"><span class="bar-fill" style="width:13.35%;background:var(--h3)"></span></span><span class="bar-val">128 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti4Co2</span><span class="bar-track"><span class="bar-fill" style="width:14.10%;background:var(--h3)"></span></span><span class="bar-val">135 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti7Co2</span><span class="bar-track"><span class="bar-fill" style="width:15.25%;background:var(--h3)"></span></span><span class="bar-val">146 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti2Co4</span><span class="bar-track"><span class="bar-fill" style="width:15.87%;background:var(--h3)"></span></span><span class="bar-val">152 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti6Co</span><span class="bar-track"><span class="bar-fill" style="width:18.14%;background:var(--h3)"></span></span><span class="bar-val">173 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti7Co3</span><span class="bar-track"><span class="bar-fill" style="width:20.27%;background:var(--h3)"></span></span><span class="bar-val">194 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti6Co4</span><span class="bar-track"><span class="bar-fill" style="width:22.31%;background:var(--meta)"></span></span><span class="bar-val">213 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti5Co2</span><span class="bar-track"><span class="bar-fill" style="width:23.42%;background:var(--meta)"></span></span><span class="bar-val">224 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti2Co8</span><span class="bar-track"><span class="bar-fill" style="width:26.35%;background:var(--meta)"></span></span><span class="bar-val">252 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti4Co3</span><span class="bar-track"><span class="bar-fill" style="width:28.95%;background:var(--meta)"></span></span><span class="bar-val">277 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co10</span><span class="bar-track"><span class="bar-fill" style="width:30.80%;background:var(--meta)"></span></span><span class="bar-val">295 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti4Co</span><span class="bar-track"><span class="bar-fill" style="width:32.98%;background:var(--meta)"></span></span><span class="bar-val">315 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti2Co7</span><span class="bar-track"><span class="bar-fill" style="width:33.67%;background:var(--meta)"></span></span><span class="bar-val">322 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti3</span><span class="bar-track"><span class="bar-fill" style="width:36.50%;background:var(--meta)"></span></span><span class="bar-val">349 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti3Co6</span><span class="bar-track"><span class="bar-fill" style="width:36.96%;background:var(--meta)"></span></span><span class="bar-val">353 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti6Co3</span><span class="bar-track"><span class="bar-fill" style="width:37.32%;background:var(--meta)"></span></span><span class="bar-val">357 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti9Co</span><span class="bar-track"><span class="bar-fill" style="width:38.96%;background:var(--meta)"></span></span><span class="bar-val">373 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti3Co4</span><span class="bar-track"><span class="bar-fill" style="width:40.70%;background:var(--meta)"></span></span><span class="bar-val">389 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti4Co6</span><span class="bar-track"><span class="bar-fill" style="width:44.16%;background:var(--meta)"></span></span><span class="bar-val">422 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3</span><span class="bar-track"><span class="bar-fill" style="width:46.16%;background:var(--meta)"></span></span><span class="bar-val">441 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti5Co</span><span class="bar-track"><span class="bar-fill" style="width:47.53%;background:var(--meta)"></span></span><span class="bar-val">454 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiCo7</span><span class="bar-track"><span class="bar-fill" style="width:52.04%;background:var(--meta)"></span></span><span class="bar-val">498 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiCo9</span><span class="bar-track"><span class="bar-fill" style="width:54.71%;background:var(--meta)"></span></span><span class="bar-val">523 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiCo2</span><span class="bar-track"><span class="bar-fill" style="width:56.97%;background:var(--meta)"></span></span><span class="bar-val">545 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti3Co7</span><span class="bar-track"><span class="bar-fill" style="width:60.80%;background:var(--meta)"></span></span><span class="bar-val">581 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti5</span><span class="bar-track"><span class="bar-fill" style="width:68.97%;background:var(--meta)"></span></span><span class="bar-val">659 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiCo4</span><span class="bar-track"><span class="bar-fill" style="width:69.54%;background:var(--meta)"></span></span><span class="bar-val">665 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co9</span><span class="bar-track"><span class="bar-fill" style="width:71.48%;background:var(--meta)"></span></span><span class="bar-val">683 meV</span></li>
+<li class="bar-row"><span class="bar-name">TiCo5</span><span class="bar-track"><span class="bar-fill" style="width:80.96%;background:var(--meta)"></span></span><span class="bar-val">774 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co7</span><span class="bar-track"><span class="bar-fill" style="width:86.13%;background:var(--meta)"></span></span><span class="bar-val">824 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti7Co</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">956 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 5 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Ti</th><th>Co</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Ti2 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>194</td><td>2</td></tr>
+<tr class="stable"><td class="name">Ti3Co <span class="pill">凸包上</span></td><td>0.750</td><td>0.250</td><td>-0.2436</td><td>38 → 123</td><td>4</td></tr>
+<tr class="stable"><td class="name">TiCo <span class="pill">凸包上</span></td><td>0.500</td><td>0.500</td><td>-0.4562</td><td>221</td><td>2</td></tr>
+<tr class="stable"><td class="name">Ti2Co6 <span class="pill">凸包上</span></td><td>0.250</td><td>0.750</td><td>-0.3292</td><td>194</td><td>8</td></tr>
+<tr class="stable"><td class="name">Co2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>194</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>Co は hcp（194）で当たり、信用できる。Ti は hcp（194）で当たり、信用できる。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に Co<sub>2</sub>Ti<sub>2</sub>（+0 meV, spg 225）。この手法の分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴が 7 組成</h3><p>≤10 原子・既約 33 組成のうち 7 組成に点が無い。そこは「相が無い」ではなく「探していない」。</p></div></section>
+ <footer><span>三元 hull 辺埋めバッチ（87 系・既存データのみ・新規計算なし）</span><span>2026-08-29 取得 · group_by=structure 305 構造</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

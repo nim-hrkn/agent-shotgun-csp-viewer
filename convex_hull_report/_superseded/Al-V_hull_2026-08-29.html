@@ -1,0 +1,635 @@
+<title>Al–V 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Al–V 相図</h1>
+  <p class="lede">凸包に載った化合物は Al<sub>3</sub>V、Al<sub>4</sub>V、Al<sub>5</sub>V<sub>3</sub>、AlV。既存の三元図（V–Al–C）の辺を埋める二元図で、DB の既存データのみから構築した（新規計算なし）。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>59</dd></div><div class="fact"><dt>凸包上</dt><dd>6</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>27</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は V の原子分率。縦軸は端点（Al, V）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Al–V 相図">
+<line class="grid-line" x1="76" x2="846" y1="376.13" y2="376.13"/>
+<text class="tick-text" x="64" y="380.13" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="327.90" y2="327.90"/>
+<text class="tick-text" x="64" y="331.90" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="279.67" y2="279.67"/>
+<text class="tick-text" x="64" y="283.67" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="231.44" y2="231.44"/>
+<text class="tick-text" x="64" y="235.44" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="183.21" y2="183.21"/>
+<text class="tick-text" x="64" y="187.21" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="134.98" y2="134.98"/>
+<text class="tick-text" x="64" y="138.98" text-anchor="end">1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="86.76" y2="86.76"/>
+<text class="tick-text" x="64" y="90.76" text-anchor="end">1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="38.53" y2="38.53"/>
+<text class="tick-text" x="64" y="42.53" text-anchor="end">1.50</text>
+<line class="axis-line" x1="76" x2="846" y1="327.90" y2="327.90"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Al</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">V</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">V の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,327.90 230.00,361.43 268.50,366.10 364.75,374.65 461.00,374.39 846.00,327.90"/>
+<line class="tie-drop" x1="230.00" x2="230.00" y1="361.43" y2="412"/>
+<line class="tie-drop" x1="268.50" x2="268.50" y1="366.10" y2="412"/>
+<line class="tie-drop" x1="364.75" x2="364.75" y1="374.65" y2="412"/>
+<line class="tie-drop" x1="461.00" x2="461.00" y1="374.39" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 15"><title>Al2
+Al:V = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 2 / 15</title><circle cx="76.00" cy="327.88" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="313.88" text-anchor="middle">Al2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 18"><title>Al4
+Al:V = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 63
+原子数 / 候補 4 / 18</title><circle cx="76.00" cy="327.63" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="347.63" text-anchor="middle">Al4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>Al3
+Al:V = 1.000 / 0.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 166
+原子数 / 候補 3 / 9</title><circle cx="76.00" cy="327.52" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="347.52" text-anchor="middle">Al3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 43"><title>Al
+Al:V = 1.000 / 0.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 216 → 225
+原子数 / 候補 1 / 43</title><circle cx="76.00" cy="327.36" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="347.36" text-anchor="middle">Al</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 18"><title>Al6
+Al:V = 1.000 / 0.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 64 → 69
+原子数 / 候補 6 / 18</title><circle cx="76.00" cy="327.26" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="347.26" text-anchor="middle">Al6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Al5
+Al:V = 1.000 / 0.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 12 → 166
+原子数 / 候補 5 / 6</title><circle cx="76.00" cy="327.25" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="347.25" text-anchor="middle">Al5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.094 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 94 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Al7
+Al:V = 1.000 / 0.000
+E_form 0.094 eV/atom
+包から 94 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="76.00" cy="309.73" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="329.73" text-anchor="middle">Al7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.123 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 123 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Al9
+Al:V = 1.000 / 0.000
+E_form 0.123 eV/atom
+包から 123 meV/atom
+空間群 166
+原子数 / 候補 9 / 3</title><circle cx="76.00" cy="304.21" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="324.21" text-anchor="middle">Al9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.166 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 166 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Al10
+Al:V = 1.000 / 0.000
+E_form 0.166 eV/atom
+包から 166 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="295.86" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="281.86" text-anchor="middle">Al10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al9V&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.012 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 98 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Al9V
+Al:V = 0.900 / 0.100
+E_form 0.012 eV/atom
+包から 98 meV/atom
+空間群 12
+原子数 / 候補 10 / 3</title><circle cx="153.00" cy="325.66" r="5" fill="var(--h2)"/><text class="plabel" x="153.00" y="311.66" text-anchor="middle">Al9V</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al8V&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.009 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 88 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Al8V
+Al:V = 0.889 / 0.111
+E_form -0.009 eV/atom
+包から 88 meV/atom
+空間群 8
+原子数 / 候補 9 / 6</title><circle cx="161.56" cy="329.60" r="5" fill="var(--h2)"/><text class="plabel" x="161.56" y="315.60" text-anchor="middle">Al8V</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al7V&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.076 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 33 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Al7V
+Al:V = 0.875 / 0.125
+E_form -0.076 eV/atom
+包から 33 meV/atom
+空間群 12 → 11
+原子数 / 候補 8 / 9</title><circle cx="172.25" cy="342.49" r="5" fill="var(--h1)"/><text class="plabel" x="172.25" y="328.49" text-anchor="middle">Al7V</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al6V&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.105 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 19 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Al6V
+Al:V = 0.857 / 0.143
+E_form -0.105 eV/atom
+包から 19 meV/atom
+空間群 12
+原子数 / 候補 7 / 9</title><circle cx="186.00" cy="348.18" r="5" fill="var(--h1)"/><text class="plabel" x="186.00" y="334.18" text-anchor="middle">Al6V</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al5V&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.131 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 14 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Al5V
+Al:V = 0.833 / 0.167
+E_form -0.131 eV/atom
+包から 14 meV/atom
+空間群 8 → 65
+原子数 / 候補 6 / 9</title><circle cx="204.33" cy="353.10" r="5" fill="var(--h1)"/><text class="plabel" x="204.33" y="339.10" text-anchor="middle">Al5V</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al8V2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.168 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Al8V2
+Al:V = 0.800 / 0.200
+E_form -0.168 eV/atom
+包から 6 meV/atom
+空間群 8 → 12
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="360.21" r="5" fill="var(--h1)"/><text class="plabel" x="230.00" y="346.21" text-anchor="middle">Al8V2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al7V2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.049 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 135 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Al7V2
+Al:V = 0.778 / 0.222
+E_form -0.049 eV/atom
+包から 135 meV/atom
+空間群 8 → 6
+原子数 / 候補 9 / 6</title><circle cx="247.11" cy="337.39" r="5" fill="var(--h3)"/><text class="plabel" x="247.11" y="357.39" text-anchor="middle">Al7V2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al6V2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.196 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 38&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Al6V2
+Al:V = 0.750 / 0.250
+E_form -0.196 eV/atom
+包から 2 meV/atom
+空間群 8 → 38
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="365.77" r="5" fill="var(--h1)"/><text class="plabel" x="268.50" y="385.77" text-anchor="middle">Al6V2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al5V2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.143 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 67 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Al5V2
+Al:V = 0.714 / 0.286
+E_form -0.143 eV/atom
+包から 67 meV/atom
+空間群 12
+原子数 / 候補 7 / 9</title><circle cx="296.00" cy="355.55" r="5" fill="var(--h2)"/><text class="plabel" x="296.00" y="341.55" text-anchor="middle">Al5V2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al7V3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.037 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 179 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Al7V3
+Al:V = 0.700 / 0.300
+E_form -0.037 eV/atom
+包から 179 meV/atom
+空間群 8 → 1
+原子数 / 候補 10 / 6</title><circle cx="307.00" cy="334.94" r="5" fill="var(--h3)"/><text class="plabel" x="307.00" y="354.94" text-anchor="middle">Al7V3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al2V&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.216 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 12 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 107 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Al2V
+Al:V = 0.667 / 0.333
+E_form -0.216 eV/atom
+包から 12 meV/atom
+空間群 107 → 139
+原子数 / 候補 3 / 3</title><circle cx="332.67" cy="369.57" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="389.57" text-anchor="middle">Al2V</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al4V2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.167 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 60 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Al4V2
+Al:V = 0.667 / 0.333
+E_form -0.167 eV/atom
+包から 60 meV/atom
+空間群 8 → 12
+原子数 / 候補 6 / 9</title><circle cx="332.67" cy="360.18" r="5" fill="var(--h2)"/><text class="plabel" x="332.67" y="380.18" text-anchor="middle">Al4V2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al6V3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.048 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 180 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Al6V3
+Al:V = 0.667 / 0.333
+E_form -0.048 eV/atom
+包から 180 meV/atom
+空間群 12 → 2
+原子数 / 候補 9 / 9</title><circle cx="332.67" cy="337.08" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="323.08" text-anchor="middle">Al6V3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al6V4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.100 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 143 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 43 → 70&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Al6V4
+Al:V = 0.600 / 0.400
+E_form -0.100 eV/atom
+包から 143 meV/atom
+空間群 43 → 70
+原子数 / 候補 10 / 6</title><circle cx="384.00" cy="347.12" r="5" fill="var(--h3)"/><text class="plabel" x="384.00" y="333.12" text-anchor="middle">Al6V4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al3V2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.499 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 741 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 1"><title>Al3V2
+Al:V = 0.600 / 0.400
+E_form 0.499 eV/atom
+包から 741 meV/atom
+空間群 139
+原子数 / 候補 5 / 1</title><circle cx="384.00" cy="231.71" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="217.71" text-anchor="middle">Al3V2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al4V3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.236 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Al4V3
+Al:V = 0.571 / 0.429
+E_form -0.236 eV/atom
+包から 6 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="406.00" cy="373.33" r="5" fill="var(--h1)"/><text class="plabel" x="406.00" y="359.33" text-anchor="middle">Al4V3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al5V4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.197 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 44 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Al5V4
+Al:V = 0.556 / 0.444
+E_form -0.197 eV/atom
+包から 44 meV/atom
+空間群 139
+原子数 / 候補 9 / 6</title><circle cx="418.22" cy="365.94" r="5" fill="var(--h1)"/><text class="plabel" x="418.22" y="385.94" text-anchor="middle">Al5V4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al2V2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.240 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 129 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 7"><title>Al2V2
+Al:V = 0.500 / 0.500
+E_form -0.240 eV/atom
+包から 1 meV/atom
+空間群 129 → 123
+原子数 / 候補 4 / 7</title><circle cx="461.00" cy="374.26" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="360.26" text-anchor="middle">Al2V2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al4V4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.232 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 9 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 10&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Al4V4
+Al:V = 0.500 / 0.500
+E_form -0.232 eV/atom
+包から 9 meV/atom
+空間群 12 → 10
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="372.68" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="392.68" text-anchor="middle">Al4V4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al5V5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.061 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 180 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Al5V5
+Al:V = 0.500 / 0.500
+E_form -0.061 eV/atom
+包から 180 meV/atom
+空間群 12
+原子数 / 候補 10 / 3</title><circle cx="461.00" cy="339.65" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="325.65" text-anchor="middle">Al5V5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al3V3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.746 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 987 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>Al3V3
+Al:V = 0.500 / 0.500
+E_form 0.746 eV/atom
+包から 987 meV/atom
+空間群 139
+原子数 / 候補 6 / 3</title><circle cx="461.00" cy="184.04" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="170.04" text-anchor="middle">Al3V3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al4V5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.023 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 237 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Al4V5
+Al:V = 0.444 / 0.556
+E_form 0.023 eV/atom
+包から 237 meV/atom
+空間群 12 → 1
+原子数 / 候補 9 / 3</title><circle cx="503.78" cy="323.50" r="5" fill="var(--meta)"/><text class="plabel" x="503.78" y="309.50" text-anchor="middle">Al4V5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al4V6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.007 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 185 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 43 → 70&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Al4V6
+Al:V = 0.400 / 0.600
+E_form -0.007 eV/atom
+包から 185 meV/atom
+空間群 43 → 70
+原子数 / 候補 10 / 6</title><circle cx="538.00" cy="329.33" r="5" fill="var(--h3)"/><text class="plabel" x="538.00" y="315.33" text-anchor="middle">Al4V6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al2V3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.687 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 880 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 2"><title>Al2V3
+Al:V = 0.400 / 0.600
+E_form 0.687 eV/atom
+包から 880 meV/atom
+空間群 139
+原子数 / 候補 5 / 2</title><circle cx="538.00" cy="195.39" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="181.39" text-anchor="middle">Al2V3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al2V4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.099 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 62 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Al2V4
+Al:V = 0.333 / 0.667
+E_form -0.099 eV/atom
+包から 62 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 6</title><circle cx="589.33" cy="347.04" r="5" fill="var(--h2)"/><text class="plabel" x="589.33" y="333.04" text-anchor="middle">Al2V4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;AlV2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.727 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 888 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>AlV2
+Al:V = 0.333 / 0.667
+E_form 0.727 eV/atom
+包から 888 meV/atom
+空間群 225
+原子数 / 候補 3 / 3</title><circle cx="589.33" cy="187.67" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="173.67" text-anchor="middle">AlV2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al2V5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.465 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 603 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Al2V5
+Al:V = 0.286 / 0.714
+E_form 0.465 eV/atom
+包から 603 meV/atom
+空間群 139
+原子数 / 候補 7 / 3</title><circle cx="626.00" cy="238.16" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="224.16" text-anchor="middle">Al2V5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al2V6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.081 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 40 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 5"><title>Al2V6
+Al:V = 0.250 / 0.750
+E_form -0.081 eV/atom
+包から 40 meV/atom
+空間群 194
+原子数 / 候補 8 / 5</title><circle cx="653.50" cy="343.47" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="329.47" text-anchor="middle">Al2V6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;AlV3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.073 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 48 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>AlV3
+Al:V = 0.250 / 0.750
+E_form -0.073 eV/atom
+包から 48 meV/atom
+空間群 221
+原子数 / 候補 4 / 6</title><circle cx="653.50" cy="341.89" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="361.89" text-anchor="middle">AlV3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al2V7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.480 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 587 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 2"><title>Al2V7
+Al:V = 0.222 / 0.778
+E_form 0.480 eV/atom
+包から 587 meV/atom
+空間群 139
+原子数 / 候補 9 / 2</title><circle cx="674.89" cy="235.26" r="5" fill="var(--meta)"/><text class="plabel" x="674.89" y="221.26" text-anchor="middle">Al2V7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al2V8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.608 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 705 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Al2V8
+Al:V = 0.200 / 0.800
+E_form 0.608 eV/atom
+包から 705 meV/atom
+空間群 139
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="210.57" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="230.57" text-anchor="middle">Al2V8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;AlV4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.911 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1008 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>AlV4
+Al:V = 0.200 / 0.800
+E_form 0.911 eV/atom
+包から 1008 meV/atom
+空間群 221
+原子数 / 候補 5 / 3</title><circle cx="692.00" cy="152.15" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="138.15" text-anchor="middle">AlV4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;AlV5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.731 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 812 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 2"><title>AlV5
+Al:V = 0.167 / 0.833
+E_form 0.731 eV/atom
+包から 812 meV/atom
+空間群 139
+原子数 / 候補 6 / 2</title><circle cx="717.67" cy="186.84" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="172.84" text-anchor="middle">AlV5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;AlV6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.371 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1440 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 2"><title>AlV6
+Al:V = 0.143 / 0.857
+E_form 1.371 eV/atom
+包から 1440 meV/atom
+空間群 139
+原子数 / 候補 7 / 2</title><circle cx="736.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="49.35" text-anchor="middle">AlV6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;AlV7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.515 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 575 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>AlV7
+Al:V = 0.125 / 0.875
+E_form 0.515 eV/atom
+包から 575 meV/atom
+空間群 139
+原子数 / 候補 8 / 3</title><circle cx="749.75" cy="228.53" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="214.53" text-anchor="middle">AlV7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;AlV8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.672 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 726 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>AlV8
+Al:V = 0.111 / 0.889
+E_form 0.672 eV/atom
+包から 726 meV/atom
+空間群 139
+原子数 / 候補 9 / 3</title><circle cx="760.44" cy="198.20" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="184.20" text-anchor="middle">AlV8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;AlV9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.421 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 469 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 160&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>AlV9
+Al:V = 0.100 / 0.900
+E_form 0.421 eV/atom
+包から 469 meV/atom
+空間群 160
+原子数 / 候補 10 / 6</title><circle cx="769.00" cy="246.74" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="232.74" text-anchor="middle">AlV9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;V&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>V
+Al:V = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 229
+原子数 / 候補 1 / 6</title><circle cx="846.00" cy="327.90" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="313.90" text-anchor="middle">V</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;V8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 4"><title>V8
+Al:V = 0.000 / 1.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 12 → 69
+原子数 / 候補 8 / 4</title><circle cx="846.00" cy="327.80" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="347.80" text-anchor="middle">V8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;V6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.027 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 27 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>V6
+Al:V = 0.000 / 1.000
+E_form 0.027 eV/atom
+包から 27 meV/atom
+空間群 63 → 69
+原子数 / 候補 6 / 6</title><circle cx="846.00" cy="322.73" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="342.73" text-anchor="middle">V6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;V10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.079 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 79 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>V10
+Al:V = 0.000 / 1.000
+E_form 0.079 eV/atom
+包から 79 meV/atom
+空間群 12 → 2
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="312.76" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="332.76" text-anchor="middle">V10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;V2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.257 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 257 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 7"><title>V2
+Al:V = 0.000 / 1.000
+E_form 0.257 eV/atom
+包から 257 meV/atom
+空間群 194
+原子数 / 候補 2 / 7</title><circle cx="846.00" cy="278.42" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="264.42" text-anchor="middle">V2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;V9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.342 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 342 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>V9
+Al:V = 0.000 / 1.000
+E_form 0.342 eV/atom
+包から 342 meV/atom
+空間群 12
+原子数 / 候補 9 / 3</title><circle cx="846.00" cy="262.00" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="282.00" text-anchor="middle">V9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;V3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.343 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 343 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 2"><title>V3
+Al:V = 0.000 / 1.000
+E_form 0.343 eV/atom
+包から 343 meV/atom
+空間群 166
+原子数 / 候補 3 / 2</title><circle cx="846.00" cy="261.65" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="281.65" text-anchor="middle">V3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 18"><title>Al8
+Al:V = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 64 → 63
+原子数 / 候補 8 / 18</title><circle cx="76.00" cy="327.90" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="347.90" text-anchor="middle">Al8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al4V&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.174 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 7"><title>Al4V
+Al:V = 0.800 / 0.200
+E_form -0.174 eV/atom
+包から 0（凸包上）
+空間群 12 → 87
+原子数 / 候補 5 / 7</title><circle cx="230.00" cy="361.43" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="230.00" y="381.43" text-anchor="middle">Al4V</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al3V&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.198 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 5"><title>Al3V
+Al:V = 0.750 / 0.250
+E_form -0.198 eV/atom
+包から 0（凸包上）
+空間群 221
+原子数 / 候補 4 / 5</title><circle cx="268.50" cy="366.10" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="268.50" y="386.10" text-anchor="middle">Al3V</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Al5V3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.242 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Al5V3
+Al:V = 0.625 / 0.375
+E_form -0.242 eV/atom
+包から 0（凸包上）
+空間群 12
+原子数 / 候補 8 / 9</title><circle cx="364.75" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="364.75" y="394.65" text-anchor="middle">Al5V3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;AlV&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.241 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>AlV
+Al:V = 0.500 / 0.500
+E_form -0.241 eV/atom
+包から 0（凸包上）
+空間群 65 → 123
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="374.39" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="461.00" y="394.39" text-anchor="middle">AlV</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;V4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Al:V&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 4"><title>V4
+Al:V = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 166 → 229
+原子数 / 候補 4 / 4</title><circle cx="846.00" cy="327.90" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="347.90" text-anchor="middle">V4</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Al8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Al4V</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Al3V</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Al5V3</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">AlV</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">V4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">V</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Al2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">V8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al2V2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al6V2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al5</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al8V2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al4V3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al4V4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">9 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al2V</span><span class="bar-track"><span class="bar-fill" style="width:0.80%;background:var(--h1)"></span></span><span class="bar-val">12 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al5V</span><span class="bar-track"><span class="bar-fill" style="width:0.99%;background:var(--h1)"></span></span><span class="bar-val">14 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al6V</span><span class="bar-track"><span class="bar-fill" style="width:1.32%;background:var(--h1)"></span></span><span class="bar-val">19 meV</span></li>
+<li class="bar-row"><span class="bar-name">V6</span><span class="bar-track"><span class="bar-fill" style="width:1.86%;background:var(--h1)"></span></span><span class="bar-val">27 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al7V</span><span class="bar-track"><span class="bar-fill" style="width:2.29%;background:var(--h1)"></span></span><span class="bar-val">33 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al2V6</span><span class="bar-track"><span class="bar-fill" style="width:2.76%;background:var(--h1)"></span></span><span class="bar-val">40 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al5V4</span><span class="bar-track"><span class="bar-fill" style="width:3.08%;background:var(--h1)"></span></span><span class="bar-val">44 meV</span></li>
+<li class="bar-row"><span class="bar-name">AlV3</span><span class="bar-track"><span class="bar-fill" style="width:3.34%;background:var(--h1)"></span></span><span class="bar-val">48 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al4V2</span><span class="bar-track"><span class="bar-fill" style="width:4.19%;background:var(--h2)"></span></span><span class="bar-val">60 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al2V4</span><span class="bar-track"><span class="bar-fill" style="width:4.27%;background:var(--h2)"></span></span><span class="bar-val">62 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al5V2</span><span class="bar-track"><span class="bar-fill" style="width:4.67%;background:var(--h2)"></span></span><span class="bar-val">67 meV</span></li>
+<li class="bar-row"><span class="bar-name">V10</span><span class="bar-track"><span class="bar-fill" style="width:5.45%;background:var(--h2)"></span></span><span class="bar-val">79 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al8V</span><span class="bar-track"><span class="bar-fill" style="width:6.09%;background:var(--h2)"></span></span><span class="bar-val">88 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al7</span><span class="bar-track"><span class="bar-fill" style="width:6.54%;background:var(--h2)"></span></span><span class="bar-val">94 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al9V</span><span class="bar-track"><span class="bar-fill" style="width:6.83%;background:var(--h2)"></span></span><span class="bar-val">98 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al9</span><span class="bar-track"><span class="bar-fill" style="width:8.53%;background:var(--h3)"></span></span><span class="bar-val">123 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al7V2</span><span class="bar-track"><span class="bar-fill" style="width:9.40%;background:var(--h3)"></span></span><span class="bar-val">135 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al6V4</span><span class="bar-track"><span class="bar-fill" style="width:9.89%;background:var(--h3)"></span></span><span class="bar-val">143 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al10</span><span class="bar-track"><span class="bar-fill" style="width:11.53%;background:var(--h3)"></span></span><span class="bar-val">166 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al7V3</span><span class="bar-track"><span class="bar-fill" style="width:12.45%;background:var(--h3)"></span></span><span class="bar-val">179 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al6V3</span><span class="bar-track"><span class="bar-fill" style="width:12.50%;background:var(--h3)"></span></span><span class="bar-val">180 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al5V5</span><span class="bar-track"><span class="bar-fill" style="width:12.51%;background:var(--h3)"></span></span><span class="bar-val">180 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al4V6</span><span class="bar-track"><span class="bar-fill" style="width:12.87%;background:var(--h3)"></span></span><span class="bar-val">185 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al4V5</span><span class="bar-track"><span class="bar-fill" style="width:16.46%;background:var(--meta)"></span></span><span class="bar-val">237 meV</span></li>
+<li class="bar-row"><span class="bar-name">V2</span><span class="bar-track"><span class="bar-fill" style="width:17.81%;background:var(--meta)"></span></span><span class="bar-val">257 meV</span></li>
+<li class="bar-row"><span class="bar-name">V9</span><span class="bar-track"><span class="bar-fill" style="width:23.72%;background:var(--meta)"></span></span><span class="bar-val">342 meV</span></li>
+<li class="bar-row"><span class="bar-name">V3</span><span class="bar-track"><span class="bar-fill" style="width:23.84%;background:var(--meta)"></span></span><span class="bar-val">343 meV</span></li>
+<li class="bar-row"><span class="bar-name">AlV9</span><span class="bar-track"><span class="bar-fill" style="width:32.56%;background:var(--meta)"></span></span><span class="bar-val">469 meV</span></li>
+<li class="bar-row"><span class="bar-name">AlV7</span><span class="bar-track"><span class="bar-fill" style="width:39.95%;background:var(--meta)"></span></span><span class="bar-val">575 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al2V7</span><span class="bar-track"><span class="bar-fill" style="width:40.78%;background:var(--meta)"></span></span><span class="bar-val">587 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al2V5</span><span class="bar-track"><span class="bar-fill" style="width:41.86%;background:var(--meta)"></span></span><span class="bar-val">603 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al2V8</span><span class="bar-track"><span class="bar-fill" style="width:48.92%;background:var(--meta)"></span></span><span class="bar-val">705 meV</span></li>
+<li class="bar-row"><span class="bar-name">AlV8</span><span class="bar-track"><span class="bar-fill" style="width:50.40%;background:var(--meta)"></span></span><span class="bar-val">726 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al3V2</span><span class="bar-track"><span class="bar-fill" style="width:51.42%;background:var(--meta)"></span></span><span class="bar-val">741 meV</span></li>
+<li class="bar-row"><span class="bar-name">AlV5</span><span class="bar-track"><span class="bar-fill" style="width:56.35%;background:var(--meta)"></span></span><span class="bar-val">812 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al2V3</span><span class="bar-track"><span class="bar-fill" style="width:61.09%;background:var(--meta)"></span></span><span class="bar-val">880 meV</span></li>
+<li class="bar-row"><span class="bar-name">AlV2</span><span class="bar-track"><span class="bar-fill" style="width:61.63%;background:var(--meta)"></span></span><span class="bar-val">888 meV</span></li>
+<li class="bar-row"><span class="bar-name">Al3V3</span><span class="bar-track"><span class="bar-fill" style="width:68.51%;background:var(--meta)"></span></span><span class="bar-val">987 meV</span></li>
+<li class="bar-row"><span class="bar-name">AlV4</span><span class="bar-track"><span class="bar-fill" style="width:69.96%;background:var(--meta)"></span></span><span class="bar-val">1008 meV</span></li>
+<li class="bar-row"><span class="bar-name">AlV6</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">1440 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 6 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Al</th><th>V</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Al8 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>64 → 63</td><td>8</td></tr>
+<tr class="stable"><td class="name">Al4V <span class="pill">凸包上</span></td><td>0.800</td><td>0.200</td><td>-0.1738</td><td>12 → 87</td><td>5</td></tr>
+<tr class="stable"><td class="name">Al3V <span class="pill">凸包上</span></td><td>0.750</td><td>0.250</td><td>-0.1980</td><td>221</td><td>4</td></tr>
+<tr class="stable"><td class="name">Al5V3 <span class="pill">凸包上</span></td><td>0.625</td><td>0.375</td><td>-0.2423</td><td>12</td><td>8</td></tr>
+<tr class="stable"><td class="name">AlV <span class="pill">凸包上</span></td><td>0.500</td><td>0.500</td><td>-0.2410</td><td>65 → 123</td><td>2</td></tr>
+<tr class="stable"><td class="name">V4 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>166 → 229</td><td>4</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>Al は要求 64 → 検出 63 だが fcc 相当への緩和で、端点として信用できる。V は要求 166 → 検出 229（bcc）で、検出側が実在。端点は信用できる。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に Al<sub>2</sub>V<sub>2</sub>（+1 meV, spg 129）。この手法の分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴が 3 組成</h3><p>≤10 原子・既約 33 組成のうち 3 組成に点が無い。そこは「相が無い」ではなく「探していない」。</p></div></section>
+ <footer><span>三元 hull 辺埋めバッチ（87 系・既存データのみ・新規計算なし）</span><span>2026-08-29 取得 · group_by=structure 417 構造</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

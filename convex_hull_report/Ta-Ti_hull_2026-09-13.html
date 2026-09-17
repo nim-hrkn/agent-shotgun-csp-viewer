@@ -1,0 +1,664 @@
+<title>Ta–Ti 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Ta–Ti 相図</h1>
+  <p class="lede">Ta–Ti を 45 通りの比で刻んだ。下側凸包に載った化合物は 1 個：Ta<sub>7</sub>Ti<sub>2</sub>（-0 meV/atom、検出 spg 2）。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>64</dd></div><div class="fact"><dt>凸包上</dt><dd>3</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>50</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Ti の原子分率。縦軸は端点（Ta, Ti）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Ta–Ti 相図">
+<line class="grid-line" x1="76" x2="846" y1="374.60" y2="374.60"/>
+<text class="tick-text" x="64" y="378.60" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="327.40" y2="327.40"/>
+<text class="tick-text" x="64" y="331.40" text-anchor="end">0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="280.20" y2="280.20"/>
+<text class="tick-text" x="64" y="284.20" text-anchor="end">0.20</text>
+<line class="grid-line" x1="76" x2="846" y1="233.00" y2="233.00"/>
+<text class="tick-text" x="64" y="237.00" text-anchor="end">0.30</text>
+<line class="grid-line" x1="76" x2="846" y1="185.79" y2="185.79"/>
+<text class="tick-text" x="64" y="189.79" text-anchor="end">0.40</text>
+<line class="grid-line" x1="76" x2="846" y1="138.59" y2="138.59"/>
+<text class="tick-text" x="64" y="142.59" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="91.39" y2="91.39"/>
+<text class="tick-text" x="64" y="95.39" text-anchor="end">0.60</text>
+<line class="grid-line" x1="76" x2="846" y1="44.19" y2="44.19"/>
+<text class="tick-text" x="64" y="48.19" text-anchor="end">0.70</text>
+<line class="axis-line" x1="76" x2="846" y1="374.60" y2="374.60"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Ta</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Ti</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Ti の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,374.60 247.11,374.65 846.00,374.60"/>
+<line class="tie-drop" x1="247.11" x2="247.11" y1="374.65" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 7"><title>Ta5
+Ta:Ti = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 166 → 229
+原子数 / 候補 5 / 7</title><circle cx="76.00" cy="374.60" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="360.60" text-anchor="middle">Ta5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>Ta
+Ta:Ti = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 229
+原子数 / 候補 1 / 6</title><circle cx="76.00" cy="374.60" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.60" text-anchor="middle">Ta</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 5"><title>Ta7
+Ta:Ti = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 12 → 166
+原子数 / 候補 7 / 5</title><circle cx="76.00" cy="374.50" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.50" text-anchor="middle">Ta7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 5"><title>Ta9
+Ta:Ti = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 12 → 229
+原子数 / 候補 9 / 5</title><circle cx="76.00" cy="374.50" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.50" text-anchor="middle">Ta9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 7"><title>Ta8
+Ta:Ti = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 63 → 229
+原子数 / 候補 8 / 7</title><circle cx="76.00" cy="374.50" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.50" text-anchor="middle">Ta8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.153 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 153 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 5"><title>Ta6
+Ta:Ti = 1.000 / 0.000
+E_form 0.153 eV/atom
+包から 153 meV/atom
+空間群 63
+原子数 / 候補 6 / 5</title><circle cx="76.00" cy="302.33" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="288.33" text-anchor="middle">Ta6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.153 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 153 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 16"><title>Ta2
+Ta:Ti = 1.000 / 0.000
+E_form 0.153 eV/atom
+包から 153 meV/atom
+空間群 194
+原子数 / 候補 2 / 16</title><circle cx="76.00" cy="302.29" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="322.29" text-anchor="middle">Ta2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.155 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 155 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 8"><title>Ta3
+Ta:Ti = 1.000 / 0.000
+E_form 0.155 eV/atom
+包から 155 meV/atom
+空間群 166
+原子数 / 候補 3 / 8</title><circle cx="76.00" cy="301.25" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="321.25" text-anchor="middle">Ta3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.280 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 280 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 7"><title>Ta10
+Ta:Ti = 1.000 / 0.000
+E_form 0.280 eV/atom
+包から 280 meV/atom
+空間群 12 → 65
+原子数 / 候補 10 / 7</title><circle cx="76.00" cy="242.29" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="228.29" text-anchor="middle">Ta10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta9Ti&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ta9Ti
+Ta:Ti = 0.900 / 0.100
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 2
+原子数 / 候補 10 / 9</title><circle cx="153.00" cy="374.27" r="5" fill="var(--h1)"/><text class="plabel" x="153.00" y="360.27" text-anchor="middle">Ta9Ti</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta8Ti&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.381 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 381 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 8"><title>Ta8Ti
+Ta:Ti = 0.889 / 0.111
+E_form 0.381 eV/atom
+包から 381 meV/atom
+空間群 189 → 191
+原子数 / 候補 9 / 8</title><circle cx="161.56" cy="194.81" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="180.81" text-anchor="middle">Ta8Ti</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta7Ti&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 5"><title>Ta7Ti
+Ta:Ti = 0.875 / 0.125
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 166
+原子数 / 候補 8 / 5</title><circle cx="172.25" cy="373.70" r="5" fill="var(--h1)"/><text class="plabel" x="172.25" y="393.70" text-anchor="middle">Ta7Ti</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta6Ti&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 2"><title>Ta6Ti
+Ta:Ti = 0.857 / 0.143
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 166
+原子数 / 候補 7 / 2</title><circle cx="186.00" cy="373.13" r="5" fill="var(--h1)"/><text class="plabel" x="186.00" y="393.13" text-anchor="middle">Ta6Ti</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta5Ti&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.005 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ta5Ti
+Ta:Ti = 0.833 / 0.167
+E_form 0.005 eV/atom
+包から 6 meV/atom
+空間群 12 → 123
+原子数 / 候補 6 / 9</title><circle cx="204.33" cy="372.05" r="5" fill="var(--h1)"/><text class="plabel" x="204.33" y="358.05" text-anchor="middle">Ta5Ti</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta4Ti&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 7"><title>Ta4Ti
+Ta:Ti = 0.800 / 0.200
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 155 → 166
+原子数 / 候補 5 / 7</title><circle cx="230.00" cy="374.03" r="5" fill="var(--h1)"/><text class="plabel" x="230.00" y="394.03" text-anchor="middle">Ta4Ti</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta8Ti2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ta8Ti2
+Ta:Ti = 0.800 / 0.200
+E_form 0.003 eV/atom
+包から 4 meV/atom
+空間群 2 → 12
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="372.99" r="5" fill="var(--h1)"/><text class="plabel" x="230.00" y="392.99" text-anchor="middle">Ta8Ti2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta3Ti&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.004 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 3"><title>Ta3Ti
+Ta:Ti = 0.750 / 0.250
+E_form 0.004 eV/atom
+包から 4 meV/atom
+空間群 155 → 166
+原子数 / 候補 4 / 3</title><circle cx="268.50" cy="372.57" r="5" fill="var(--h1)"/><text class="plabel" x="268.50" y="358.57" text-anchor="middle">Ta3Ti</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta6Ti2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.006 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 7"><title>Ta6Ti2
+Ta:Ti = 0.750 / 0.250
+E_form 0.006 eV/atom
+包から 6 meV/atom
+空間群 166
+原子数 / 候補 8 / 7</title><circle cx="268.50" cy="371.67" r="5" fill="var(--h1)"/><text class="plabel" x="268.50" y="391.67" text-anchor="middle">Ta6Ti2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta5Ti2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.006 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 5"><title>Ta5Ti2
+Ta:Ti = 0.714 / 0.286
+E_form 0.006 eV/atom
+包から 6 meV/atom
+空間群 166
+原子数 / 候補 7 / 5</title><circle cx="296.00" cy="371.62" r="5" fill="var(--h1)"/><text class="plabel" x="296.00" y="391.62" text-anchor="middle">Ta5Ti2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta7Ti3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ta7Ti3
+Ta:Ti = 0.700 / 0.300
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 2
+原子数 / 候補 10 / 9</title><circle cx="307.00" cy="373.18" r="5" fill="var(--h1)"/><text class="plabel" x="307.00" y="359.18" text-anchor="middle">Ta7Ti3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta2Ti&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 1"><title>Ta2Ti
+Ta:Ti = 0.667 / 0.333
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 164
+原子数 / 候補 3 / 1</title><circle cx="332.67" cy="374.03" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="394.03" text-anchor="middle">Ta2Ti</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta6Ti3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 7"><title>Ta6Ti3
+Ta:Ti = 0.667 / 0.333
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 2 → 12
+原子数 / 候補 9 / 7</title><circle cx="332.67" cy="373.89" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="393.89" text-anchor="middle">Ta6Ti3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta4Ti2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.018 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 19 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 4"><title>Ta4Ti2
+Ta:Ti = 0.667 / 0.333
+E_form 0.018 eV/atom
+包から 19 meV/atom
+空間群 12
+原子数 / 候補 6 / 4</title><circle cx="332.67" cy="365.91" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="385.91" text-anchor="middle">Ta4Ti2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta5Ti3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.006 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 7"><title>Ta5Ti3
+Ta:Ti = 0.625 / 0.375
+E_form 0.006 eV/atom
+包から 6 meV/atom
+空間群 12 → 166
+原子数 / 候補 8 / 7</title><circle cx="364.75" cy="371.81" r="5" fill="var(--h1)"/><text class="plabel" x="364.75" y="391.81" text-anchor="middle">Ta5Ti3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta6Ti4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.010 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 10 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ta6Ti4
+Ta:Ti = 0.600 / 0.400
+E_form 0.010 eV/atom
+包から 10 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="369.97" r="5" fill="var(--h1)"/><text class="plabel" x="384.00" y="355.97" text-anchor="middle">Ta6Ti4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta3Ti2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.081 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 81 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Ta3Ti2
+Ta:Ti = 0.600 / 0.400
+E_form 0.081 eV/atom
+包から 81 meV/atom
+空間群 155 → 166
+原子数 / 候補 5 / 6</title><circle cx="384.00" cy="336.27" r="5" fill="var(--h2)"/><text class="plabel" x="384.00" y="322.27" text-anchor="middle">Ta3Ti2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta4Ti3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.008 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 8 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Ta4Ti3
+Ta:Ti = 0.571 / 0.429
+E_form 0.008 eV/atom
+包から 8 meV/atom
+空間群 155 → 166
+原子数 / 候補 7 / 9</title><circle cx="406.00" cy="370.77" r="5" fill="var(--h1)"/><text class="plabel" x="406.00" y="390.77" text-anchor="middle">Ta4Ti3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta5Ti4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.007 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 7 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 8"><title>Ta5Ti4
+Ta:Ti = 0.556 / 0.444
+E_form 0.007 eV/atom
+包から 7 meV/atom
+空間群 2 → 1
+原子数 / 候補 9 / 8</title><circle cx="418.22" cy="371.39" r="5" fill="var(--h1)"/><text class="plabel" x="418.22" y="357.39" text-anchor="middle">Ta5Ti4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TaTi&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.010 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 11 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 7"><title>TaTi
+Ta:Ti = 0.500 / 0.500
+E_form 0.010 eV/atom
+包から 11 meV/atom
+空間群 65
+原子数 / 候補 2 / 7</title><circle cx="461.00" cy="369.69" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="355.69" text-anchor="middle">TaTi</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta4Ti4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.020 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 20 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>Ta4Ti4
+Ta:Ti = 0.500 / 0.500
+E_form 0.020 eV/atom
+包から 20 meV/atom
+空間群 12
+原子数 / 候補 8 / 8</title><circle cx="461.00" cy="365.11" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="385.11" text-anchor="middle">Ta4Ti4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta3Ti3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.024 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 24 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ta3Ti3
+Ta:Ti = 0.500 / 0.500
+E_form 0.024 eV/atom
+包から 24 meV/atom
+空間群 12 → 123
+原子数 / 候補 6 / 9</title><circle cx="461.00" cy="363.13" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="383.13" text-anchor="middle">Ta3Ti3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta5Ti5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.031 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 31 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 7"><title>Ta5Ti5
+Ta:Ti = 0.500 / 0.500
+E_form 0.031 eV/atom
+包から 31 meV/atom
+空間群 166
+原子数 / 候補 10 / 7</title><circle cx="461.00" cy="360.01" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="380.01" text-anchor="middle">Ta5Ti5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta4Ti5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.015 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 15 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Ta4Ti5
+Ta:Ti = 0.444 / 0.556
+E_form 0.015 eV/atom
+包から 15 meV/atom
+空間群 2 → 12
+原子数 / 候補 9 / 9</title><circle cx="503.78" cy="367.75" r="5" fill="var(--h1)"/><text class="plabel" x="503.78" y="353.75" text-anchor="middle">Ta4Ti5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta3Ti4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.027 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 27 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Ta3Ti4
+Ta:Ti = 0.429 / 0.571
+E_form 0.027 eV/atom
+包から 27 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="516.00" cy="362.04" r="5" fill="var(--h1)"/><text class="plabel" x="516.00" y="382.04" text-anchor="middle">Ta3Ti4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta4Ti6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.020 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 20 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ta4Ti6
+Ta:Ti = 0.400 / 0.600
+E_form 0.020 eV/atom
+包から 20 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="365.02" r="5" fill="var(--h1)"/><text class="plabel" x="538.00" y="351.02" text-anchor="middle">Ta4Ti6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta2Ti3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.025 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 25 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 7"><title>Ta2Ti3
+Ta:Ti = 0.400 / 0.600
+E_form 0.025 eV/atom
+包から 25 meV/atom
+空間群 155 → 166
+原子数 / 候補 5 / 7</title><circle cx="538.00" cy="362.99" r="5" fill="var(--h1)"/><text class="plabel" x="538.00" y="382.99" text-anchor="middle">Ta2Ti3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta3Ti5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.021 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 21 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ta3Ti5
+Ta:Ti = 0.375 / 0.625
+E_form 0.021 eV/atom
+包から 21 meV/atom
+空間群 12
+原子数 / 候補 8 / 9</title><circle cx="557.25" cy="364.87" r="5" fill="var(--h1)"/><text class="plabel" x="557.25" y="384.87" text-anchor="middle">Ta3Ti5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TaTi2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.026 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 27 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 5"><title>TaTi2
+Ta:Ti = 0.333 / 0.667
+E_form 0.026 eV/atom
+包から 27 meV/atom
+空間群 164
+原子数 / 候補 3 / 5</title><circle cx="589.33" cy="362.14" r="5" fill="var(--h1)"/><text class="plabel" x="589.33" y="348.14" text-anchor="middle">TaTi2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta2Ti4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.028 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 28 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 5"><title>Ta2Ti4
+Ta:Ti = 0.333 / 0.667
+E_form 0.028 eV/atom
+包から 28 meV/atom
+空間群 12
+原子数 / 候補 6 / 5</title><circle cx="589.33" cy="361.38" r="5" fill="var(--h1)"/><text class="plabel" x="589.33" y="381.38" text-anchor="middle">Ta2Ti4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta3Ti6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.142 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 142 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Ta3Ti6
+Ta:Ti = 0.333 / 0.667
+E_form 0.142 eV/atom
+包から 142 meV/atom
+空間群 12 → 11
+原子数 / 候補 9 / 9</title><circle cx="589.33" cy="307.53" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="293.53" text-anchor="middle">Ta3Ti6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta3Ti7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.027 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 27 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ta3Ti7
+Ta:Ti = 0.300 / 0.700
+E_form 0.027 eV/atom
+包から 27 meV/atom
+空間群 12
+原子数 / 候補 10 / 9</title><circle cx="615.00" cy="362.00" r="5" fill="var(--h1)"/><text class="plabel" x="615.00" y="382.00" text-anchor="middle">Ta3Ti7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta2Ti5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.028 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 28 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 7"><title>Ta2Ti5
+Ta:Ti = 0.286 / 0.714
+E_form 0.028 eV/atom
+包から 28 meV/atom
+空間群 166
+原子数 / 候補 7 / 7</title><circle cx="626.00" cy="361.48" r="5" fill="var(--h1)"/><text class="plabel" x="626.00" y="347.48" text-anchor="middle">Ta2Ti5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TaTi3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.040 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 40 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 160&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>TaTi3
+Ta:Ti = 0.250 / 0.750
+E_form 0.040 eV/atom
+包から 40 meV/atom
+空間群 160
+原子数 / 候補 4 / 9</title><circle cx="653.50" cy="355.91" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="375.91" text-anchor="middle">TaTi3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta2Ti6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.042 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 42 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Ta2Ti6
+Ta:Ti = 0.250 / 0.750
+E_form 0.042 eV/atom
+包から 42 meV/atom
+空間群 12
+原子数 / 候補 8 / 3</title><circle cx="653.50" cy="354.87" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="374.87" text-anchor="middle">Ta2Ti6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta2Ti7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.035 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 35 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Ta2Ti7
+Ta:Ti = 0.222 / 0.778
+E_form 0.035 eV/atom
+包から 35 meV/atom
+空間群 8 → 12
+原子数 / 候補 9 / 9</title><circle cx="674.89" cy="358.17" r="5" fill="var(--h1)"/><text class="plabel" x="674.89" y="344.17" text-anchor="middle">Ta2Ti7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TaTi4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.026 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 26 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 8"><title>TaTi4
+Ta:Ti = 0.200 / 0.800
+E_form 0.026 eV/atom
+包から 26 meV/atom
+空間群 12
+原子数 / 候補 5 / 8</title><circle cx="692.00" cy="362.51" r="5" fill="var(--h1)"/><text class="plabel" x="692.00" y="348.51" text-anchor="middle">TaTi4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta2Ti8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.036 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 36 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ta2Ti8
+Ta:Ti = 0.200 / 0.800
+E_form 0.036 eV/atom
+包から 36 meV/atom
+空間群 12
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="357.65" r="5" fill="var(--h1)"/><text class="plabel" x="692.00" y="377.65" text-anchor="middle">Ta2Ti8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TaTi5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.033 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 33 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>TaTi5
+Ta:Ti = 0.167 / 0.833
+E_form 0.033 eV/atom
+包から 33 meV/atom
+空間群 189
+原子数 / 候補 6 / 9</title><circle cx="717.67" cy="359.12" r="5" fill="var(--h1)"/><text class="plabel" x="717.67" y="379.12" text-anchor="middle">TaTi5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TaTi6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.074 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 74 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>TaTi6
+Ta:Ti = 0.143 / 0.857
+E_form 0.074 eV/atom
+包から 74 meV/atom
+空間群 166
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="339.86" r="5" fill="var(--h2)"/><text class="plabel" x="736.00" y="325.86" text-anchor="middle">TaTi6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TaTi7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.225 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 225 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>TaTi7
+Ta:Ti = 0.125 / 0.875
+E_form 0.225 eV/atom
+包から 225 meV/atom
+空間群 12
+原子数 / 候補 8 / 8</title><circle cx="749.75" cy="268.44" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="254.44" text-anchor="middle">TaTi7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TaTi8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.022 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 22 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>TaTi8
+Ta:Ti = 0.111 / 0.889
+E_form 0.022 eV/atom
+包から 22 meV/atom
+空間群 12 → 11
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="364.17" r="5" fill="var(--h1)"/><text class="plabel" x="760.44" y="350.17" text-anchor="middle">TaTi8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;TaTi9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.030 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 30 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>TaTi9
+Ta:Ti = 0.100 / 0.900
+E_form 0.030 eV/atom
+包から 30 meV/atom
+空間群 38 → 1
+原子数 / 候補 10 / 9</title><circle cx="769.00" cy="360.39" r="5" fill="var(--h1)"/><text class="plabel" x="769.00" y="380.39" text-anchor="middle">TaTi9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Ti6
+Ta:Ti = 0.000 / 1.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 63
+原子数 / 候補 6 / 6</title><circle cx="846.00" cy="373.65" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="359.65" text-anchor="middle">Ti6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.007 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 7 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 7"><title>Ti8
+Ta:Ti = 0.000 / 1.000
+E_form 0.007 eV/atom
+包から 7 meV/atom
+空間群 12 → 69
+原子数 / 候補 8 / 7</title><circle cx="846.00" cy="371.48" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="391.48" text-anchor="middle">Ti8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.008 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 8 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>Ti
+Ta:Ti = 0.000 / 1.000
+E_form 0.008 eV/atom
+包から 8 meV/atom
+空間群 225
+原子数 / 候補 1 / 9</title><circle cx="846.00" cy="371.06" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="391.06" text-anchor="middle">Ti</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.009 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 9 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ti7
+Ta:Ti = 0.000 / 1.000
+E_form 0.009 eV/atom
+包から 9 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="370.59" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="390.59" text-anchor="middle">Ti7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.093 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 93 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ti10
+Ta:Ti = 0.000 / 1.000
+E_form 0.093 eV/atom
+包から 93 meV/atom
+空間群 12
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="330.65" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="316.65" text-anchor="middle">Ti10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.110 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 110 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 2"><title>Ti9
+Ta:Ti = 0.000 / 1.000
+E_form 0.110 eV/atom
+包から 110 meV/atom
+空間群 12 → 11
+原子数 / 候補 9 / 2</title><circle cx="846.00" cy="322.82" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="342.82" text-anchor="middle">Ti9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.128 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 128 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 4"><title>Ti4
+Ta:Ti = 0.000 / 1.000
+E_form 0.128 eV/atom
+包から 128 meV/atom
+空間群 191
+原子数 / 候補 4 / 4</title><circle cx="846.00" cy="314.37" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="334.37" text-anchor="middle">Ti4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.349 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 349 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 1"><title>Ti3
+Ta:Ti = 0.000 / 1.000
+E_form 0.349 eV/atom
+包から 349 meV/atom
+空間群 191
+原子数 / 候補 3 / 1</title><circle cx="846.00" cy="209.87" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="195.87" text-anchor="middle">Ti3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.659 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 659 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Ti5
+Ta:Ti = 0.000 / 1.000
+E_form 0.659 eV/atom
+包から 659 meV/atom
+空間群 191
+原子数 / 候補 5 / 3</title><circle cx="846.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="49.35" text-anchor="middle">Ti5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 227 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 5"><title>Ta4
+Ta:Ti = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 227 → 229
+原子数 / 候補 4 / 5</title><circle cx="76.00" cy="374.60" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="394.60" text-anchor="middle">Ta4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ta7Ti2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ta7Ti2
+Ta:Ti = 0.778 / 0.222
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 2
+原子数 / 候補 9 / 6</title><circle cx="247.11" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="247.11" y="360.65" text-anchor="middle">Ta7Ti2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ti2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ta:Ti&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>Ti2
+Ta:Ti = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 2 / 9</title><circle cx="846.00" cy="374.60" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="394.60" text-anchor="middle">Ti2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Ta4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Ta5</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Ta</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Ta7Ti2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Ti2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Ta7</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta9</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta9Ti</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta4Ti</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta2Ti</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta6Ti3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta7Ti</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta7Ti3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta6Ti</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta8Ti2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">4 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta3Ti</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">4 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta5Ti</span><span class="bar-track"><span class="bar-fill" style="width:0.83%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta5Ti3</span><span class="bar-track"><span class="bar-fill" style="width:0.91%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta6Ti2</span><span class="bar-track"><span class="bar-fill" style="width:0.96%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta5Ti2</span><span class="bar-track"><span class="bar-fill" style="width:0.97%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti8</span><span class="bar-track"><span class="bar-fill" style="width:1.00%;background:var(--h1)"></span></span><span class="bar-val">7 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta5Ti4</span><span class="bar-track"><span class="bar-fill" style="width:1.05%;background:var(--h1)"></span></span><span class="bar-val">7 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti</span><span class="bar-track"><span class="bar-fill" style="width:1.14%;background:var(--h1)"></span></span><span class="bar-val">8 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta4Ti3</span><span class="bar-track"><span class="bar-fill" style="width:1.24%;background:var(--h1)"></span></span><span class="bar-val">8 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti7</span><span class="bar-track"><span class="bar-fill" style="width:1.29%;background:var(--h1)"></span></span><span class="bar-val">9 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta6Ti4</span><span class="bar-track"><span class="bar-fill" style="width:1.50%;background:var(--h1)"></span></span><span class="bar-val">10 meV</span></li>
+<li class="bar-row"><span class="bar-name">TaTi</span><span class="bar-track"><span class="bar-fill" style="width:1.59%;background:var(--h1)"></span></span><span class="bar-val">11 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta4Ti5</span><span class="bar-track"><span class="bar-fill" style="width:2.21%;background:var(--h1)"></span></span><span class="bar-val">15 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta4Ti2</span><span class="bar-track"><span class="bar-fill" style="width:2.82%;background:var(--h1)"></span></span><span class="bar-val">19 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta4Ti4</span><span class="bar-track"><span class="bar-fill" style="width:3.06%;background:var(--h1)"></span></span><span class="bar-val">20 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta4Ti6</span><span class="bar-track"><span class="bar-fill" style="width:3.08%;background:var(--h1)"></span></span><span class="bar-val">20 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta3Ti5</span><span class="bar-track"><span class="bar-fill" style="width:3.12%;background:var(--h1)"></span></span><span class="bar-val">21 meV</span></li>
+<li class="bar-row"><span class="bar-name">TaTi8</span><span class="bar-track"><span class="bar-fill" style="width:3.35%;background:var(--h1)"></span></span><span class="bar-val">22 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta3Ti3</span><span class="bar-track"><span class="bar-fill" style="width:3.70%;background:var(--h1)"></span></span><span class="bar-val">24 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta2Ti3</span><span class="bar-track"><span class="bar-fill" style="width:3.75%;background:var(--h1)"></span></span><span class="bar-val">25 meV</span></li>
+<li class="bar-row"><span class="bar-name">TaTi4</span><span class="bar-track"><span class="bar-fill" style="width:3.88%;background:var(--h1)"></span></span><span class="bar-val">26 meV</span></li>
+<li class="bar-row"><span class="bar-name">TaTi2</span><span class="bar-track"><span class="bar-fill" style="width:4.02%;background:var(--h1)"></span></span><span class="bar-val">27 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta3Ti4</span><span class="bar-track"><span class="bar-fill" style="width:4.05%;background:var(--h1)"></span></span><span class="bar-val">27 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta3Ti7</span><span class="bar-track"><span class="bar-fill" style="width:4.06%;background:var(--h1)"></span></span><span class="bar-val">27 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta2Ti5</span><span class="bar-track"><span class="bar-fill" style="width:4.22%;background:var(--h1)"></span></span><span class="bar-val">28 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta2Ti4</span><span class="bar-track"><span class="bar-fill" style="width:4.26%;background:var(--h1)"></span></span><span class="bar-val">28 meV</span></li>
+<li class="bar-row"><span class="bar-name">TaTi9</span><span class="bar-track"><span class="bar-fill" style="width:4.58%;background:var(--h1)"></span></span><span class="bar-val">30 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta5Ti5</span><span class="bar-track"><span class="bar-fill" style="width:4.70%;background:var(--h1)"></span></span><span class="bar-val">31 meV</span></li>
+<li class="bar-row"><span class="bar-name">TaTi5</span><span class="bar-track"><span class="bar-fill" style="width:4.97%;background:var(--h1)"></span></span><span class="bar-val">33 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta2Ti7</span><span class="bar-track"><span class="bar-fill" style="width:5.28%;background:var(--h1)"></span></span><span class="bar-val">35 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta2Ti8</span><span class="bar-track"><span class="bar-fill" style="width:5.46%;background:var(--h1)"></span></span><span class="bar-val">36 meV</span></li>
+<li class="bar-row"><span class="bar-name">TaTi3</span><span class="bar-track"><span class="bar-fill" style="width:6.02%;background:var(--h1)"></span></span><span class="bar-val">40 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta2Ti6</span><span class="bar-track"><span class="bar-fill" style="width:6.34%;background:var(--h1)"></span></span><span class="bar-val">42 meV</span></li>
+<li class="bar-row"><span class="bar-name">TaTi6</span><span class="bar-track"><span class="bar-fill" style="width:11.16%;background:var(--h2)"></span></span><span class="bar-val">74 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta3Ti2</span><span class="bar-track"><span class="bar-fill" style="width:12.33%;background:var(--h2)"></span></span><span class="bar-val">81 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti10</span><span class="bar-track"><span class="bar-fill" style="width:14.12%;background:var(--h2)"></span></span><span class="bar-val">93 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti9</span><span class="bar-track"><span class="bar-fill" style="width:16.64%;background:var(--h3)"></span></span><span class="bar-val">110 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti4</span><span class="bar-track"><span class="bar-fill" style="width:19.35%;background:var(--h3)"></span></span><span class="bar-val">128 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta3Ti6</span><span class="bar-track"><span class="bar-fill" style="width:21.57%;background:var(--h3)"></span></span><span class="bar-val">142 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta6</span><span class="bar-track"><span class="bar-fill" style="width:23.22%;background:var(--h3)"></span></span><span class="bar-val">153 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta2</span><span class="bar-track"><span class="bar-fill" style="width:23.23%;background:var(--h3)"></span></span><span class="bar-val">153 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta3</span><span class="bar-track"><span class="bar-fill" style="width:23.57%;background:var(--h3)"></span></span><span class="bar-val">155 meV</span></li>
+<li class="bar-row"><span class="bar-name">TaTi7</span><span class="bar-track"><span class="bar-fill" style="width:34.12%;background:var(--meta)"></span></span><span class="bar-val">225 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta10</span><span class="bar-track"><span class="bar-fill" style="width:42.51%;background:var(--meta)"></span></span><span class="bar-val">280 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti3</span><span class="bar-track"><span class="bar-fill" style="width:52.93%;background:var(--meta)"></span></span><span class="bar-val">349 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ta8Ti</span><span class="bar-track"><span class="bar-fill" style="width:57.78%;background:var(--meta)"></span></span><span class="bar-val">381 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ti5</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">659 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 3 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Ta</th><th>Ti</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Ta4 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>227 → 229</td><td>4</td></tr>
+<tr class="stable"><td class="name">Ta7Ti2 <span class="pill">凸包上</span></td><td>0.778</td><td>0.222</td><td>-0.0001</td><td>2</td><td>9</td></tr>
+<tr class="stable"><td class="name">Ti2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>194</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>どの三元の辺か</h3><p>N–Ta–Ti、Cu–Ta–Ti の辺として、同じ回で描いた。三角図の周縁に並ぶ点の高さはこの図でしか読めない。</p></div><div class="note"><h3>端点が信用できるか</h3><p>Ta は 229（bcc）で当たった。Ti は 194（hcp）で当たった。　端点はすべて実在相に当たっているので、高さはそのまま読んでよい。</p></div><div class="note"><h3>穴</h3><p>撒いた 45 組成のうち点が出なかったのは 1 組で、いずれも約分すると別のセルサイズで探索済みの組成である。<b>実質の欠けは 0 組</b>。</p></div><div class="note"><h3>この手法の分解能</h3><p>MatterSim による緩和エネルギーの差が数十 meV/atom のところでは、「凸包に載る／載らない」を言い切れない。10 meV 差で序列を断定しないこと。</p></div></section>
+ <footer><span>aiida-shotgun-csp 6.24.0</span><span>sweep = interconnect2-bin-2026-09-12</span><span>spg_ranks = [1, 2, 3] / stages = all / max_atoms = 10</span><span>点 64 件・安定相 3 件</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>結晶構造ビューア</title>
+<style>
+  :root {
+    --bg: #12141a; --panel: rgba(24,27,35,.92); --line: #2c313d;
+    --fg: #e8eaf0; --dim: #949bab; --accent: #6ea8ff;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--fg);
+    font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    overflow: hidden;
+  }
+  #stage { position: absolute; inset: 0; display: flex; }
+  .cell { position: relative; flex: 1 1 0; min-width: 0; border-right: 1px solid var(--line); }
+  .cell:last-child { border-right: none; }
+  canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+  canvas.dragging { cursor: grabbing; }
+
+  .panel {
+    position: absolute; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; backdrop-filter: blur(8px);
+  }
+  /* **幅は窓に対する割合でも抑える。** 細い窓では 300px が画面の半分を
+     超え、構造の上に居座る。縦も窓を超えたら中でスクロールさせる。 */
+  .info { top: 14px; left: 14px; padding: 12px 14px;
+          max-width: min(300px, 46%);
+          max-height: calc(100% - 28px); overflow: auto; }
+  .info.off { display: none; }
+  .info h1 { margin: 0 0 2px; font-size: 16px; letter-spacing: .02em; }
+  .info .sub { color: var(--dim); font-size: 11px; margin-bottom: 8px;
+               word-break: break-all; }
+  table { border-collapse: collapse; font-size: 11.5px; width: 100%; }
+  td { padding: 2px 0; }
+  td.k { color: var(--dim); padding-right: 12px; white-space: nowrap; }
+  td.v { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .legend { bottom: 14px; left: 14px; padding: 9px 12px; font-size: 11.5px; }
+  .row { display: flex; align-items: center; gap: 7px; margin: 2px 0; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,.5); }
+
+  .controls { top: 14px; right: 14px; padding: 9px; display: flex;
+              flex-direction: column; gap: 5px; }
+  button {
+    background: #232733; color: var(--fg); border: 1px solid var(--line);
+    border-radius: 6px; padding: 5px 10px; font-size: 11.5px; cursor: pointer;
+    font-family: inherit; text-align: left; white-space: nowrap;
+  }
+  button:hover { background: #2c3140; border-color: #3d4454; }
+  button.on { border-color: var(--accent); color: var(--accent); }
+  .hint { bottom: 14px; right: 14px; padding: 7px 11px; font-size: 11px; color: var(--dim); }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var PAYLOADS = [{"title":"YCo3B","subtitle":"YCo3B_pk14434_spg221_E-7.126009.cif","lattice":[[3.97568706,0.0,2.4344062162202755e-16],[6.393392409212316e-16,3.97568706,2.4344062162202755e-16],[0.0,0.0,3.97568706]],"sites":[{"species":"Y","frac":[0.0,0.0,0.0]},{"species":"Co","frac":[0.0,0.5,0.5]},{"species":"Co","frac":[0.5,0.0,0.5]},{"species":"Co","frac":[0.5,0.5,0.0]},{"species":"B","frac":[0.5,0.5,0.5]}],"elements":["Y","Co","B"],"style":{"Y":{"color":"#94FFFF","radius":0.608,"cov":1.9,"metal":true},"Co":{"color":"#F090A0","radius":0.4416,"cov":1.38,"metal":true},"B":{"color":"#FFB5B5","radius":0.2688,"cov":0.84,"metal":false}},"reps":[2,2,2],"bondScale":1.15,"metalBonds":false,"bondPairs":[],"bondsDefault":false,"polyhedra":[{"centre":"B","ligand":"Co"},{"centre":"Co","ligand":"B"}],"rows":[["a, b, c","3.9757, 3.9757, 3.9757 Å"],["α, β, γ","90.000, 90.000, 90.000°"],["体積","62.840 Å³"],["サイト数","5"],["組成","YCo3B"],["段階","relaxed"],["pk","14434"],["uuid","de72bc95-8e60-49a7-aba1-6b8c87519bba"],["空間群","Pm-3m (221)"],["指定した空間群","221"],["E","-7.126009 eV/atom"],["最大力","0.0000 eV/Å"],["収束","はい"],["体積","62.840 Å³"],["原子あたり体積","12.568 Å³"],["formula_key","BCo3Y"],["n_sites","5"],["round","1"],["generated_by","aiida-shotgun-csp 3.18.1"]]},{"title":"YCoB3","subtitle":"YCoB3_pk14417_spg221_E-6.497421.cif","lattice":[[3.83377002,0.0,2.347507091830042e-16],[6.165172402813251e-16,3.83377002,2.347507091830042e-16],[0.0,0.0,3.83377002]],"sites":[{"species":"Y","frac":[0.0,0.0,0.0]},{"species":"Co","frac":[0.5,0.5,0.5]},{"species":"B","frac":[0.0,0.5,0.5]},{"species":"B","frac":[0.5,0.0,0.5]},{"species":"B","frac":[0.5,0.5,0.0]}],"elements":["Y","Co","B"],"style":{"Y":{"color":"#94FFFF","radius":0.608,"cov":1.9,"metal":true},"Co":{"color":"#F090A0","radius":0.4416,"cov":1.38,"metal":true},"B":{"color":"#FFB5B5","radius":0.2688,"cov":0.84,"metal":false}},"reps":[2,2,2],"bondScale":1.15,"metalBonds":false,"bondPairs":[],"bondsDefault":false,"polyhedra":[{"centre":"B","ligand":"Co"},{"centre":"Co","ligand":"B"}],"rows":[["a, b, c","3.8338, 3.8338, 3.8338 Å"],["α, β, γ","90.000, 90.000, 90.000°"],["体積","56.348 Å³"],["サイト数","5"],["組成","YCoB3"],["段階","relaxed"],["pk","14417"],["uuid","2043dace-89bc-472b-a78b-bc5f9b01adab"],["空間群","Pm-3m (221)"],["指定した空間群","221"],["E","-6.497421 eV/atom"],["最大力","0.0000 eV/Å"],["収束","はい"],["体積","56.348 Å³"],["原子あたり体積","11.270 Å³"],["formula_key","B3CoY"],["n_sites","5"],["round","1"],["generated_by","aiida-shotgun-csp 3.18.1"]]}];
+  if (!PAYLOADS) { document.body.textContent = "構造データが埋め込まれていません"; return; }
+  if (!Array.isArray(PAYLOADS)) { PAYLOADS = [PAYLOADS]; }
+
+  var stage = document.getElementById("stage");
+
+  // **全部を組み立ててから測る。**
+  //
+  // 途中で測ると、その時点の flex の割り当てで canvas の実寸を決めてしまう。
+  // 2 つ並べるとき、1 枚目は「自分だけ」の幅（＝全幅）で測り、そのあと
+  // 2 枚目が入って半分に押し縮められる。**backing store は全幅のまま、
+  // 表示は半分**になるので、横だけ 2 倍に潰れて原子が縦長の楕円になる。
+  //
+  // 窓を少しでも動かせば直ってしまうので、**最初の 1 枚を見たときにしか
+  // 気づけない**。実際、横並びを初めて出したときに見つけた。
+  var relayouts = PAYLOADS.map(function (data) { return makeViewer(stage, data); });
+  relayouts.forEach(function (fn) { fn(); });
+
+  function makeViewer(root, data) {
+    // ---- DOM -------------------------------------------------------------
+    var cell = document.createElement("div");
+    cell.className = "cell";
+    var canvas = document.createElement("canvas");
+    cell.appendChild(canvas);
+
+    var info = document.createElement("div");
+    info.className = "panel info";
+    var rows = data.rows.map(function (r) {
+      return "<tr><td class='k'>" + esc(r[0]) + "</td><td class='v'>" + esc(r[1]) + "</td></tr>";
+    }).join("");
+    info.innerHTML = "<h1>" + esc(data.title) + "</h1>" +
+      "<div class='sub'>" + esc(data.subtitle || "") + "</div><table>" + rows + "</table>";
+    cell.appendChild(info);
+
+    var legend = document.createElement("div");
+    legend.className = "panel legend";
+    legend.innerHTML = data.elements.map(function (el) {
+      return "<div class='row'><span class='dot' style='background:" +
+        data.style[el].color + "'></span>" + esc(el) + "</div>";
+    }).join("");
+    cell.appendChild(legend);
+
+    var controls = document.createElement("div");
+    controls.className = "panel controls";
+    cell.appendChild(controls);
+
+    var hint = document.createElement("div");
+    hint.className = "panel hint";
+    hint.textContent = "ドラッグで回転 · ホイールで拡大縮小";
+    cell.appendChild(hint);
+
+    root.appendChild(cell);
+
+    // ---- 状態 -------------------------------------------------------------
+    var reps = data.reps.slice();
+    var showSuper = (reps[0] * reps[1] * reps[2] > 1);
+    var showPoly = (data.polyhedra && data.polyhedra.length > 0);
+    var showBonds = (data.bondsDefault !== false);
+    var showInfo = true;
+    var spinning = true;
+    var yaw = -0.6, pitch = -0.45, zoom = 1.0;
+
+    var atoms = [], bonds = [], polys = [], centre = [0, 0, 0];
+
+    var L = data.lattice;
+    function cart(f) {
+      return [
+        f[0] * L[0][0] + f[1] * L[1][0] + f[2] * L[2][0],
+        f[0] * L[0][1] + f[1] * L[1][1] + f[2] * L[2][1],
+        f[0] * L[0][2] + f[1] * L[1][2] + f[2] * L[2][2]
+      ];
+    }
+    function dist(a, b) {
+      var dx = a[0] - b[0], dy = a[1] - b[1], dz = a[2] - b[2];
+      return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    function buildAtoms() {
+      atoms = [];
+      var n = showSuper ? reps : [1, 1, 1];
+      var eps = 1e-6;
+      for (var s = 0; s < data.sites.length; s++) {
+        var base = data.sites[s].frac;
+        for (var i = 0; i <= n[0]; i++) {
+          for (var j = 0; j <= n[1]; j++) {
+            for (var k = 0; k <= n[2]; k++) {
+              var f = [base[0] + i, base[1] + j, base[2] + k];
+              if (f[0] > n[0] + eps || f[1] > n[1] + eps || f[2] > n[2] + eps) continue;
+              atoms.push({ el: data.sites[s].species, p: cart(f) });
+            }
+          }
+        }
+      }
+      var c = [0, 0, 0];
+      for (var t = 0; t < atoms.length; t++) {
+        c[0] += atoms[t].p[0]; c[1] += atoms[t].p[1]; c[2] += atoms[t].p[2];
+      }
+      if (atoms.length) centre = [c[0] / atoms.length, c[1] / atoms.length, c[2] / atoms.length];
+      buildBonds();
+      buildPolys();
+    }
+
+    function cutoff(a, b) {
+      var ra = (data.style[a] || {}).cov || 1.5;
+      var rb = (data.style[b] || {}).cov || 1.5;
+      return (ra + rb) * data.bondScale;
+    }
+
+    function bondable(a, b) {
+      if (data.bondPairs && data.bondPairs.length) {
+        for (var i = 0; i < data.bondPairs.length; i++) {
+          var p0 = data.bondPairs[i][0], p1 = data.bondPairs[i][1];
+          if ((a === p0 && b === p1) || (a === p1 && b === p0)) return true;
+        }
+        return false;                 // 明示した組だけを描く
+      }
+      // **金属どうしは既定で結ばない。** 共有結合半径だけで判定すると
+      // Sr–Sr のような「ただの最近接」まで棒になり、絵が網目で埋まって
+      // 構造そのものが読めなくなる。合金を見るときは --metal-bonds で戻す。
+      if (data.metalBonds) return true;
+      var ma = (data.style[a] || {}).metal, mb = (data.style[b] || {}).metal;
+      return !(ma && mb);
+    }
+
+    function buildBonds() {
+      bonds = [];
+      if (!showBonds) return;
+      for (var i = 0; i < atoms.length; i++) {
+        for (var j = i + 1; j < atoms.length; j++) {
+          if (!bondable(atoms[i].el, atoms[j].el)) continue;
+          var d = dist(atoms[i].p, atoms[j].p);
+          if (d < 0.4) continue;
+          if (d < cutoff(atoms[i].el, atoms[j].el)) bonds.push([i, j]);
+        }
+      }
+    }
+
+    // 配位多面体。中心から見て凸包に近い形を、面の総当たりで作る。
+    // 配位数は 4（四面体）と 6（八面体）が圧倒的に多いので、その 2 つを
+    // 決め打ちで組み、それ以外は面を張らない（誤った形を描かないため）。
+    var FACES4 = [[0,1,2],[0,1,3],[0,2,3],[1,2,3]];
+    var FACES6 = [[0,2,4],[2,1,4],[1,3,4],[3,0,4],[2,0,5],[1,2,5],[3,1,5],[0,3,5]];
+
+    function buildPolys() {
+      polys = [];
+      if (!showPoly || !data.polyhedra) return;
+      for (var pi = 0; pi < data.polyhedra.length; pi++) {
+        var centreEl = data.polyhedra[pi].centre, ligEl = data.polyhedra[pi].ligand;
+        var cut = cutoff(centreEl, ligEl);
+        for (var i = 0; i < atoms.length; i++) {
+          if (atoms[i].el !== centreEl) continue;
+          var lig = [];
+          for (var j = 0; j < atoms.length; j++) {
+            if (atoms[j].el !== ligEl) continue;
+            if (dist(atoms[i].p, atoms[j].p) < cut) lig.push(atoms[j].p);
+          }
+          if (lig.length === 6) {
+            var slot = sortOctahedron(atoms[i].p, lig);
+            if (slot) polys.push({ v: slot, faces: FACES6 });
+          } else if (lig.length === 4) {
+            polys.push({ v: lig, faces: FACES4 });
+          }
+          // 5 配位や、セル端で欠けた多面体は描かない
+        }
+      }
+    }
+
+    function sortOctahedron(c, lig) {
+      var slot = [null, null, null, null, null, null];
+      for (var q = 0; q < 6; q++) {
+        var v = [lig[q][0] - c[0], lig[q][1] - c[1], lig[q][2] - c[2]];
+        var ax = 0, best = Math.abs(v[0]);
+        if (Math.abs(v[1]) > best) { ax = 1; best = Math.abs(v[1]); }
+        if (Math.abs(v[2]) > best) { ax = 2; }
+        slot[ax * 2 + (v[ax] > 0 ? 0 : 1)] = lig[q];
+      }
+      for (var r = 0; r < 6; r++) if (!slot[r]) return null;
+      return slot;
+    }
+
+    var CELL_EDGES = (function () {
+      var corners = [];
+      for (var i = 0; i < 2; i++) for (var j = 0; j < 2; j++) for (var k = 0; k < 2; k++)
+        corners.push([i, j, k]);
+      var edges = [];
+      for (var m = 0; m < corners.length; m++) {
+        for (var n2 = m + 1; n2 < corners.length; n2++) {
+          var d = 0;
+          for (var q = 0; q < 3; q++) d += Math.abs(corners[m][q] - corners[n2][q]);
+          if (d === 1) edges.push([corners[m], corners[n2]]);
+        }
+      }
+      return edges;
+    })();
+
+    // ---- 投影 -------------------------------------------------------------
+    // 回転は yaw（y 軸まわり）→ pitch（x 軸まわり）の順。
+    // pitch = 0 なら視線は結晶の +z（c 軸）方向、pitch = -π/2 なら c 軸が
+    // 画面の縦方向に立つ。**この向きの取り違えは絵を見ても気づきにくい。**
+    function rotate(p) {
+      var x = p[0] - centre[0], y = p[1] - centre[1], z = p[2] - centre[2];
+      var cy = Math.cos(yaw), sy = Math.sin(yaw);
+      var x1 = cy * x + sy * z, z1 = -sy * x + cy * z;
+      var cp = Math.cos(pitch), sp = Math.sin(pitch);
+      return [x1, cp * y - sp * z1, sp * y + cp * z1];
+    }
+
+    var ctx = canvas.getContext("2d"), W = 0, H = 0, scale = 1;
+    function resize() {
+      var dpr = window.devicePixelRatio || 1;
+      W = canvas.clientWidth; H = canvas.clientHeight;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    /* 情報欄の幅（見えていないときは 0）。左端の余白ぶんも数える。 */
+    function panelWidth() {
+      if (!showInfo) return 0;
+      var w = info.offsetWidth;
+      return w ? w + 28 : 0;
+    }
+    /* **構造は「空いている側」の中央に置く。**
+       情報欄の下に潜り込ませない。ただし情報欄が広すぎて残りが狭いときは、
+       押し出すと画面外に出るので中央のままにする（消すのはボタンで）。 */
+    function centreX() {
+      var pw = panelWidth();
+      if (pw <= 0 || pw > W * 0.55) return W / 2;
+      return pw + (W - pw) / 2;
+    }
+    function usableWidth() {
+      var pw = panelWidth();
+      return (pw > 0 && pw <= W * 0.55) ? W - pw : W;
+    }
+    function project(p) {
+      var r = rotate(p);
+      return { x: centreX() + r[0] * scale, y: H / 2 - r[1] * scale, z: r[2] };
+    }
+    function autoScale() {
+      var maxR = 1e-6;
+      for (var i = 0; i < atoms.length; i++) {
+        var d = dist(atoms[i].p, centre);
+        if (d > maxR) maxR = d;
+      }
+      scale = (Math.min(usableWidth(), H) * 0.40 / maxR) * zoom;
+    }
+    function shade(hex, k) {
+      var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16),
+          b = parseInt(hex.slice(5, 7), 16);
+      return "rgb(" + clamp(r * k) + "," + clamp(g * k) + "," + clamp(b * k) + ")";
+    }
+    function clamp(v) { return Math.max(0, Math.min(255, Math.round(v))); }
+
+    function draw() {
+      if (!atoms.length) return;
+      autoScale();
+      // 背景の光も構造と同じ中心に置く（片方だけ中央だと歪んで見える）。
+      var gx = centreX();
+      var grad = ctx.createRadialGradient(gx, H / 2, 0, gx, H / 2, Math.max(W, H) * 0.7);
+      grad.addColorStop(0, "#171a22");
+      grad.addColorStop(1, "#101219");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      var items = [];
+      for (var e = 0; e < CELL_EDGES.length; e++) {
+        var p1 = project(cart(CELL_EDGES[e][0])), p2 = project(cart(CELL_EDGES[e][1]));
+        items.push({ z: (p1.z + p2.z) / 2 - 0.01, t: "cell", p1: p1, p2: p2 });
+      }
+      for (var qi = 0; qi < polys.length; qi++) {
+        var fs = polys[qi].faces;
+        for (var fi = 0; fi < fs.length; fi++) {
+          var tri = [project(polys[qi].v[fs[fi][0]]),
+                     project(polys[qi].v[fs[fi][1]]),
+                     project(polys[qi].v[fs[fi][2]])];
+          items.push({ z: (tri[0].z + tri[1].z + tri[2].z) / 3 - 0.05, t: "face", tri: tri });
+        }
+      }
+      for (var bi = 0; bi < bonds.length; bi++) {
+        var pa = project(atoms[bonds[bi][0]].p), pb = project(atoms[bonds[bi][1]].p);
+        items.push({ z: (pa.z + pb.z) / 2, t: "bond", p1: pa, p2: pb });
+      }
+      for (var ai = 0; ai < atoms.length; ai++) {
+        var pp = project(atoms[ai].p);
+        items.push({ z: pp.z, t: "atom", p: pp, el: atoms[ai].el });
+      }
+      items.sort(function (u, v) { return u.z - v.z; });
+
+      for (var t = 0; t < items.length; t++) {
+        var it = items[t];
+        if (it.t === "cell") {
+          ctx.strokeStyle = "rgba(110,168,255,0.45)";
+          ctx.lineWidth = 1.1; ctx.setLineDash([5, 4]);
+          line(it.p1, it.p2); ctx.setLineDash([]);
+        } else if (it.t === "face") {
+          ctx.fillStyle = "rgba(120,180,255,0.13)";
+          ctx.strokeStyle = "rgba(140,200,255,0.30)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(it.tri[0].x, it.tri[0].y);
+          ctx.lineTo(it.tri[1].x, it.tri[1].y);
+          ctx.lineTo(it.tri[2].x, it.tri[2].y);
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+        } else if (it.t === "bond") {
+          ctx.strokeStyle = "rgba(215,222,235,0.62)";
+          ctx.lineWidth = Math.max(1.3, 0.055 * scale);
+          ctx.lineCap = "round";
+          line(it.p1, it.p2);
+        } else {
+          var st = data.style[it.el] || { color: "#cc8899", radius: 0.5 };
+          var r = st.radius * scale;
+          var g2 = ctx.createRadialGradient(it.p.x - r * .35, it.p.y - r * .4, r * .1,
+                                            it.p.x, it.p.y, r);
+          g2.addColorStop(0, shade(st.color, 1.3));
+          g2.addColorStop(0.55, st.color);
+          g2.addColorStop(1, shade(st.color, 0.45));
+          ctx.fillStyle = g2;
+          ctx.beginPath(); ctx.arc(it.p.x, it.p.y, r, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = "rgba(0,0,0,0.55)"; ctx.lineWidth = 1; ctx.stroke();
+        }
+      }
+    }
+    function line(p1, p2) {
+      ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    }
+
+    // ---- 操作 -------------------------------------------------------------
+    var dragging = false, lastX = 0, lastY = 0;
+    canvas.addEventListener("mousedown", function (ev) {
+      dragging = true; spinning = false; syncSpin();
+      lastX = ev.clientX; lastY = ev.clientY; canvas.classList.add("dragging");
+    });
+    window.addEventListener("mouseup", function () {
+      dragging = false; canvas.classList.remove("dragging");
+    });
+    window.addEventListener("mousemove", function (ev) {
+      if (!dragging) return;
+      yaw += (ev.clientX - lastX) * 0.01; pitch += (ev.clientY - lastY) * 0.01;
+      lastX = ev.clientX; lastY = ev.clientY; draw();
+    });
+    canvas.addEventListener("wheel", function (ev) {
+      ev.preventDefault();
+      zoom *= (ev.deltaY < 0 ? 1.1 : 0.9);
+      zoom = Math.max(0.25, Math.min(6, zoom));
+      draw();
+    }, { passive: false });
+    canvas.addEventListener("touchstart", function (ev) {
+      if (ev.touches.length === 1) {
+        dragging = true; spinning = false; syncSpin();
+        lastX = ev.touches[0].clientX; lastY = ev.touches[0].clientY;
+      }
+    }, { passive: true });
+    canvas.addEventListener("touchmove", function (ev) {
+      if (!dragging || ev.touches.length !== 1) return;
+      yaw += (ev.touches[0].clientX - lastX) * 0.01;
+      pitch += (ev.touches[0].clientY - lastY) * 0.01;
+      lastX = ev.touches[0].clientX; lastY = ev.touches[0].clientY; draw();
+    }, { passive: true });
+    canvas.addEventListener("touchend", function () { dragging = false; }, { passive: true });
+
+    // ---- ボタン -----------------------------------------------------------
+    var btnSuper = button(showSuper ? "単位格子のみ" : "超格子で見る", showSuper, function () {
+      showSuper = !showSuper;
+      btnSuper.textContent = showSuper ? "単位格子のみ" : "超格子で見る";
+      btnSuper.className = showSuper ? "on" : "";
+      buildAtoms(); draw();
+    });
+    if (data.polyhedra && data.polyhedra.length) {
+      var label = data.polyhedra.map(function (p) { return p.centre + p.ligand + "ₙ"; }).join(" / ");
+      var btnPoly = button(label, showPoly, function () {
+        showPoly = !showPoly; btnPoly.className = showPoly ? "on" : "";
+        buildPolys(); draw();
+      });
+    }
+    var btnBond = button("結合", showBonds, function () {
+      showBonds = !showBonds; btnBond.className = showBonds ? "on" : "";
+      buildBonds(); draw();
+    });
+    // **情報欄を畳めるようにする。** 細い窓では原子の上に居座るため。
+    // 消したときは構造が画面いっぱいに広がる（centreX / usableWidth が効く）。
+    var btnInfo = button("情報", showInfo, function () {
+      showInfo = !showInfo;
+      info.className = showInfo ? "panel info" : "panel info off";
+      btnInfo.className = showInfo ? "on" : "";
+      draw();
+    });
+    button("a 軸から", false, function () { setView(Math.PI / 2, 0); });
+    button("b 軸から", false, function () { setView(0, -Math.PI / 2 + 0.001); });
+    button("c 軸から", false, function () { setView(0, 0); });
+    button("[111] から", false, function () { setView(-Math.PI / 4, -0.6155); });
+    var btnSpin = button("自動回転 停止", true, function () {
+      spinning = !spinning; syncSpin();
+    });
+
+    function button(text, on, fn) {
+      var b = document.createElement("button");
+      b.textContent = text; b.className = on ? "on" : "";
+      b.addEventListener("click", fn);
+      controls.appendChild(b);
+      return b;
+    }
+    function setView(y, p) { yaw = y; pitch = p; spinning = false; syncSpin(); draw(); }
+    function syncSpin() {
+      btnSpin.textContent = spinning ? "自動回転 停止" : "自動回転 開始";
+      btnSpin.className = spinning ? "on" : "";
+    }
+    function esc(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    window.addEventListener("resize", function () { resize(); draw(); });
+
+    (function tick() {
+      if (spinning && !dragging) { yaw += 0.004; draw(); }
+      requestAnimationFrame(tick);
+    })();
+
+    // 初回の測定と描画は**呼ぶ側に返す**（上の説明を読むこと）。
+    return function relayout() { resize(); buildAtoms(); draw(); };
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,661 @@
+<title>Co–Si 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Co–Si 相図</h1>
+  <p class="lede">63 点のうち下側凸包に載ったのは 3 化合物で、いちばん深いのは CoSi（-662 meV/atom）。　CoSi（B20）/ CoSi<sub>2</sub> —— コンタクト用シリサイド。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>63</dd></div><div class="fact"><dt>凸包上</dt><dd>5</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>8</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Si の原子分率。縦軸は端点（Co, Si）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Co–Si 相図">
+<line class="grid-line" x1="76" x2="846" y1="393.04" y2="393.04"/>
+<text class="tick-text" x="64" y="397.04" text-anchor="end">-0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="340.66" y2="340.66"/>
+<text class="tick-text" x="64" y="344.66" text-anchor="end">-0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="288.28" y2="288.28"/>
+<text class="tick-text" x="64" y="292.28" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="235.90" y2="235.90"/>
+<text class="tick-text" x="64" y="239.90" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="183.52" y2="183.52"/>
+<text class="tick-text" x="64" y="187.52" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="131.14" y2="131.14"/>
+<text class="tick-text" x="64" y="135.14" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="78.75" y2="78.75"/>
+<text class="tick-text" x="64" y="82.75" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="26.37" y2="26.37"/>
+<text class="tick-text" x="64" y="30.37" text-anchor="end">1.00</text>
+<line class="axis-line" x1="76" x2="846" y1="235.90" y2="235.90"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Co</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Si</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Si の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,235.90 268.50,307.01 461.00,374.65 589.33,341.16 846.00,235.90"/>
+<line class="tie-drop" x1="268.50" x2="268.50" y1="307.01" y2="412"/>
+<line class="tie-drop" x1="461.00" x2="461.00" y1="374.65" y2="412"/>
+<line class="tie-drop" x1="589.33" x2="589.33" y1="341.16" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Co8
+Co:Si = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="76.00" cy="235.88" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="221.88" text-anchor="middle">Co8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Co4
+Co:Si = 1.000 / 0.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 11
+原子数 / 候補 4 / 9</title><circle cx="76.00" cy="235.21" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="255.21" text-anchor="middle">Co4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.009 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 9 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>Co
+Co:Si = 1.000 / 0.000
+E_form 0.009 eV/atom
+包から 9 meV/atom
+空間群 225
+原子数 / 候補 1 / 6</title><circle cx="76.00" cy="233.95" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="253.95" text-anchor="middle">Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.102 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 102 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Co6
+Co:Si = 1.000 / 0.000
+E_form 0.102 eV/atom
+包から 102 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="214.53" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="234.53" text-anchor="middle">Co6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co14&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.241 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 241 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 6"><title>Co14
+Co:Si = 1.000 / 0.000
+E_form 0.241 eV/atom
+包から 241 meV/atom
+空間群 194
+原子数 / 候補 14 / 6</title><circle cx="76.00" cy="185.51" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="171.51" text-anchor="middle">Co14</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.295 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 295 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Co10
+Co:Si = 1.000 / 0.000
+E_form 0.295 eV/atom
+包から 295 meV/atom
+空間群 194
+原子数 / 候補 10 / 6</title><circle cx="76.00" cy="174.19" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="194.19" text-anchor="middle">Co10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.441 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 441 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>Co3
+Co:Si = 1.000 / 0.000
+E_form 0.441 eV/atom
+包から 441 meV/atom
+空間群 166 → 191
+原子数 / 候補 3 / 6</title><circle cx="76.00" cy="143.44" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="129.44" text-anchor="middle">Co3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co12&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.452 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 452 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 224 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 8"><title>Co12
+Co:Si = 1.000 / 0.000
+E_form 0.452 eV/atom
+包から 452 meV/atom
+空間群 224 → 225
+原子数 / 候補 12 / 8</title><circle cx="76.00" cy="141.24" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="161.24" text-anchor="middle">Co12</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.683 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 683 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Co9
+Co:Si = 1.000 / 0.000
+E_form 0.683 eV/atom
+包から 683 meV/atom
+空間群 221
+原子数 / 候補 9 / 3</title><circle cx="76.00" cy="92.71" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="78.71" text-anchor="middle">Co9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.824 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 824 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Co7
+Co:Si = 1.000 / 0.000
+E_form 0.824 eV/atom
+包から 824 meV/atom
+空間群 221
+原子数 / 候補 7 / 3</title><circle cx="76.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="83.35" text-anchor="middle">Co7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co9Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.061 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 75 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Co9Si
+Co:Si = 0.900 / 0.100
+E_form -0.061 eV/atom
+包から 75 meV/atom
+空間群 166
+原子数 / 候補 10 / 6</title><circle cx="153.00" cy="248.68" r="5" fill="var(--h2)"/><text class="plabel" x="153.00" y="234.68" text-anchor="middle">Co9Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co8Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.164 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 315 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 160&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Co8Si
+Co:Si = 0.889 / 0.111
+E_form 0.164 eV/atom
+包から 315 meV/atom
+空間群 160
+原子数 / 候補 9 / 6</title><circle cx="161.56" cy="201.62" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="187.62" text-anchor="middle">Co8Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co7Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.105 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 65 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Co7Si
+Co:Si = 0.875 / 0.125
+E_form -0.105 eV/atom
+包から 65 meV/atom
+空間群 166
+原子数 / 候補 8 / 6</title><circle cx="172.25" cy="257.81" r="5" fill="var(--h2)"/><text class="plabel" x="172.25" y="243.81" text-anchor="middle">Co7Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co6Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.059 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 253 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Co6Si
+Co:Si = 0.857 / 0.143
+E_form 0.059 eV/atom
+包から 253 meV/atom
+空間群 225
+原子数 / 候補 7 / 9</title><circle cx="186.00" cy="223.54" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="243.54" text-anchor="middle">Co6Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co5Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.144 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 82 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>Co5Si
+Co:Si = 0.833 / 0.167
+E_form -0.144 eV/atom
+包から 82 meV/atom
+空間群 123
+原子数 / 候補 6 / 3</title><circle cx="204.33" cy="266.11" r="5" fill="var(--h2)"/><text class="plabel" x="204.33" y="252.11" text-anchor="middle">Co5Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co8Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.082 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 190 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Co8Si2
+Co:Si = 0.800 / 0.200
+E_form -0.082 eV/atom
+包から 190 meV/atom
+空間群 164
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="253.00" r="5" fill="var(--h3)"/><text class="plabel" x="230.00" y="273.00" text-anchor="middle">Co8Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.350 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 621 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Co4Si
+Co:Si = 0.800 / 0.200
+E_form 0.350 eV/atom
+包から 621 meV/atom
+空間群 123
+原子数 / 候補 5 / 6</title><circle cx="230.00" cy="162.67" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="148.67" text-anchor="middle">Co4Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co7Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.129 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 172 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Co7Si2
+Co:Si = 0.778 / 0.222
+E_form -0.129 eV/atom
+包から 172 meV/atom
+空間群 189
+原子数 / 候補 9 / 6</title><circle cx="247.11" cy="262.99" r="5" fill="var(--h3)"/><text class="plabel" x="247.11" y="282.99" text-anchor="middle">Co7Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co6Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.239 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 101 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Co6Si2
+Co:Si = 0.750 / 0.250
+E_form -0.239 eV/atom
+包から 101 meV/atom
+空間群 189
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="285.87" r="5" fill="var(--h3)"/><text class="plabel" x="268.50" y="305.87" text-anchor="middle">Co6Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co5Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.090 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 476 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 160&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Co5Si2
+Co:Si = 0.714 / 0.286
+E_form 0.090 eV/atom
+包から 476 meV/atom
+空間群 160
+原子数 / 候補 7 / 6</title><circle cx="296.00" cy="216.98" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="202.98" text-anchor="middle">Co5Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co7Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.165 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 240 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 6 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Co7Si3
+Co:Si = 0.700 / 0.300
+E_form -0.165 eV/atom
+包から 240 meV/atom
+空間群 6 → 1
+原子数 / 候補 10 / 6</title><circle cx="307.00" cy="270.36" r="5" fill="var(--meta)"/><text class="plabel" x="307.00" y="256.36" text-anchor="middle">Co7Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.309 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 138 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 129&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Co4Si2
+Co:Si = 0.667 / 0.333
+E_form -0.309 eV/atom
+包から 138 meV/atom
+空間群 129
+原子数 / 候補 6 / 6</title><circle cx="332.67" cy="300.60" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="286.60" text-anchor="middle">Co4Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.306 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 141 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>Co2Si
+Co:Si = 0.667 / 0.333
+E_form -0.306 eV/atom
+包から 141 meV/atom
+空間群 216 → 225
+原子数 / 候補 3 / 6</title><circle cx="332.67" cy="299.95" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="319.95" text-anchor="middle">Co2Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co6Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.297 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 150 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Co6Si3
+Co:Si = 0.667 / 0.333
+E_form -0.297 eV/atom
+包から 150 meV/atom
+空間群 6
+原子数 / 候補 9 / 6</title><circle cx="332.67" cy="298.19" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="318.19" text-anchor="middle">Co6Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co5Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.301 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 200 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Co5Si3
+Co:Si = 0.625 / 0.375
+E_form -0.301 eV/atom
+包から 200 meV/atom
+空間群 189
+原子数 / 候補 8 / 3</title><circle cx="364.75" cy="298.86" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="318.86" text-anchor="middle">Co5Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co6Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.339 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 194 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 4&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Co6Si4
+Co:Si = 0.600 / 0.400
+E_form -0.339 eV/atom
+包から 194 meV/atom
+空間群 4
+原子数 / 候補 10 / 3</title><circle cx="384.00" cy="306.91" r="5" fill="var(--h3)"/><text class="plabel" x="384.00" y="326.91" text-anchor="middle">Co6Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.222 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 348 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Co4Si3
+Co:Si = 0.571 / 0.429
+E_form -0.222 eV/atom
+包から 348 meV/atom
+空間群 189
+原子数 / 候補 7 / 3</title><circle cx="406.00" cy="282.39" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="268.39" text-anchor="middle">Co4Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoSi&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.482 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 180 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>CoSi
+Co:Si = 0.500 / 0.500
+E_form -0.482 eV/atom
+包から 180 meV/atom
+空間群 187
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="336.97" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="322.97" text-anchor="middle">CoSi</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.482 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 180 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189 → 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>Co3Si3
+Co:Si = 0.500 / 0.500
+E_form -0.482 eV/atom
+包から 180 meV/atom
+空間群 189 → 187
+原子数 / 候補 6 / 3</title><circle cx="461.00" cy="336.93" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="356.93" text-anchor="middle">Co3Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.460 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 202 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 129 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Co2Si2
+Co:Si = 0.500 / 0.500
+E_form -0.460 eV/atom
+包から 202 meV/atom
+空間群 129 → 221
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="332.26" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="352.26" text-anchor="middle">Co2Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4Si5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.378 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 231 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Co4Si5
+Co:Si = 0.444 / 0.556
+E_form -0.378 eV/atom
+包から 231 meV/atom
+空間群 12 → 1
+原子数 / 候補 9 / 3</title><circle cx="503.78" cy="315.04" r="5" fill="var(--meta)"/><text class="plabel" x="503.78" y="301.04" text-anchor="middle">Co4Si5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.401 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 193 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Co3Si4
+Co:Si = 0.429 / 0.571
+E_form -0.401 eV/atom
+包から 193 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="319.90" r="5" fill="var(--h3)"/><text class="plabel" x="516.00" y="305.90" text-anchor="middle">Co3Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4Si6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.320 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 247 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Co4Si6
+Co:Si = 0.400 / 0.600
+E_form -0.320 eV/atom
+包から 247 meV/atom
+空間群 12 → 2
+原子数 / 候補 10 / 3</title><circle cx="538.00" cy="302.88" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="322.88" text-anchor="middle">Co4Si6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.220 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 347 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Co2Si3
+Co:Si = 0.400 / 0.600
+E_form -0.220 eV/atom
+包から 347 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="538.00" cy="281.89" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="267.89" text-anchor="middle">Co2Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3Si5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.485 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 57 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Co3Si5
+Co:Si = 0.375 / 0.625
+E_form -0.485 eV/atom
+包から 57 meV/atom
+空間群 166
+原子数 / 候補 8 / 6</title><circle cx="557.25" cy="337.56" r="5" fill="var(--h2)"/><text class="plabel" x="557.25" y="357.56" text-anchor="middle">Co3Si5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.361 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 141 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 129 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Co2Si4
+Co:Si = 0.333 / 0.667
+E_form -0.361 eV/atom
+包から 141 meV/atom
+空間群 129 → 123
+原子数 / 候補 6 / 6</title><circle cx="589.33" cy="311.60" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="297.60" text-anchor="middle">Co2Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3Si6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.104 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 399 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Co3Si6
+Co:Si = 0.333 / 0.667
+E_form -0.104 eV/atom
+包から 399 meV/atom
+空間群 12
+原子数 / 候補 9 / 6</title><circle cx="589.33" cy="257.63" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="243.63" text-anchor="middle">Co3Si6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3Si7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.171 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 282 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Co3Si7
+Co:Si = 0.300 / 0.700
+E_form -0.171 eV/atom
+包から 282 meV/atom
+空間群 12 → 6
+原子数 / 候補 10 / 6</title><circle cx="615.00" cy="271.64" r="5" fill="var(--meta)"/><text class="plabel" x="615.00" y="257.64" text-anchor="middle">Co3Si7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2Si5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.170 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 261 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Co2Si5
+Co:Si = 0.286 / 0.714
+E_form -0.170 eV/atom
+包から 261 meV/atom
+空間群 166
+原子数 / 候補 7 / 6</title><circle cx="626.00" cy="271.45" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="291.45" text-anchor="middle">Co2Si5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2Si6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.097 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 280 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Co2Si6
+Co:Si = 0.250 / 0.750
+E_form -0.097 eV/atom
+包から 280 meV/atom
+空間群 12 → 2
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="256.16" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="242.16" text-anchor="middle">Co2Si6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoSi3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.179 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 556 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>CoSi3
+Co:Si = 0.250 / 0.750
+E_form 0.179 eV/atom
+包から 556 meV/atom
+空間群 221
+原子数 / 候補 4 / 6</title><circle cx="653.50" cy="198.35" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="184.35" text-anchor="middle">CoSi3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2Si7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.134 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 201 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Co2Si7
+Co:Si = 0.222 / 0.778
+E_form -0.134 eV/atom
+包から 201 meV/atom
+空間群 12
+原子数 / 候補 9 / 6</title><circle cx="674.89" cy="264.02" r="5" fill="var(--meta)"/><text class="plabel" x="674.89" y="250.02" text-anchor="middle">Co2Si7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2Si8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.220 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 81 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Co2Si8
+Co:Si = 0.200 / 0.800
+E_form -0.220 eV/atom
+包から 81 meV/atom
+空間群 64 → 139
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="282.08" r="5" fill="var(--h2)"/><text class="plabel" x="692.00" y="268.08" text-anchor="middle">Co2Si8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoSi4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.216 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 85 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>CoSi4
+Co:Si = 0.200 / 0.800
+E_form -0.216 eV/atom
+包から 85 meV/atom
+空間群 166
+原子数 / 候補 5 / 6</title><circle cx="692.00" cy="281.24" r="5" fill="var(--h2)"/><text class="plabel" x="692.00" y="301.24" text-anchor="middle">CoSi4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoSi5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.074 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 177 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>CoSi5
+Co:Si = 0.167 / 0.833
+E_form -0.074 eV/atom
+包から 177 meV/atom
+空間群 12
+原子数 / 候補 6 / 6</title><circle cx="717.67" cy="251.36" r="5" fill="var(--h3)"/><text class="plabel" x="717.67" y="237.36" text-anchor="middle">CoSi5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoSi6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.016 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 231 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>CoSi6
+Co:Si = 0.143 / 0.857
+E_form 0.016 eV/atom
+包から 231 meV/atom
+空間群 166
+原子数 / 候補 7 / 6</title><circle cx="736.00" cy="232.59" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="252.59" text-anchor="middle">CoSi6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoSi7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.154 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 342 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>CoSi7
+Co:Si = 0.125 / 0.875
+E_form 0.154 eV/atom
+包から 342 meV/atom
+空間群 12
+原子数 / 候補 8 / 6</title><circle cx="749.75" cy="203.72" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="189.72" text-anchor="middle">CoSi7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoSi8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.019 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 187 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>CoSi8
+Co:Si = 0.111 / 0.889
+E_form 0.019 eV/atom
+包から 187 meV/atom
+空間群 166
+原子数 / 候補 9 / 6</title><circle cx="760.44" cy="231.90" r="5" fill="var(--h3)"/><text class="plabel" x="760.44" y="217.90" text-anchor="middle">CoSi8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoSi9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.115 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 266 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>CoSi9
+Co:Si = 0.100 / 0.900
+E_form 0.115 eV/atom
+包から 266 meV/atom
+空間群 166
+原子数 / 候補 10 / 6</title><circle cx="769.00" cy="211.74" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="231.74" text-anchor="middle">CoSi9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.293 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 293 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 51&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 11"><title>Si4
+Co:Si = 0.000 / 1.000
+E_form 0.293 eV/atom
+包から 293 meV/atom
+空間群 64 → 51
+原子数 / 候補 4 / 11</title><circle cx="846.00" cy="174.59" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="160.59" text-anchor="middle">Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.296 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 296 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 24"><title>Si8
+Co:Si = 0.000 / 1.000
+E_form 0.296 eV/atom
+包から 296 meV/atom
+空間群 12 → 63
+原子数 / 候補 8 / 24</title><circle cx="846.00" cy="173.94" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="193.94" text-anchor="middle">Si8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.296 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 296 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Si10
+Co:Si = 0.000 / 1.000
+E_form 0.296 eV/atom
+包から 296 meV/atom
+空間群 87
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="173.90" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="193.90" text-anchor="middle">Si10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.297 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 297 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Si6
+Co:Si = 0.000 / 1.000
+E_form 0.297 eV/atom
+包から 297 meV/atom
+空間群 63
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="173.73" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="193.73" text-anchor="middle">Si6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.297 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 297 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Si5
+Co:Si = 0.000 / 1.000
+E_form 0.297 eV/atom
+包から 297 meV/atom
+空間群 12 → 65
+原子数 / 候補 5 / 6</title><circle cx="846.00" cy="173.71" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="193.71" text-anchor="middle">Si5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.319 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 319 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Si9
+Co:Si = 0.000 / 1.000
+E_form 0.319 eV/atom
+包から 319 meV/atom
+空間群 12
+原子数 / 候補 9 / 6</title><circle cx="846.00" cy="168.98" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="188.98" text-anchor="middle">Si9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.406 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 406 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Si7
+Co:Si = 0.000 / 1.000
+E_form 0.406 eV/atom
+包から 406 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="846.00" cy="150.83" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="170.83" text-anchor="middle">Si7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.472 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 472 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 42 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 18"><title>Si
+Co:Si = 0.000 / 1.000
+E_form 0.472 eV/atom
+包から 472 meV/atom
+空間群 42 → 139
+原子数 / 候補 1 / 18</title><circle cx="846.00" cy="136.92" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="122.92" text-anchor="middle">Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.484 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 484 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 200 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Si3
+Co:Si = 0.000 / 1.000
+E_form 0.484 eV/atom
+包から 484 meV/atom
+空間群 200 → 221
+原子数 / 候補 3 / 3</title><circle cx="846.00" cy="134.53" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="154.53" text-anchor="middle">Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 12"><title>Co2
+Co:Si = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 2 / 12</title><circle cx="76.00" cy="235.90" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="255.90" text-anchor="middle">Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.339 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Co3Si
+Co:Si = 0.750 / 0.250
+E_form -0.339 eV/atom
+包から 0（凸包上）
+空間群 221
+原子数 / 候補 4 / 9</title><circle cx="268.50" cy="307.01" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="268.50" y="327.01" text-anchor="middle">Co3Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.662 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 198&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Co4Si4
+Co:Si = 0.500 / 0.500
+E_form -0.662 eV/atom
+包から 0（凸包上）
+空間群 198
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="461.00" y="360.65" text-anchor="middle">Co4Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CoSi2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.502 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>CoSi2
+Co:Si = 0.333 / 0.667
+E_form -0.502 eV/atom
+包から 0（凸包上）
+空間群 216 → 225
+原子数 / 候補 3 / 9</title><circle cx="589.33" cy="341.16" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="589.33" y="327.16" text-anchor="middle">CoSi2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Co:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 227&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 20"><title>Si2
+Co:Si = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 227
+原子数 / 候補 2 / 20</title><circle cx="846.00" cy="235.90" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="221.90" text-anchor="middle">Si2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Co2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Co3Si</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Co4Si4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">CoSi2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Si2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Co8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co</span><span class="bar-track"><span class="bar-fill" style="width:1.13%;background:var(--h1)"></span></span><span class="bar-val">9 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3Si5</span><span class="bar-track"><span class="bar-fill" style="width:6.93%;background:var(--h2)"></span></span><span class="bar-val">57 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co7Si</span><span class="bar-track"><span class="bar-fill" style="width:7.91%;background:var(--h2)"></span></span><span class="bar-val">65 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co9Si</span><span class="bar-track"><span class="bar-fill" style="width:9.08%;background:var(--h2)"></span></span><span class="bar-val">75 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2Si8</span><span class="bar-track"><span class="bar-fill" style="width:9.84%;background:var(--h2)"></span></span><span class="bar-val">81 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co5Si</span><span class="bar-track"><span class="bar-fill" style="width:9.96%;background:var(--h2)"></span></span><span class="bar-val">82 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoSi4</span><span class="bar-track"><span class="bar-fill" style="width:10.32%;background:var(--h2)"></span></span><span class="bar-val">85 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co6Si2</span><span class="bar-track"><span class="bar-fill" style="width:12.24%;background:var(--h3)"></span></span><span class="bar-val">101 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co6</span><span class="bar-track"><span class="bar-fill" style="width:12.39%;background:var(--h3)"></span></span><span class="bar-val">102 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4Si2</span><span class="bar-track"><span class="bar-fill" style="width:16.78%;background:var(--h3)"></span></span><span class="bar-val">138 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2Si4</span><span class="bar-track"><span class="bar-fill" style="width:17.13%;background:var(--h3)"></span></span><span class="bar-val">141 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2Si</span><span class="bar-track"><span class="bar-fill" style="width:17.15%;background:var(--h3)"></span></span><span class="bar-val">141 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co6Si3</span><span class="bar-track"><span class="bar-fill" style="width:18.17%;background:var(--h3)"></span></span><span class="bar-val">150 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co7Si2</span><span class="bar-track"><span class="bar-fill" style="width:20.94%;background:var(--h3)"></span></span><span class="bar-val">172 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoSi5</span><span class="bar-track"><span class="bar-fill" style="width:21.54%;background:var(--h3)"></span></span><span class="bar-val">177 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoSi</span><span class="bar-track"><span class="bar-fill" style="width:21.82%;background:var(--h3)"></span></span><span class="bar-val">180 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3Si3</span><span class="bar-track"><span class="bar-fill" style="width:21.85%;background:var(--h3)"></span></span><span class="bar-val">180 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoSi8</span><span class="bar-track"><span class="bar-fill" style="width:22.65%;background:var(--h3)"></span></span><span class="bar-val">187 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co8Si2</span><span class="bar-track"><span class="bar-fill" style="width:23.06%;background:var(--h3)"></span></span><span class="bar-val">190 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3Si4</span><span class="bar-track"><span class="bar-fill" style="width:23.41%;background:var(--h3)"></span></span><span class="bar-val">193 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co6Si4</span><span class="bar-track"><span class="bar-fill" style="width:23.57%;background:var(--h3)"></span></span><span class="bar-val">194 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co5Si3</span><span class="bar-track"><span class="bar-fill" style="width:24.32%;background:var(--meta)"></span></span><span class="bar-val">200 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2Si7</span><span class="bar-track"><span class="bar-fill" style="width:24.37%;background:var(--meta)"></span></span><span class="bar-val">201 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2Si2</span><span class="bar-track"><span class="bar-fill" style="width:24.57%;background:var(--meta)"></span></span><span class="bar-val">202 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4Si5</span><span class="bar-track"><span class="bar-fill" style="width:28.06%;background:var(--meta)"></span></span><span class="bar-val">231 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoSi6</span><span class="bar-track"><span class="bar-fill" style="width:28.06%;background:var(--meta)"></span></span><span class="bar-val">231 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co7Si3</span><span class="bar-track"><span class="bar-fill" style="width:29.08%;background:var(--meta)"></span></span><span class="bar-val">240 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co14</span><span class="bar-track"><span class="bar-fill" style="width:29.20%;background:var(--meta)"></span></span><span class="bar-val">241 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4Si6</span><span class="bar-track"><span class="bar-fill" style="width:29.95%;background:var(--meta)"></span></span><span class="bar-val">247 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co6Si</span><span class="bar-track"><span class="bar-fill" style="width:30.71%;background:var(--meta)"></span></span><span class="bar-val">253 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2Si5</span><span class="bar-track"><span class="bar-fill" style="width:31.68%;background:var(--meta)"></span></span><span class="bar-val">261 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoSi9</span><span class="bar-track"><span class="bar-fill" style="width:32.30%;background:var(--meta)"></span></span><span class="bar-val">266 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2Si6</span><span class="bar-track"><span class="bar-fill" style="width:34.01%;background:var(--meta)"></span></span><span class="bar-val">280 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3Si7</span><span class="bar-track"><span class="bar-fill" style="width:34.18%;background:var(--meta)"></span></span><span class="bar-val">282 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si4</span><span class="bar-track"><span class="bar-fill" style="width:35.53%;background:var(--meta)"></span></span><span class="bar-val">293 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co10</span><span class="bar-track"><span class="bar-fill" style="width:35.76%;background:var(--meta)"></span></span><span class="bar-val">295 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si8</span><span class="bar-track"><span class="bar-fill" style="width:35.91%;background:var(--meta)"></span></span><span class="bar-val">296 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si10</span><span class="bar-track"><span class="bar-fill" style="width:35.93%;background:var(--meta)"></span></span><span class="bar-val">296 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si6</span><span class="bar-track"><span class="bar-fill" style="width:36.03%;background:var(--meta)"></span></span><span class="bar-val">297 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si5</span><span class="bar-track"><span class="bar-fill" style="width:36.04%;background:var(--meta)"></span></span><span class="bar-val">297 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co8Si</span><span class="bar-track"><span class="bar-fill" style="width:38.19%;background:var(--meta)"></span></span><span class="bar-val">315 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si9</span><span class="bar-track"><span class="bar-fill" style="width:38.79%;background:var(--meta)"></span></span><span class="bar-val">319 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoSi7</span><span class="bar-track"><span class="bar-fill" style="width:41.52%;background:var(--meta)"></span></span><span class="bar-val">342 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co2Si3</span><span class="bar-track"><span class="bar-fill" style="width:42.11%;background:var(--meta)"></span></span><span class="bar-val">347 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4Si3</span><span class="bar-track"><span class="bar-fill" style="width:42.26%;background:var(--meta)"></span></span><span class="bar-val">348 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3Si6</span><span class="bar-track"><span class="bar-fill" style="width:48.40%;background:var(--meta)"></span></span><span class="bar-val">399 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si7</span><span class="bar-track"><span class="bar-fill" style="width:49.30%;background:var(--meta)"></span></span><span class="bar-val">406 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3</span><span class="bar-track"><span class="bar-fill" style="width:53.59%;background:var(--meta)"></span></span><span class="bar-val">441 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co12</span><span class="bar-track"><span class="bar-fill" style="width:54.86%;background:var(--meta)"></span></span><span class="bar-val">452 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si</span><span class="bar-track"><span class="bar-fill" style="width:57.36%;background:var(--meta)"></span></span><span class="bar-val">472 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co5Si2</span><span class="bar-track"><span class="bar-fill" style="width:57.78%;background:var(--meta)"></span></span><span class="bar-val">476 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si3</span><span class="bar-track"><span class="bar-fill" style="width:58.75%;background:var(--meta)"></span></span><span class="bar-val">484 meV</span></li>
+<li class="bar-row"><span class="bar-name">CoSi3</span><span class="bar-track"><span class="bar-fill" style="width:67.52%;background:var(--meta)"></span></span><span class="bar-val">556 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4Si</span><span class="bar-track"><span class="bar-fill" style="width:75.41%;background:var(--meta)"></span></span><span class="bar-val">621 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co9</span><span class="bar-track"><span class="bar-fill" style="width:82.99%;background:var(--meta)"></span></span><span class="bar-val">683 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co7</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">824 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 5 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Co</th><th>Si</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Co2 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>194</td><td>2</td></tr>
+<tr class="stable"><td class="name">Co3Si <span class="pill">凸包上</span></td><td>0.750</td><td>0.250</td><td>-0.3394</td><td>221</td><td>4</td></tr>
+<tr class="stable"><td class="name">Co4Si4 <span class="pill">凸包上</span></td><td>0.500</td><td>0.500</td><td>-0.6622</td><td>198</td><td>8</td></tr>
+<tr class="stable"><td class="name">CoSi2 <span class="pill">凸包上</span></td><td>0.333</td><td>0.667</td><td>-0.5024</td><td>216 → 225</td><td>3</td></tr>
+<tr class="stable"><td class="name">Si2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>227</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>この系を見る理由</h3><p>CoSi（B20）/ CoSi<sub>2</sub> —— コンタクト用シリサイド。</p></div><div class="note"><h3>何が包に載ったか</h3><p>包に載った化合物は CoSi -662 meV/atom（空間群 198（B20 型（FeSi 型）））、CoSi<sub>2</sub> -502 meV/atom（空間群 225（fcc / L1<sub>2</sub> 系））、Co<sub>3</sub>Si -339 meV/atom（空間群 221（B2（CsCl 型）））。</p></div><div class="note"><h3>包のすぐ上にいるもの</h3><p>包のすぐ上（60 meV/atom 以内）にいるのは Co<sub>4</sub> +3 meV、Co +9 meV、Co<sub>3</sub>Si<sub>5</sub> +57 meV。この幅は上の「分解能」と同じ桁なので、条件が少し変われば包に載りうる相として見ておく。</p></div><div class="note"><h3>端点が信用できるか</h3><p>Co は 空間群 194（hcp / D0<sub>19</sub> 系） で当たった。Si は 空間群 227（ダイヤモンド型） で当たった。　全ての端点が実在相に当たったので、生成エネルギーの基準は素直に読んでよい。</p></div><div class="note"><h3>穴</h3><p>45 組成のうち 3 組で点が出なかったが、約分すると同じ組成が別のセルサイズで取れているものを除くと<b>実質 1 組</b>である。欠けているのは Co<sub>5</sub>Si<sub>4</sub>。<b>そこに相が無いのではなく、そこを探せていない。</b>原子数 9〜10 の胞で、上位 3 つの空間群に Wyckoff 配置が載らなかった（exit 430）ためで、空間群を名指しして撒き直せば埋まる見込みがある。</p></div><div class="note"><h3>どの三元の辺か</h3><p>この図は Co-Ni-Si の辺である。三角図と突き合わせて読む。</p></div><div class="note"><h3>この手法の分解能</h3><p>数十 meV/atom の差はこの手法（ShotgunCSP-GW の生成 + MatterSim による評価・緩和）の分解能に近い。<b>10 meV 差で「載った／載らない」を言い切らない。</b>包の上下が入れ替わりうる幅だと思って読む。</p></div></section>
+ <footer><span>aiida-shotgun-csp 6.24.0</span><span>sweep = interconnect3-bin-2026-09-13 / interconnect3-ter-2026-09-13</span><span>探索範囲 = 10 原子以内、spg_ranks=[1,2,3]</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

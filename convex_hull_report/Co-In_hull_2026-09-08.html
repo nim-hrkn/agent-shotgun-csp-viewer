@@ -1,0 +1,684 @@
+<title>Co–In 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Co–In 相図</h1>
+  <p class="lede">66 組成。<b>包に載る化合物は Co2In8（要求 127 → 検出 97、−34 meV/atom）の 1 つだけ。</b> In-rich 側の浅い谷で、Co-rich 側には秩序相が出ていない。Co–Fe–In の辺として描いた。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>66</dd></div><div class="fact"><dt>凸包上</dt><dd>3</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>13</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Co の原子分率。縦軸は端点（In, Co）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Co–In 相図">
+<line class="grid-line" x1="76" x2="846" y1="398.57" y2="398.57"/>
+<text class="tick-text" x="64" y="402.57" text-anchor="end">-0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="362.27" y2="362.27"/>
+<text class="tick-text" x="64" y="366.27" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="325.97" y2="325.97"/>
+<text class="tick-text" x="64" y="329.97" text-anchor="end">0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="289.67" y2="289.67"/>
+<text class="tick-text" x="64" y="293.67" text-anchor="end">0.20</text>
+<line class="grid-line" x1="76" x2="846" y1="253.37" y2="253.37"/>
+<text class="tick-text" x="64" y="257.37" text-anchor="end">0.30</text>
+<line class="grid-line" x1="76" x2="846" y1="217.08" y2="217.08"/>
+<text class="tick-text" x="64" y="221.08" text-anchor="end">0.40</text>
+<line class="grid-line" x1="76" x2="846" y1="180.78" y2="180.78"/>
+<text class="tick-text" x="64" y="184.78" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="144.48" y2="144.48"/>
+<text class="tick-text" x="64" y="148.48" text-anchor="end">0.60</text>
+<line class="grid-line" x1="76" x2="846" y1="108.18" y2="108.18"/>
+<text class="tick-text" x="64" y="112.18" text-anchor="end">0.70</text>
+<line class="grid-line" x1="76" x2="846" y1="71.88" y2="71.88"/>
+<text class="tick-text" x="64" y="75.88" text-anchor="end">0.80</text>
+<line class="grid-line" x1="76" x2="846" y1="35.59" y2="35.59"/>
+<text class="tick-text" x="64" y="39.59" text-anchor="end">0.90</text>
+<line class="axis-line" x1="76" x2="846" y1="362.27" y2="362.27"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">In</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Co</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Co の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,362.27 230.00,374.65 846.00,362.27"/>
+<line class="tie-drop" x1="230.00" x2="230.00" y1="374.65" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>In2
+In:Co = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 166
+原子数 / 候補 2 / 9</title><circle cx="76.00" cy="362.23" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="348.23" text-anchor="middle">In2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>In4
+In:Co = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 221 → 225
+原子数 / 候補 4 / 9</title><circle cx="76.00" cy="362.23" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="382.23" text-anchor="middle">In4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>In6
+In:Co = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 64
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="361.90" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="381.90" text-anchor="middle">In6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.021 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 21 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>In8
+In:Co = 1.000 / 0.000
+E_form 0.021 eV/atom
+包から 21 meV/atom
+空間群 229
+原子数 / 候補 8 / 9</title><circle cx="76.00" cy="354.83" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="374.83" text-anchor="middle">In8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.021 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 21 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>In5
+In:Co = 1.000 / 0.000
+E_form 0.021 eV/atom
+包から 21 meV/atom
+空間群 166 → 229
+原子数 / 候補 5 / 6</title><circle cx="76.00" cy="354.61" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="374.61" text-anchor="middle">In5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.058 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 58 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>In7
+In:Co = 1.000 / 0.000
+E_form 0.058 eV/atom
+包から 58 meV/atom
+空間群 229
+原子数 / 候補 7 / 6</title><circle cx="76.00" cy="341.25" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="361.25" text-anchor="middle">In7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.070 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 70 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>In3
+In:Co = 1.000 / 0.000
+E_form 0.070 eV/atom
+包から 70 meV/atom
+空間群 166 → 191
+原子数 / 候補 3 / 3</title><circle cx="76.00" cy="337.04" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="357.04" text-anchor="middle">In3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.075 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 75 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 141&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>In10
+In:Co = 1.000 / 0.000
+E_form 0.075 eV/atom
+包から 75 meV/atom
+空間群 141
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="335.15" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="355.15" text-anchor="middle">In10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.150 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 150 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>In9
+In:Co = 1.000 / 0.000
+E_form 0.150 eV/atom
+包から 150 meV/atom
+空間群 221
+原子数 / 候補 9 / 6</title><circle cx="76.00" cy="307.71" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="293.71" text-anchor="middle">In9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In9Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.511 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 528 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>In9Co
+In:Co = 0.900 / 0.100
+E_form 0.511 eV/atom
+包から 528 meV/atom
+空間群 229
+原子数 / 候補 10 / 6</title><circle cx="153.00" cy="176.68" r="5" fill="var(--meta)"/><text class="plabel" x="153.00" y="162.68" text-anchor="middle">In9Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In8Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.026 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 45 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 121&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>In8Co
+In:Co = 0.889 / 0.111
+E_form 0.026 eV/atom
+包から 45 meV/atom
+空間群 121
+原子数 / 候補 9 / 3</title><circle cx="161.56" cy="352.76" r="5" fill="var(--h1)"/><text class="plabel" x="161.56" y="338.76" text-anchor="middle">In8Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In7Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.168 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 190 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 121&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>In7Co
+In:Co = 0.875 / 0.125
+E_form 0.168 eV/atom
+包から 190 meV/atom
+空間群 121
+原子数 / 候補 8 / 6</title><circle cx="172.25" cy="301.18" r="5" fill="var(--h3)"/><text class="plabel" x="172.25" y="287.18" text-anchor="middle">In7Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In6Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.247 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 271 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 121&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 4"><title>In6Co
+In:Co = 0.857 / 0.143
+E_form 0.247 eV/atom
+包から 271 meV/atom
+空間群 121
+原子数 / 候補 7 / 4</title><circle cx="186.00" cy="272.61" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="292.61" text-anchor="middle">In6Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In5Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.240 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 268 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>In5Co
+In:Co = 0.833 / 0.167
+E_form 0.240 eV/atom
+包から 268 meV/atom
+空間群 123
+原子数 / 候補 6 / 6</title><circle cx="204.33" cy="275.19" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="295.19" text-anchor="middle">In5Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.176 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 210 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>In4Co
+In:Co = 0.800 / 0.200
+E_form 0.176 eV/atom
+包から 210 meV/atom
+空間群 123
+原子数 / 候補 5 / 6</title><circle cx="230.00" cy="298.46" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="318.46" text-anchor="middle">In4Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In7Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.093 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 126 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 121 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>In7Co2
+In:Co = 0.778 / 0.222
+E_form 0.093 eV/atom
+包から 126 meV/atom
+空間群 121 → 1
+原子数 / 候補 9 / 6</title><circle cx="247.11" cy="328.66" r="5" fill="var(--h3)"/><text class="plabel" x="247.11" y="348.66" text-anchor="middle">In7Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.028 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 60 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>In3Co
+In:Co = 0.750 / 0.250
+E_form 0.028 eV/atom
+包から 60 meV/atom
+空間群 164
+原子数 / 候補 4 / 9</title><circle cx="268.50" cy="352.03" r="5" fill="var(--h2)"/><text class="plabel" x="268.50" y="372.03" text-anchor="middle">In3Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In6Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.140 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 172 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>In6Co2
+In:Co = 0.750 / 0.250
+E_form 0.140 eV/atom
+包から 172 meV/atom
+空間群 191
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="311.52" r="5" fill="var(--h3)"/><text class="plabel" x="268.50" y="297.52" text-anchor="middle">In6Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In5Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.392 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 423 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>In5Co2
+In:Co = 0.714 / 0.286
+E_form 0.392 eV/atom
+包から 423 meV/atom
+空間群 191
+原子数 / 候補 7 / 3</title><circle cx="296.00" cy="219.87" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="205.87" text-anchor="middle">In5Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In7Co3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.367 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 396 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>In7Co3
+In:Co = 0.700 / 0.300
+E_form 0.367 eV/atom
+包から 396 meV/atom
+空間群 191
+原子数 / 候補 10 / 3</title><circle cx="307.00" cy="229.24" r="5" fill="var(--meta)"/><text class="plabel" x="307.00" y="215.24" text-anchor="middle">In7Co3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.007 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 21 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>In2Co
+In:Co = 0.667 / 0.333
+E_form -0.007 eV/atom
+包から 21 meV/atom
+空間群 123
+原子数 / 候補 3 / 6</title><circle cx="332.67" cy="364.92" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="350.92" text-anchor="middle">In2Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.158 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 186 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 15 → 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 8"><title>In4Co2
+In:Co = 0.667 / 0.333
+E_form 0.158 eV/atom
+包から 186 meV/atom
+空間群 15 → 63
+原子数 / 候補 6 / 8</title><circle cx="332.67" cy="304.99" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="290.99" text-anchor="middle">In4Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In6Co3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.517 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 545 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>In6Co3
+In:Co = 0.667 / 0.333
+E_form 0.517 eV/atom
+包から 545 meV/atom
+空間群 191
+原子数 / 候補 9 / 3</title><circle cx="332.67" cy="174.64" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="160.64" text-anchor="middle">In6Co3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In5Co3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.504 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 530 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>In5Co3
+In:Co = 0.625 / 0.375
+E_form 0.504 eV/atom
+包から 530 meV/atom
+空間群 191
+原子数 / 候補 8 / 3</title><circle cx="364.75" cy="179.44" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="165.44" text-anchor="middle">In5Co3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.042 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 67 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>In3Co2
+In:Co = 0.600 / 0.400
+E_form 0.042 eV/atom
+包から 67 meV/atom
+空間群 164
+原子数 / 候補 5 / 6</title><circle cx="384.00" cy="347.20" r="5" fill="var(--h2)"/><text class="plabel" x="384.00" y="333.20" text-anchor="middle">In3Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In6Co4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.166 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 192 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 15 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>In6Co4
+In:Co = 0.600 / 0.400
+E_form 0.166 eV/atom
+包から 192 meV/atom
+空間群 15 → 12
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="301.87" r="5" fill="var(--h3)"/><text class="plabel" x="384.00" y="287.87" text-anchor="middle">In6Co4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4Co3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.626 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 650 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>In4Co3
+In:Co = 0.571 / 0.429
+E_form 0.626 eV/atom
+包から 650 meV/atom
+空間群 191
+原子数 / 候補 7 / 3</title><circle cx="406.00" cy="135.04" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="121.04" text-anchor="middle">In4Co3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In5Co4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.360 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 384 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>In5Co4
+In:Co = 0.556 / 0.444
+E_form 0.360 eV/atom
+包から 384 meV/atom
+空間群 166
+原子数 / 候補 9 / 6</title><circle cx="418.22" cy="231.49" r="5" fill="var(--meta)"/><text class="plabel" x="418.22" y="217.49" text-anchor="middle">In5Co4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InCo&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.100 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 122 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>InCo
+In:Co = 0.500 / 0.500
+E_form 0.100 eV/atom
+包から 122 meV/atom
+空間群 221
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="325.90" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="311.90" text-anchor="middle">InCo</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4Co4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.100 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 122 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>In4Co4
+In:Co = 0.500 / 0.500
+E_form 0.100 eV/atom
+包から 122 meV/atom
+空間群 166 → 221
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="325.86" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="345.86" text-anchor="middle">In4Co4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Co3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.179 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 200 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>In3Co3
+In:Co = 0.500 / 0.500
+E_form 0.179 eV/atom
+包から 200 meV/atom
+空間群 166
+原子数 / 候補 6 / 6</title><circle cx="461.00" cy="297.44" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="317.44" text-anchor="middle">In3Co3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.268 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 290 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>In2Co2
+In:Co = 0.500 / 0.500
+E_form 0.268 eV/atom
+包から 290 meV/atom
+空間群 194
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="264.92" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="250.92" text-anchor="middle">In2Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In5Co5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.346 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 368 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 4"><title>In5Co5
+In:Co = 0.500 / 0.500
+E_form 0.346 eV/atom
+包から 368 meV/atom
+空間群 166
+原子数 / 候補 10 / 4</title><circle cx="461.00" cy="236.57" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="256.57" text-anchor="middle">In5Co5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4Co5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.161 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 180 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>In4Co5
+In:Co = 0.444 / 0.556
+E_form 0.161 eV/atom
+包から 180 meV/atom
+空間群 166
+原子数 / 候補 9 / 6</title><circle cx="503.78" cy="303.94" r="5" fill="var(--h3)"/><text class="plabel" x="503.78" y="289.94" text-anchor="middle">In4Co5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Co4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.326 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 344 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>In3Co4
+In:Co = 0.429 / 0.571
+E_form 0.326 eV/atom
+包から 344 meV/atom
+空間群 166
+原子数 / 候補 7 / 6</title><circle cx="516.00" cy="243.94" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="229.94" text-anchor="middle">In3Co4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4Co6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.199 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 216 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 160&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 8"><title>In4Co6
+In:Co = 0.400 / 0.600
+E_form 0.199 eV/atom
+包から 216 meV/atom
+空間群 160
+原子数 / 候補 10 / 8</title><circle cx="538.00" cy="290.00" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="276.00" text-anchor="middle">In4Co6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Co3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.275 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 292 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>In2Co3
+In:Co = 0.400 / 0.600
+E_form 0.275 eV/atom
+包から 292 meV/atom
+空間群 166
+原子数 / 候補 5 / 6</title><circle cx="538.00" cy="262.30" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="282.30" text-anchor="middle">In2Co3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Co5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.210 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 226 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>In3Co5
+In:Co = 0.375 / 0.625
+E_form 0.210 eV/atom
+包から 226 meV/atom
+空間群 166
+原子数 / 候補 8 / 6</title><circle cx="557.25" cy="285.97" r="5" fill="var(--meta)"/><text class="plabel" x="557.25" y="305.97" text-anchor="middle">In3Co5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InCo2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.146 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 160 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 2"><title>InCo2
+In:Co = 0.333 / 0.667
+E_form 0.146 eV/atom
+包から 160 meV/atom
+空間群 139
+原子数 / 候補 3 / 2</title><circle cx="589.33" cy="309.31" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="329.31" text-anchor="middle">InCo2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Co4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.213 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 227 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>In2Co4
+In:Co = 0.333 / 0.667
+E_form 0.213 eV/atom
+包から 227 meV/atom
+空間群 166
+原子数 / 候補 6 / 6</title><circle cx="589.33" cy="285.10" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="271.10" text-anchor="middle">In2Co4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Co6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.243 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 257 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 160&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>In3Co6
+In:Co = 0.333 / 0.667
+E_form 0.243 eV/atom
+包から 257 meV/atom
+空間群 160
+原子数 / 候補 9 / 6</title><circle cx="589.33" cy="274.03" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="294.03" text-anchor="middle">In3Co6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Co7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.158 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 171 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 5"><title>In3Co7
+In:Co = 0.300 / 0.700
+E_form 0.158 eV/atom
+包から 171 meV/atom
+空間群 166
+原子数 / 候補 10 / 5</title><circle cx="615.00" cy="305.03" r="5" fill="var(--h3)"/><text class="plabel" x="615.00" y="325.03" text-anchor="middle">In3Co7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Co5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.311 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 323 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 5"><title>In2Co5
+In:Co = 0.286 / 0.714
+E_form 0.311 eV/atom
+包から 323 meV/atom
+空間群 166
+原子数 / 候補 7 / 5</title><circle cx="626.00" cy="249.34" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="235.34" text-anchor="middle">In2Co5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Co6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.089 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 99 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>In2Co6
+In:Co = 0.250 / 0.750
+E_form 0.089 eV/atom
+包から 99 meV/atom
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="330.14" r="5" fill="var(--h2)"/><text class="plabel" x="653.50" y="316.14" text-anchor="middle">In2Co6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InCo3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.136 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 146 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>InCo3
+In:Co = 0.250 / 0.750
+E_form 0.136 eV/atom
+包から 146 meV/atom
+空間群 225
+原子数 / 候補 4 / 6</title><circle cx="653.50" cy="313.08" r="5" fill="var(--h3)"/><text class="plabel" x="653.50" y="333.08" text-anchor="middle">InCo3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Co7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.163 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 172 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 5"><title>In2Co7
+In:Co = 0.222 / 0.778
+E_form 0.163 eV/atom
+包から 172 meV/atom
+空間群 166
+原子数 / 候補 9 / 5</title><circle cx="674.89" cy="303.28" r="5" fill="var(--h3)"/><text class="plabel" x="674.89" y="323.28" text-anchor="middle">In2Co7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Co8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.144 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 152 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>In2Co8
+In:Co = 0.200 / 0.800
+E_form 0.144 eV/atom
+包から 152 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="310.18" r="5" fill="var(--h3)"/><text class="plabel" x="692.00" y="330.18" text-anchor="middle">In2Co8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InCo4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.745 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 754 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>InCo4
+In:Co = 0.200 / 0.800
+E_form 0.745 eV/atom
+包から 754 meV/atom
+空間群 221
+原子数 / 候補 5 / 3</title><circle cx="692.00" cy="91.74" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="77.74" text-anchor="middle">InCo4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InCo5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.470 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 478 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>InCo5
+In:Co = 0.167 / 0.833
+E_form 0.470 eV/atom
+包から 478 meV/atom
+空間群 123
+原子数 / 候補 6 / 3</title><circle cx="717.67" cy="191.52" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="177.52" text-anchor="middle">InCo5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InCo6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.133 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 139 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>InCo6
+In:Co = 0.143 / 0.857
+E_form 0.133 eV/atom
+包から 139 meV/atom
+空間群 123
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="313.99" r="5" fill="var(--h3)"/><text class="plabel" x="736.00" y="299.99" text-anchor="middle">InCo6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InCo7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.084 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 89 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>InCo7
+In:Co = 0.125 / 0.875
+E_form 0.084 eV/atom
+包から 89 meV/atom
+空間群 123
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="331.78" r="5" fill="var(--h2)"/><text class="plabel" x="749.75" y="317.78" text-anchor="middle">InCo7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InCo8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.226 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 231 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>InCo8
+In:Co = 0.111 / 0.889
+E_form 0.226 eV/atom
+包から 231 meV/atom
+空間群 166
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="280.09" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="266.09" text-anchor="middle">InCo8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InCo9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.107 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 111 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>InCo9
+In:Co = 0.100 / 0.900
+E_form 0.107 eV/atom
+包から 111 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="769.00" cy="323.61" r="5" fill="var(--h3)"/><text class="plabel" x="769.00" y="343.61" text-anchor="middle">InCo9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Co8
+In:Co = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="362.23" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="348.23" text-anchor="middle">Co8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Co4
+In:Co = 0.000 / 1.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 11
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="361.07" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="381.07" text-anchor="middle">Co4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.009 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 9 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>Co
+In:Co = 0.000 / 1.000
+E_form 0.009 eV/atom
+包から 9 meV/atom
+空間群 225
+原子数 / 候補 1 / 6</title><circle cx="846.00" cy="358.89" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="378.89" text-anchor="middle">Co</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.102 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 102 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Co6
+In:Co = 0.000 / 1.000
+E_form 0.102 eV/atom
+包から 102 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="325.24" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="311.24" text-anchor="middle">Co6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co14&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.241 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 241 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 14 / 6"><title>Co14
+In:Co = 0.000 / 1.000
+E_form 0.241 eV/atom
+包から 241 meV/atom
+空間群 194
+原子数 / 候補 14 / 6</title><circle cx="846.00" cy="274.97" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="260.97" text-anchor="middle">Co14</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.295 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 295 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Co10
+In:Co = 0.000 / 1.000
+E_form 0.295 eV/atom
+包から 295 meV/atom
+空間群 194
+原子数 / 候補 10 / 6</title><circle cx="846.00" cy="255.37" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="275.37" text-anchor="middle">Co10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.441 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 441 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>Co3
+In:Co = 0.000 / 1.000
+E_form 0.441 eV/atom
+包から 441 meV/atom
+空間群 166 → 191
+原子数 / 候補 3 / 6</title><circle cx="846.00" cy="202.09" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="188.09" text-anchor="middle">Co3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co12&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.452 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 452 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 224 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 8"><title>Co12
+In:Co = 0.000 / 1.000
+E_form 0.452 eV/atom
+包から 452 meV/atom
+空間群 224 → 225
+原子数 / 候補 12 / 8</title><circle cx="846.00" cy="198.27" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="218.27" text-anchor="middle">Co12</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.683 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 683 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Co9
+In:Co = 0.000 / 1.000
+E_form 0.683 eV/atom
+包から 683 meV/atom
+空間群 221
+原子数 / 候補 9 / 3</title><circle cx="846.00" cy="114.21" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="100.21" text-anchor="middle">Co9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.824 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 824 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Co7
+In:Co = 0.000 / 1.000
+E_form 0.824 eV/atom
+包から 824 meV/atom
+空間群 221
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="49.35" text-anchor="middle">Co7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>In
+In:Co = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 225
+原子数 / 候補 1 / 6</title><circle cx="76.00" cy="362.27" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="382.27" text-anchor="middle">In</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In8Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.034 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 127 → 97&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>In8Co2
+In:Co = 0.800 / 0.200
+E_form -0.034 eV/atom
+包から 0（凸包上）
+空間群 127 → 97
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="230.00" y="360.65" text-anchor="middle">In8Co2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Co2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Co&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 12"><title>Co2
+In:Co = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 2 / 12</title><circle cx="846.00" cy="362.27" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="382.27" text-anchor="middle">Co2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">In</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">In8Co2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Co2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">In2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">In6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co</span><span class="bar-track"><span class="bar-fill" style="width:1.13%;background:var(--h1)"></span></span><span class="bar-val">9 meV</span></li>
+<li class="bar-row"><span class="bar-name">In8</span><span class="bar-track"><span class="bar-fill" style="width:2.49%;background:var(--h1)"></span></span><span class="bar-val">21 meV</span></li>
+<li class="bar-row"><span class="bar-name">In5</span><span class="bar-track"><span class="bar-fill" style="width:2.56%;background:var(--h1)"></span></span><span class="bar-val">21 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Co</span><span class="bar-track"><span class="bar-fill" style="width:2.56%;background:var(--h1)"></span></span><span class="bar-val">21 meV</span></li>
+<li class="bar-row"><span class="bar-name">In8Co</span><span class="bar-track"><span class="bar-fill" style="width:5.48%;background:var(--h1)"></span></span><span class="bar-val">45 meV</span></li>
+<li class="bar-row"><span class="bar-name">In7</span><span class="bar-track"><span class="bar-fill" style="width:7.03%;background:var(--h2)"></span></span><span class="bar-val">58 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Co</span><span class="bar-track"><span class="bar-fill" style="width:7.31%;background:var(--h2)"></span></span><span class="bar-val">60 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Co2</span><span class="bar-track"><span class="bar-fill" style="width:8.15%;background:var(--h2)"></span></span><span class="bar-val">67 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3</span><span class="bar-track"><span class="bar-fill" style="width:8.44%;background:var(--h2)"></span></span><span class="bar-val">70 meV</span></li>
+<li class="bar-row"><span class="bar-name">In10</span><span class="bar-track"><span class="bar-fill" style="width:9.07%;background:var(--h2)"></span></span><span class="bar-val">75 meV</span></li>
+<li class="bar-row"><span class="bar-name">InCo7</span><span class="bar-track"><span class="bar-fill" style="width:10.84%;background:var(--h2)"></span></span><span class="bar-val">89 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Co6</span><span class="bar-track"><span class="bar-fill" style="width:12.03%;background:var(--h2)"></span></span><span class="bar-val">99 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co6</span><span class="bar-track"><span class="bar-fill" style="width:12.39%;background:var(--h3)"></span></span><span class="bar-val">102 meV</span></li>
+<li class="bar-row"><span class="bar-name">InCo9</span><span class="bar-track"><span class="bar-fill" style="width:13.44%;background:var(--h3)"></span></span><span class="bar-val">111 meV</span></li>
+<li class="bar-row"><span class="bar-name">InCo</span><span class="bar-track"><span class="bar-fill" style="width:14.75%;background:var(--h3)"></span></span><span class="bar-val">122 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4Co4</span><span class="bar-track"><span class="bar-fill" style="width:14.78%;background:var(--h3)"></span></span><span class="bar-val">122 meV</span></li>
+<li class="bar-row"><span class="bar-name">In7Co2</span><span class="bar-track"><span class="bar-fill" style="width:15.28%;background:var(--h3)"></span></span><span class="bar-val">126 meV</span></li>
+<li class="bar-row"><span class="bar-name">InCo6</span><span class="bar-track"><span class="bar-fill" style="width:16.89%;background:var(--h3)"></span></span><span class="bar-val">139 meV</span></li>
+<li class="bar-row"><span class="bar-name">InCo3</span><span class="bar-track"><span class="bar-fill" style="width:17.75%;background:var(--h3)"></span></span><span class="bar-val">146 meV</span></li>
+<li class="bar-row"><span class="bar-name">In9</span><span class="bar-track"><span class="bar-fill" style="width:18.25%;background:var(--h3)"></span></span><span class="bar-val">150 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Co8</span><span class="bar-track"><span class="bar-fill" style="width:18.46%;background:var(--h3)"></span></span><span class="bar-val">152 meV</span></li>
+<li class="bar-row"><span class="bar-name">InCo2</span><span class="bar-track"><span class="bar-fill" style="width:19.44%;background:var(--h3)"></span></span><span class="bar-val">160 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Co7</span><span class="bar-track"><span class="bar-fill" style="width:20.70%;background:var(--h3)"></span></span><span class="bar-val">171 meV</span></li>
+<li class="bar-row"><span class="bar-name">In6Co2</span><span class="bar-track"><span class="bar-fill" style="width:20.85%;background:var(--h3)"></span></span><span class="bar-val">172 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Co7</span><span class="bar-track"><span class="bar-fill" style="width:20.89%;background:var(--h3)"></span></span><span class="bar-val">172 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4Co5</span><span class="bar-track"><span class="bar-fill" style="width:21.81%;background:var(--h3)"></span></span><span class="bar-val">180 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4Co2</span><span class="bar-track"><span class="bar-fill" style="width:22.62%;background:var(--h3)"></span></span><span class="bar-val">186 meV</span></li>
+<li class="bar-row"><span class="bar-name">In7Co</span><span class="bar-track"><span class="bar-fill" style="width:23.04%;background:var(--h3)"></span></span><span class="bar-val">190 meV</span></li>
+<li class="bar-row"><span class="bar-name">In6Co4</span><span class="bar-track"><span class="bar-fill" style="width:23.32%;background:var(--h3)"></span></span><span class="bar-val">192 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Co3</span><span class="bar-track"><span class="bar-fill" style="width:24.29%;background:var(--meta)"></span></span><span class="bar-val">200 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4Co</span><span class="bar-track"><span class="bar-fill" style="width:25.49%;background:var(--meta)"></span></span><span class="bar-val">210 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4Co6</span><span class="bar-track"><span class="bar-fill" style="width:26.24%;background:var(--meta)"></span></span><span class="bar-val">216 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Co5</span><span class="bar-track"><span class="bar-fill" style="width:27.47%;background:var(--meta)"></span></span><span class="bar-val">226 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Co4</span><span class="bar-track"><span class="bar-fill" style="width:27.54%;background:var(--meta)"></span></span><span class="bar-val">227 meV</span></li>
+<li class="bar-row"><span class="bar-name">InCo8</span><span class="bar-track"><span class="bar-fill" style="width:28.06%;background:var(--meta)"></span></span><span class="bar-val">231 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co14</span><span class="bar-track"><span class="bar-fill" style="width:29.20%;background:var(--meta)"></span></span><span class="bar-val">241 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Co6</span><span class="bar-track"><span class="bar-fill" style="width:31.24%;background:var(--meta)"></span></span><span class="bar-val">257 meV</span></li>
+<li class="bar-row"><span class="bar-name">In5Co</span><span class="bar-track"><span class="bar-fill" style="width:32.59%;background:var(--meta)"></span></span><span class="bar-val">268 meV</span></li>
+<li class="bar-row"><span class="bar-name">In6Co</span><span class="bar-track"><span class="bar-fill" style="width:32.96%;background:var(--meta)"></span></span><span class="bar-val">271 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Co2</span><span class="bar-track"><span class="bar-fill" style="width:35.15%;background:var(--meta)"></span></span><span class="bar-val">290 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Co3</span><span class="bar-track"><span class="bar-fill" style="width:35.51%;background:var(--meta)"></span></span><span class="bar-val">292 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co10</span><span class="bar-track"><span class="bar-fill" style="width:35.76%;background:var(--meta)"></span></span><span class="bar-val">295 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Co5</span><span class="bar-track"><span class="bar-fill" style="width:39.26%;background:var(--meta)"></span></span><span class="bar-val">323 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Co4</span><span class="bar-track"><span class="bar-fill" style="width:41.80%;background:var(--meta)"></span></span><span class="bar-val">344 meV</span></li>
+<li class="bar-row"><span class="bar-name">In5Co5</span><span class="bar-track"><span class="bar-fill" style="width:44.64%;background:var(--meta)"></span></span><span class="bar-val">368 meV</span></li>
+<li class="bar-row"><span class="bar-name">In5Co4</span><span class="bar-track"><span class="bar-fill" style="width:46.63%;background:var(--meta)"></span></span><span class="bar-val">384 meV</span></li>
+<li class="bar-row"><span class="bar-name">In7Co3</span><span class="bar-track"><span class="bar-fill" style="width:48.14%;background:var(--meta)"></span></span><span class="bar-val">396 meV</span></li>
+<li class="bar-row"><span class="bar-name">In5Co2</span><span class="bar-track"><span class="bar-fill" style="width:51.33%;background:var(--meta)"></span></span><span class="bar-val">423 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co3</span><span class="bar-track"><span class="bar-fill" style="width:53.59%;background:var(--meta)"></span></span><span class="bar-val">441 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co12</span><span class="bar-track"><span class="bar-fill" style="width:54.86%;background:var(--meta)"></span></span><span class="bar-val">452 meV</span></li>
+<li class="bar-row"><span class="bar-name">InCo5</span><span class="bar-track"><span class="bar-fill" style="width:57.98%;background:var(--meta)"></span></span><span class="bar-val">478 meV</span></li>
+<li class="bar-row"><span class="bar-name">In9Co</span><span class="bar-track"><span class="bar-fill" style="width:64.15%;background:var(--meta)"></span></span><span class="bar-val">528 meV</span></li>
+<li class="bar-row"><span class="bar-name">In5Co3</span><span class="bar-track"><span class="bar-fill" style="width:64.41%;background:var(--meta)"></span></span><span class="bar-val">530 meV</span></li>
+<li class="bar-row"><span class="bar-name">In6Co3</span><span class="bar-track"><span class="bar-fill" style="width:66.22%;background:var(--meta)"></span></span><span class="bar-val">545 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4Co3</span><span class="bar-track"><span class="bar-fill" style="width:78.97%;background:var(--meta)"></span></span><span class="bar-val">650 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co9</span><span class="bar-track"><span class="bar-fill" style="width:82.99%;background:var(--meta)"></span></span><span class="bar-val">683 meV</span></li>
+<li class="bar-row"><span class="bar-name">InCo4</span><span class="bar-track"><span class="bar-fill" style="width:91.55%;background:var(--meta)"></span></span><span class="bar-val">754 meV</span></li>
+<li class="bar-row"><span class="bar-name">Co7</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">824 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 3 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>In</th><th>Co</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">In <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>225</td><td>1</td></tr>
+<tr class="stable"><td class="name">In8Co2 <span class="pill">凸包上</span></td><td>0.800</td><td>0.200</td><td>-0.0341</td><td>127 → 97</td><td>10</td></tr>
+<tr class="stable"><td class="name">Co2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>194</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>空間群は検出側を見る</h3><p>Co2In8 は要求 127（P4/mbm）に対し<b>検出 97（I422）</b>。緩和で対称性が変わっている。構造を語るときは 97 のほうを使うこと。</p></div><div class="note"><h3>端点</h3><p>Co2（hcp, 194）は当たっている。<b>In は 225（fcc）だが、実際の In は正方晶 I4/mmm（139）</b> —— fcc をわずかに歪ませた形で、差は数 meV/atom。In 側の高さがその分わずかに高く出る。</p></div><div class="note"><h3>20〜70 meV に準安定が密集する</h3><p>CoIn2 +21、CoIn8 +45、CoIn3 +60、Co2In3 +67 meV/atom。<b>実験の Co–In では CoIn2・CoIn3 が報告されている</b>が、ここではどちらも包の上に出た。<b>この差（20〜60 meV）は手法の分解能に近く、順位を言い切れない。</b> Co2In8 が唯一の安定相だという結論は暫定である。</p></div></section>
+ <footer><span>aiida-shotgun-csp 6.14.0 / MatterSim</span><span>spg_ranks=[1,2,3], basis=all（原子数の和 ≤ 10）</span><span>三元 Co–Fe–In の辺</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

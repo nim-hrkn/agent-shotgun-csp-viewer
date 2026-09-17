@@ -1,0 +1,665 @@
+<title>Ga–In 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Ga–In 相図</h1>
+  <p class="lede">Ga–In を 65 組成分の緩和構造で評価した。<b>下側凸包に載った化合物は 1 つも無い</b>（端点のみで包が閉じる）。この範囲では中間相を作らない、と読める。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>65</dd></div><div class="fact"><dt>凸包上</dt><dd>2</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>33</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Ga の原子分率。縦軸は端点（In, Ga）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Ga–In 相図">
+<line class="grid-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<text class="tick-text" x="64" y="378.65" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="309.32" y2="309.32"/>
+<text class="tick-text" x="64" y="313.32" text-anchor="end">0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="243.99" y2="243.99"/>
+<text class="tick-text" x="64" y="247.99" text-anchor="end">0.20</text>
+<line class="grid-line" x1="76" x2="846" y1="178.66" y2="178.66"/>
+<text class="tick-text" x="64" y="182.66" text-anchor="end">0.30</text>
+<line class="grid-line" x1="76" x2="846" y1="113.33" y2="113.33"/>
+<text class="tick-text" x="64" y="117.33" text-anchor="end">0.40</text>
+<line class="grid-line" x1="76" x2="846" y1="48.00" y2="48.00"/>
+<text class="tick-text" x="64" y="52.00" text-anchor="end">0.50</text>
+<line class="axis-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">In</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Ga</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Ga の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,374.65 846.00,374.65"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>In2
+In:Ga = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 166
+原子数 / 候補 2 / 9</title><circle cx="76.00" cy="374.58" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="360.58" text-anchor="middle">In2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>In4
+In:Ga = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 221 → 225
+原子数 / 候補 4 / 9</title><circle cx="76.00" cy="374.58" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.58" text-anchor="middle">In4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>In6
+In:Ga = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 64
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="373.99" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="393.99" text-anchor="middle">In6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.021 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 21 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>In8
+In:Ga = 1.000 / 0.000
+E_form 0.021 eV/atom
+包から 21 meV/atom
+空間群 229
+原子数 / 候補 8 / 9</title><circle cx="76.00" cy="361.25" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="381.25" text-anchor="middle">In8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.021 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 21 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>In5
+In:Ga = 1.000 / 0.000
+E_form 0.021 eV/atom
+包から 21 meV/atom
+空間群 166 → 229
+原子数 / 候補 5 / 6</title><circle cx="76.00" cy="360.86" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="380.86" text-anchor="middle">In5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.058 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 58 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>In7
+In:Ga = 1.000 / 0.000
+E_form 0.058 eV/atom
+包から 58 meV/atom
+空間群 229
+原子数 / 候補 7 / 6</title><circle cx="76.00" cy="336.82" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="322.82" text-anchor="middle">In7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.070 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 70 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>In3
+In:Ga = 1.000 / 0.000
+E_form 0.070 eV/atom
+包から 70 meV/atom
+空間群 166 → 191
+原子数 / 候補 3 / 3</title><circle cx="76.00" cy="329.24" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="349.24" text-anchor="middle">In3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.075 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 75 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 141&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>In10
+In:Ga = 1.000 / 0.000
+E_form 0.075 eV/atom
+包から 75 meV/atom
+空間群 141
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="325.84" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="345.84" text-anchor="middle">In10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.150 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 150 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>In9
+In:Ga = 1.000 / 0.000
+E_form 0.150 eV/atom
+包から 150 meV/atom
+空間群 221
+原子数 / 候補 9 / 6</title><circle cx="76.00" cy="276.46" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="262.46" text-anchor="middle">In9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In9Ga&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.034 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 34 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>In9Ga
+In:Ga = 0.900 / 0.100
+E_form 0.034 eV/atom
+包から 34 meV/atom
+空間群 71
+原子数 / 候補 10 / 9</title><circle cx="153.00" cy="352.69" r="5" fill="var(--h1)"/><text class="plabel" x="153.00" y="338.69" text-anchor="middle">In9Ga</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In8Ga&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.119 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 119 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 8"><title>In8Ga
+In:Ga = 0.889 / 0.111
+E_form 0.119 eV/atom
+包から 119 meV/atom
+空間群 65 → 1
+原子数 / 候補 9 / 8</title><circle cx="161.56" cy="297.23" r="5" fill="var(--h3)"/><text class="plabel" x="161.56" y="283.23" text-anchor="middle">In8Ga</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In7Ga&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.043 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 43 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>In7Ga
+In:Ga = 0.875 / 0.125
+E_form 0.043 eV/atom
+包から 43 meV/atom
+空間群 229
+原子数 / 候補 8 / 9</title><circle cx="172.25" cy="346.36" r="5" fill="var(--h1)"/><text class="plabel" x="172.25" y="366.36" text-anchor="middle">In7Ga</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In6Ga&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.104 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 104 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>In6Ga
+In:Ga = 0.857 / 0.143
+E_form 0.104 eV/atom
+包から 104 meV/atom
+空間群 65
+原子数 / 候補 7 / 9</title><circle cx="186.00" cy="306.70" r="5" fill="var(--h3)"/><text class="plabel" x="186.00" y="292.70" text-anchor="middle">In6Ga</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In5Ga&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.061 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 61 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>In5Ga
+In:Ga = 0.833 / 0.167
+E_form 0.061 eV/atom
+包から 61 meV/atom
+空間群 166
+原子数 / 候補 6 / 9</title><circle cx="204.33" cy="334.73" r="5" fill="var(--h2)"/><text class="plabel" x="204.33" y="320.73" text-anchor="middle">In5Ga</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4Ga&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.032 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 32 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>In4Ga
+In:Ga = 0.800 / 0.200
+E_form 0.032 eV/atom
+包から 32 meV/atom
+空間群 87
+原子数 / 候補 5 / 9</title><circle cx="230.00" cy="353.61" r="5" fill="var(--h1)"/><text class="plabel" x="230.00" y="339.61" text-anchor="middle">In4Ga</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In8Ga2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.078 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 78 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 141&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>In8Ga2
+In:Ga = 0.800 / 0.200
+E_form 0.078 eV/atom
+包から 78 meV/atom
+空間群 141
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="323.82" r="5" fill="var(--h2)"/><text class="plabel" x="230.00" y="343.82" text-anchor="middle">In8Ga2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In7Ga2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.060 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 60 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>In7Ga2
+In:Ga = 0.778 / 0.222
+E_form 0.060 eV/atom
+包から 60 meV/atom
+空間群 71
+原子数 / 候補 9 / 9</title><circle cx="247.11" cy="335.38" r="5" fill="var(--h2)"/><text class="plabel" x="247.11" y="355.38" text-anchor="middle">In7Ga2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Ga&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.037 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 37 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>In3Ga
+In:Ga = 0.750 / 0.250
+E_form 0.037 eV/atom
+包から 37 meV/atom
+空間群 221
+原子数 / 候補 4 / 9</title><circle cx="268.50" cy="350.34" r="5" fill="var(--h1)"/><text class="plabel" x="268.50" y="370.34" text-anchor="middle">In3Ga</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In6Ga2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.045 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 45 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>In6Ga2
+In:Ga = 0.750 / 0.250
+E_form 0.045 eV/atom
+包から 45 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="345.25" r="5" fill="var(--h1)"/><text class="plabel" x="268.50" y="365.25" text-anchor="middle">In6Ga2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In5Ga2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.062 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 62 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>In5Ga2
+In:Ga = 0.714 / 0.286
+E_form 0.062 eV/atom
+包から 62 meV/atom
+空間群 166
+原子数 / 候補 7 / 9</title><circle cx="296.00" cy="334.40" r="5" fill="var(--h2)"/><text class="plabel" x="296.00" y="320.40" text-anchor="middle">In5Ga2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In7Ga3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.066 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 66 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>In7Ga3
+In:Ga = 0.700 / 0.300
+E_form 0.066 eV/atom
+包から 66 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="307.00" cy="331.40" r="5" fill="var(--h2)"/><text class="plabel" x="307.00" y="351.40" text-anchor="middle">In7Ga3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Ga&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.013 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 13 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 8"><title>In2Ga
+In:Ga = 0.667 / 0.333
+E_form 0.013 eV/atom
+包から 13 meV/atom
+空間群 225
+原子数 / 候補 3 / 8</title><circle cx="332.67" cy="366.35" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="386.35" text-anchor="middle">In2Ga</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In6Ga3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.016 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 16 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 8"><title>In6Ga3
+In:Ga = 0.667 / 0.333
+E_form 0.016 eV/atom
+包から 16 meV/atom
+空間群 71
+原子数 / 候補 9 / 8</title><circle cx="332.67" cy="364.52" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="384.52" text-anchor="middle">In6Ga3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4Ga2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.044 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 44 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>In4Ga2
+In:Ga = 0.667 / 0.333
+E_form 0.044 eV/atom
+包から 44 meV/atom
+空間群 194
+原子数 / 候補 6 / 9</title><circle cx="332.67" cy="345.90" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="365.90" text-anchor="middle">In4Ga2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In5Ga3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.061 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 61 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>In5Ga3
+In:Ga = 0.625 / 0.375
+E_form 0.061 eV/atom
+包から 61 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="364.75" cy="335.12" r="5" fill="var(--h2)"/><text class="plabel" x="364.75" y="321.12" text-anchor="middle">In5Ga3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Ga2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.051 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 51 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 8"><title>In3Ga2
+In:Ga = 0.600 / 0.400
+E_form 0.051 eV/atom
+包から 51 meV/atom
+空間群 166
+原子数 / 候補 5 / 8</title><circle cx="384.00" cy="341.07" r="5" fill="var(--h2)"/><text class="plabel" x="384.00" y="327.07" text-anchor="middle">In3Ga2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In6Ga4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.093 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 93 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 141&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>In6Ga4
+In:Ga = 0.600 / 0.400
+E_form 0.093 eV/atom
+包から 93 meV/atom
+空間群 141
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="313.89" r="5" fill="var(--h2)"/><text class="plabel" x="384.00" y="333.89" text-anchor="middle">In6Ga4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4Ga3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.037 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 37 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>In4Ga3
+In:Ga = 0.571 / 0.429
+E_form 0.037 eV/atom
+包から 37 meV/atom
+空間群 166
+原子数 / 候補 7 / 9</title><circle cx="406.00" cy="350.54" r="5" fill="var(--h1)"/><text class="plabel" x="406.00" y="336.54" text-anchor="middle">In4Ga3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In5Ga4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.077 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 77 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>In5Ga4
+In:Ga = 0.556 / 0.444
+E_form 0.077 eV/atom
+包から 77 meV/atom
+空間群 71
+原子数 / 候補 9 / 9</title><circle cx="418.22" cy="324.47" r="5" fill="var(--h2)"/><text class="plabel" x="418.22" y="344.47" text-anchor="middle">In5Ga4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Ga3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.041 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 41 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>In3Ga3
+In:Ga = 0.500 / 0.500
+E_form 0.041 eV/atom
+包から 41 meV/atom
+空間群 166
+原子数 / 候補 6 / 9</title><circle cx="461.00" cy="347.93" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="333.93" text-anchor="middle">In3Ga3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Ga2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.051 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 51 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>In2Ga2
+In:Ga = 0.500 / 0.500
+E_form 0.051 eV/atom
+包から 51 meV/atom
+空間群 194
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="341.39" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="361.39" text-anchor="middle">In2Ga2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4Ga4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.062 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 62 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>In4Ga4
+In:Ga = 0.500 / 0.500
+E_form 0.062 eV/atom
+包から 62 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="334.14" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="354.14" text-anchor="middle">In4Ga4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In5Ga5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.066 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 66 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>In5Ga5
+In:Ga = 0.500 / 0.500
+E_form 0.066 eV/atom
+包から 66 meV/atom
+空間群 71
+原子数 / 候補 10 / 9</title><circle cx="461.00" cy="331.27" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="351.27" text-anchor="middle">In5Ga5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InGa&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.115 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 115 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>InGa
+In:Ga = 0.500 / 0.500
+E_form 0.115 eV/atom
+包から 115 meV/atom
+空間群 191
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="299.32" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="285.32" text-anchor="middle">InGa</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4Ga5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.064 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 64 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>In4Ga5
+In:Ga = 0.444 / 0.556
+E_form 0.064 eV/atom
+包から 64 meV/atom
+空間群 71
+原子数 / 候補 9 / 9</title><circle cx="503.78" cy="332.64" r="5" fill="var(--h2)"/><text class="plabel" x="503.78" y="318.64" text-anchor="middle">In4Ga5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Ga4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.046 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 46 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>In3Ga4
+In:Ga = 0.429 / 0.571
+E_form 0.046 eV/atom
+包から 46 meV/atom
+空間群 166
+原子数 / 候補 7 / 9</title><circle cx="516.00" cy="344.59" r="5" fill="var(--h1)"/><text class="plabel" x="516.00" y="330.59" text-anchor="middle">In3Ga4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Ga3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.027 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 27 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>In2Ga3
+In:Ga = 0.400 / 0.600
+E_form 0.027 eV/atom
+包から 27 meV/atom
+空間群 166
+原子数 / 候補 5 / 9</title><circle cx="538.00" cy="356.81" r="5" fill="var(--h1)"/><text class="plabel" x="538.00" y="342.81" text-anchor="middle">In2Ga3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In4Ga6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.051 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 51 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>In4Ga6
+In:Ga = 0.400 / 0.600
+E_form 0.051 eV/atom
+包から 51 meV/atom
+空間群 139
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="341.26" r="5" fill="var(--h2)"/><text class="plabel" x="538.00" y="361.26" text-anchor="middle">In4Ga6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Ga5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.048 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 48 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>In3Ga5
+In:Ga = 0.375 / 0.625
+E_form 0.048 eV/atom
+包から 48 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="557.25" cy="343.42" r="5" fill="var(--h1)"/><text class="plabel" x="557.25" y="363.42" text-anchor="middle">In3Ga5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InGa2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.039 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 39 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>InGa2
+In:Ga = 0.333 / 0.667
+E_form 0.039 eV/atom
+包から 39 meV/atom
+空間群 216
+原子数 / 候補 3 / 9</title><circle cx="589.33" cy="348.91" r="5" fill="var(--h1)"/><text class="plabel" x="589.33" y="368.91" text-anchor="middle">InGa2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Ga6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.058 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 58 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>In3Ga6
+In:Ga = 0.333 / 0.667
+E_form 0.058 eV/atom
+包から 58 meV/atom
+空間群 166
+原子数 / 候補 9 / 9</title><circle cx="589.33" cy="336.75" r="5" fill="var(--h2)"/><text class="plabel" x="589.33" y="322.75" text-anchor="middle">In3Ga6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Ga4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.061 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 61 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>In2Ga4
+In:Ga = 0.333 / 0.667
+E_form 0.061 eV/atom
+包から 61 meV/atom
+空間群 166
+原子数 / 候補 6 / 9</title><circle cx="589.33" cy="334.53" r="5" fill="var(--h2)"/><text class="plabel" x="589.33" y="354.53" text-anchor="middle">In2Ga4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In3Ga7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.055 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 55 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>In3Ga7
+In:Ga = 0.300 / 0.700
+E_form 0.055 eV/atom
+包から 55 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="615.00" cy="338.78" r="5" fill="var(--h2)"/><text class="plabel" x="615.00" y="358.78" text-anchor="middle">In3Ga7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Ga5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.046 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 46 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>In2Ga5
+In:Ga = 0.286 / 0.714
+E_form 0.046 eV/atom
+包から 46 meV/atom
+空間群 166
+原子数 / 候補 7 / 9</title><circle cx="626.00" cy="344.66" r="5" fill="var(--h1)"/><text class="plabel" x="626.00" y="364.66" text-anchor="middle">In2Ga5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Ga6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.035 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 35 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>In2Ga6
+In:Ga = 0.250 / 0.750
+E_form 0.035 eV/atom
+包から 35 meV/atom
+空間群 194
+原子数 / 候補 8 / 8</title><circle cx="653.50" cy="351.98" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="371.98" text-anchor="middle">In2Ga6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InGa3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.038 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 38 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>InGa3
+In:Ga = 0.250 / 0.750
+E_form 0.038 eV/atom
+包から 38 meV/atom
+空間群 221
+原子数 / 候補 4 / 9</title><circle cx="653.50" cy="349.76" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="369.76" text-anchor="middle">InGa3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Ga7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.066 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 66 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>In2Ga7
+In:Ga = 0.222 / 0.778
+E_form 0.066 eV/atom
+包から 66 meV/atom
+空間群 87
+原子数 / 候補 9 / 9</title><circle cx="674.89" cy="331.53" r="5" fill="var(--h2)"/><text class="plabel" x="674.89" y="317.53" text-anchor="middle">In2Ga7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InGa4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.053 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 53 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 8"><title>InGa4
+In:Ga = 0.200 / 0.800
+E_form 0.053 eV/atom
+包から 53 meV/atom
+空間群 139
+原子数 / 候補 5 / 8</title><circle cx="692.00" cy="339.76" r="5" fill="var(--h2)"/><text class="plabel" x="692.00" y="325.76" text-anchor="middle">InGa4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In2Ga8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.093 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 93 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>In2Ga8
+In:Ga = 0.200 / 0.800
+E_form 0.093 eV/atom
+包から 93 meV/atom
+空間群 194
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="314.15" r="5" fill="var(--h2)"/><text class="plabel" x="692.00" y="334.15" text-anchor="middle">In2Ga8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InGa5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.029 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 29 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>InGa5
+In:Ga = 0.167 / 0.833
+E_form 0.029 eV/atom
+包から 29 meV/atom
+空間群 87 → 6
+原子数 / 候補 6 / 9</title><circle cx="717.67" cy="355.90" r="5" fill="var(--h1)"/><text class="plabel" x="717.67" y="341.90" text-anchor="middle">InGa5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InGa6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.076 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 76 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>InGa6
+In:Ga = 0.143 / 0.857
+E_form 0.076 eV/atom
+包から 76 meV/atom
+空間群 139
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="325.32" r="5" fill="var(--h2)"/><text class="plabel" x="736.00" y="311.32" text-anchor="middle">InGa6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InGa7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.049 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 49 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>InGa7
+In:Ga = 0.125 / 0.875
+E_form 0.049 eV/atom
+包から 49 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="342.70" r="5" fill="var(--h1)"/><text class="plabel" x="749.75" y="362.70" text-anchor="middle">InGa7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InGa8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.054 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 54 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>InGa8
+In:Ga = 0.111 / 0.889
+E_form 0.054 eV/atom
+包から 54 meV/atom
+空間群 166
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="339.69" r="5" fill="var(--h2)"/><text class="plabel" x="760.44" y="325.69" text-anchor="middle">InGa8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;InGa9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.047 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 47 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>InGa9
+In:Ga = 0.100 / 0.900
+E_form 0.047 eV/atom
+包から 47 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="769.00" cy="344.27" r="5" fill="var(--h1)"/><text class="plabel" x="769.00" y="330.27" text-anchor="middle">InGa9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ga2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>Ga2
+In:Ga = 0.000 / 1.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 2 / 9</title><circle cx="846.00" cy="374.25" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="360.25" text-anchor="middle">Ga2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ga8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.025 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 25 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>Ga8
+In:Ga = 0.000 / 1.000
+E_form 0.025 eV/atom
+包から 25 meV/atom
+空間群 64 → 71
+原子数 / 候補 8 / 8</title><circle cx="846.00" cy="358.12" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="378.12" text-anchor="middle">Ga8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ga3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.028 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 28 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Ga3
+In:Ga = 0.000 / 1.000
+E_form 0.028 eV/atom
+包から 28 meV/atom
+空間群 166
+原子数 / 候補 3 / 3</title><circle cx="846.00" cy="356.22" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="376.22" text-anchor="middle">Ga3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ga6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.029 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 29 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ga6
+In:Ga = 0.000 / 1.000
+E_form 0.029 eV/atom
+包から 29 meV/atom
+空間群 64
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="355.96" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="375.96" text-anchor="middle">Ga6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ga4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.030 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 30 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Ga4
+In:Ga = 0.000 / 1.000
+E_form 0.030 eV/atom
+包から 30 meV/atom
+空間群 64
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="354.98" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="374.98" text-anchor="middle">Ga4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ga5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.031 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 31 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Ga5
+In:Ga = 0.000 / 1.000
+E_form 0.031 eV/atom
+包から 31 meV/atom
+空間群 166
+原子数 / 候補 5 / 6</title><circle cx="846.00" cy="354.13" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="374.13" text-anchor="middle">Ga5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ga10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.071 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 71 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 141&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ga10
+In:Ga = 0.000 / 1.000
+E_form 0.071 eV/atom
+包から 71 meV/atom
+空間群 141
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="328.46" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="314.46" text-anchor="middle">Ga10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ga7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.088 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 88 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ga7
+In:Ga = 0.000 / 1.000
+E_form 0.088 eV/atom
+包から 88 meV/atom
+空間群 229
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="317.09" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="337.09" text-anchor="middle">Ga7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ga9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.477 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 477 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 204 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ga9
+In:Ga = 0.000 / 1.000
+E_form 0.477 eV/atom
+包から 477 meV/atom
+空間群 204 → 229
+原子数 / 候補 9 / 6</title><circle cx="846.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="49.35" text-anchor="middle">Ga9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;In&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>In
+In:Ga = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 225
+原子数 / 候補 1 / 6</title><circle cx="76.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="394.65" text-anchor="middle">In</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ga&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;In:Ga&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>Ga
+In:Ga = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 216 → 225
+原子数 / 候補 1 / 9</title><circle cx="846.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="394.65" text-anchor="middle">Ga</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">In</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Ga</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">In2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ga2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">In6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Ga</span><span class="bar-track"><span class="bar-fill" style="width:2.67%;background:var(--h1)"></span></span><span class="bar-val">13 meV</span></li>
+<li class="bar-row"><span class="bar-name">In6Ga3</span><span class="bar-track"><span class="bar-fill" style="width:3.25%;background:var(--h1)"></span></span><span class="bar-val">16 meV</span></li>
+<li class="bar-row"><span class="bar-name">In8</span><span class="bar-track"><span class="bar-fill" style="width:4.30%;background:var(--h1)"></span></span><span class="bar-val">21 meV</span></li>
+<li class="bar-row"><span class="bar-name">In5</span><span class="bar-track"><span class="bar-fill" style="width:4.43%;background:var(--h1)"></span></span><span class="bar-val">21 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ga8</span><span class="bar-track"><span class="bar-fill" style="width:5.31%;background:var(--h1)"></span></span><span class="bar-val">25 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Ga3</span><span class="bar-track"><span class="bar-fill" style="width:5.73%;background:var(--h1)"></span></span><span class="bar-val">27 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ga3</span><span class="bar-track"><span class="bar-fill" style="width:5.92%;background:var(--h1)"></span></span><span class="bar-val">28 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ga6</span><span class="bar-track"><span class="bar-fill" style="width:6.00%;background:var(--h1)"></span></span><span class="bar-val">29 meV</span></li>
+<li class="bar-row"><span class="bar-name">InGa5</span><span class="bar-track"><span class="bar-fill" style="width:6.02%;background:var(--h1)"></span></span><span class="bar-val">29 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ga4</span><span class="bar-track"><span class="bar-fill" style="width:6.32%;background:var(--h1)"></span></span><span class="bar-val">30 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ga5</span><span class="bar-track"><span class="bar-fill" style="width:6.59%;background:var(--h1)"></span></span><span class="bar-val">31 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4Ga</span><span class="bar-track"><span class="bar-fill" style="width:6.76%;background:var(--h1)"></span></span><span class="bar-val">32 meV</span></li>
+<li class="bar-row"><span class="bar-name">In9Ga</span><span class="bar-track"><span class="bar-fill" style="width:7.05%;background:var(--h1)"></span></span><span class="bar-val">34 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Ga6</span><span class="bar-track"><span class="bar-fill" style="width:7.28%;background:var(--h1)"></span></span><span class="bar-val">35 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4Ga3</span><span class="bar-track"><span class="bar-fill" style="width:7.74%;background:var(--h1)"></span></span><span class="bar-val">37 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Ga</span><span class="bar-track"><span class="bar-fill" style="width:7.81%;background:var(--h1)"></span></span><span class="bar-val">37 meV</span></li>
+<li class="bar-row"><span class="bar-name">InGa3</span><span class="bar-track"><span class="bar-fill" style="width:8.00%;background:var(--h1)"></span></span><span class="bar-val">38 meV</span></li>
+<li class="bar-row"><span class="bar-name">InGa2</span><span class="bar-track"><span class="bar-fill" style="width:8.27%;background:var(--h1)"></span></span><span class="bar-val">39 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Ga3</span><span class="bar-track"><span class="bar-fill" style="width:8.58%;background:var(--h1)"></span></span><span class="bar-val">41 meV</span></li>
+<li class="bar-row"><span class="bar-name">In7Ga</span><span class="bar-track"><span class="bar-fill" style="width:9.09%;background:var(--h1)"></span></span><span class="bar-val">43 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4Ga2</span><span class="bar-track"><span class="bar-fill" style="width:9.23%;background:var(--h1)"></span></span><span class="bar-val">44 meV</span></li>
+<li class="bar-row"><span class="bar-name">In6Ga2</span><span class="bar-track"><span class="bar-fill" style="width:9.44%;background:var(--h1)"></span></span><span class="bar-val">45 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Ga5</span><span class="bar-track"><span class="bar-fill" style="width:9.63%;background:var(--h1)"></span></span><span class="bar-val">46 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Ga4</span><span class="bar-track"><span class="bar-fill" style="width:9.65%;background:var(--h1)"></span></span><span class="bar-val">46 meV</span></li>
+<li class="bar-row"><span class="bar-name">InGa9</span><span class="bar-track"><span class="bar-fill" style="width:9.76%;background:var(--h1)"></span></span><span class="bar-val">47 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Ga5</span><span class="bar-track"><span class="bar-fill" style="width:10.03%;background:var(--h1)"></span></span><span class="bar-val">48 meV</span></li>
+<li class="bar-row"><span class="bar-name">InGa7</span><span class="bar-track"><span class="bar-fill" style="width:10.26%;background:var(--h1)"></span></span><span class="bar-val">49 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Ga2</span><span class="bar-track"><span class="bar-fill" style="width:10.68%;background:var(--h2)"></span></span><span class="bar-val">51 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4Ga6</span><span class="bar-track"><span class="bar-fill" style="width:10.72%;background:var(--h2)"></span></span><span class="bar-val">51 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Ga2</span><span class="bar-track"><span class="bar-fill" style="width:10.79%;background:var(--h2)"></span></span><span class="bar-val">51 meV</span></li>
+<li class="bar-row"><span class="bar-name">InGa4</span><span class="bar-track"><span class="bar-fill" style="width:11.21%;background:var(--h2)"></span></span><span class="bar-val">53 meV</span></li>
+<li class="bar-row"><span class="bar-name">InGa8</span><span class="bar-track"><span class="bar-fill" style="width:11.23%;background:var(--h2)"></span></span><span class="bar-val">54 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Ga7</span><span class="bar-track"><span class="bar-fill" style="width:11.52%;background:var(--h2)"></span></span><span class="bar-val">55 meV</span></li>
+<li class="bar-row"><span class="bar-name">In7</span><span class="bar-track"><span class="bar-fill" style="width:12.15%;background:var(--h2)"></span></span><span class="bar-val">58 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3Ga6</span><span class="bar-track"><span class="bar-fill" style="width:12.17%;background:var(--h2)"></span></span><span class="bar-val">58 meV</span></li>
+<li class="bar-row"><span class="bar-name">In7Ga2</span><span class="bar-track"><span class="bar-fill" style="width:12.61%;background:var(--h2)"></span></span><span class="bar-val">60 meV</span></li>
+<li class="bar-row"><span class="bar-name">In5Ga3</span><span class="bar-track"><span class="bar-fill" style="width:12.70%;background:var(--h2)"></span></span><span class="bar-val">61 meV</span></li>
+<li class="bar-row"><span class="bar-name">In5Ga</span><span class="bar-track"><span class="bar-fill" style="width:12.82%;background:var(--h2)"></span></span><span class="bar-val">61 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Ga4</span><span class="bar-track"><span class="bar-fill" style="width:12.89%;background:var(--h2)"></span></span><span class="bar-val">61 meV</span></li>
+<li class="bar-row"><span class="bar-name">In5Ga2</span><span class="bar-track"><span class="bar-fill" style="width:12.93%;background:var(--h2)"></span></span><span class="bar-val">62 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4Ga4</span><span class="bar-track"><span class="bar-fill" style="width:13.01%;background:var(--h2)"></span></span><span class="bar-val">62 meV</span></li>
+<li class="bar-row"><span class="bar-name">In4Ga5</span><span class="bar-track"><span class="bar-fill" style="width:13.49%;background:var(--h2)"></span></span><span class="bar-val">64 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Ga7</span><span class="bar-track"><span class="bar-fill" style="width:13.85%;background:var(--h2)"></span></span><span class="bar-val">66 meV</span></li>
+<li class="bar-row"><span class="bar-name">In7Ga3</span><span class="bar-track"><span class="bar-fill" style="width:13.89%;background:var(--h2)"></span></span><span class="bar-val">66 meV</span></li>
+<li class="bar-row"><span class="bar-name">In5Ga5</span><span class="bar-track"><span class="bar-fill" style="width:13.93%;background:var(--h2)"></span></span><span class="bar-val">66 meV</span></li>
+<li class="bar-row"><span class="bar-name">In3</span><span class="bar-track"><span class="bar-fill" style="width:14.59%;background:var(--h2)"></span></span><span class="bar-val">70 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ga10</span><span class="bar-track"><span class="bar-fill" style="width:14.84%;background:var(--h2)"></span></span><span class="bar-val">71 meV</span></li>
+<li class="bar-row"><span class="bar-name">In10</span><span class="bar-track"><span class="bar-fill" style="width:15.68%;background:var(--h2)"></span></span><span class="bar-val">75 meV</span></li>
+<li class="bar-row"><span class="bar-name">InGa6</span><span class="bar-track"><span class="bar-fill" style="width:15.84%;background:var(--h2)"></span></span><span class="bar-val">76 meV</span></li>
+<li class="bar-row"><span class="bar-name">In5Ga4</span><span class="bar-track"><span class="bar-fill" style="width:16.12%;background:var(--h2)"></span></span><span class="bar-val">77 meV</span></li>
+<li class="bar-row"><span class="bar-name">In8Ga2</span><span class="bar-track"><span class="bar-fill" style="width:16.33%;background:var(--h2)"></span></span><span class="bar-val">78 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ga7</span><span class="bar-track"><span class="bar-fill" style="width:18.49%;background:var(--h2)"></span></span><span class="bar-val">88 meV</span></li>
+<li class="bar-row"><span class="bar-name">In2Ga8</span><span class="bar-track"><span class="bar-fill" style="width:19.43%;background:var(--h2)"></span></span><span class="bar-val">93 meV</span></li>
+<li class="bar-row"><span class="bar-name">In6Ga4</span><span class="bar-track"><span class="bar-fill" style="width:19.52%;background:var(--h2)"></span></span><span class="bar-val">93 meV</span></li>
+<li class="bar-row"><span class="bar-name">In6Ga</span><span class="bar-track"><span class="bar-fill" style="width:21.83%;background:var(--h3)"></span></span><span class="bar-val">104 meV</span></li>
+<li class="bar-row"><span class="bar-name">InGa</span><span class="bar-track"><span class="bar-fill" style="width:24.20%;background:var(--h3)"></span></span><span class="bar-val">115 meV</span></li>
+<li class="bar-row"><span class="bar-name">In8Ga</span><span class="bar-track"><span class="bar-fill" style="width:24.87%;background:var(--h3)"></span></span><span class="bar-val">119 meV</span></li>
+<li class="bar-row"><span class="bar-name">In9</span><span class="bar-track"><span class="bar-fill" style="width:31.54%;background:var(--h3)"></span></span><span class="bar-val">150 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ga9</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">477 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 2 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>In</th><th>Ga</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">In <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>225</td><td>1</td></tr>
+<tr class="stable"><td class="name">Ga <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>216 → 225</td><td>1</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点が信用できるか</h3><p><b>基準を割り引いて読むもの</b><br><b>Ga</b>：検出 225（1 原子）。fcc (225) が基準になった。実在の α-Ga（Cmce、直方晶）には当たっていない。<br><b>Ga</b>：検出 141（10 原子）。fcc (225) が基準になった。実在の α-Ga（Cmce、直方晶）には当たっていない。<br><b>Ga</b>：検出 166（2 原子）。fcc (225) が基準になった。実在の α-Ga（Cmce、直方晶）には当たっていない。<br><b>Ga</b>：検出 166（3 原子）。fcc (225) が基準になった。実在の α-Ga（Cmce、直方晶）には当たっていない。<br><b>Ga</b>：検出 64（4 原子）。fcc (225) が基準になった。実在の α-Ga（Cmce、直方晶）には当たっていない。<br><b>Ga</b>：検出 166（5 原子）。fcc (225) が基準になった。実在の α-Ga（Cmce、直方晶）には当たっていない。<br><b>Ga</b>：検出 64（6 原子）。fcc (225) が基準になった。実在の α-Ga（Cmce、直方晶）には当たっていない。<br><b>Ga</b>：検出 229（7 原子）。fcc (225) が基準になった。実在の α-Ga（Cmce、直方晶）には当たっていない。<br><b>Ga</b>：検出 71（8 原子）。fcc (225) が基準になった。実在の α-Ga（Cmce、直方晶）には当たっていない。<br><b>Ga</b>：検出 229（9 原子）。fcc (225) が基準になった。実在の α-Ga（Cmce、直方晶）には当たっていない。<br><b>In</b>：検出 225（1 原子）。fcc (225) が基準になった。実在の In は fcc をわずかに正方歪ませた 139 である。<br><b>In</b>：検出 141（10 原子）。fcc (225) が基準になった。実在の In は fcc をわずかに正方歪ませた 139 である。<br><b>In</b>：検出 166（2 原子）。fcc (225) が基準になった。実在の In は fcc をわずかに正方歪ませた 139 である。<br><b>In</b>：検出 191（3 原子）。fcc (225) が基準になった。実在の In は fcc をわずかに正方歪ませた 139 である。<br><b>In</b>：検出 225（4 原子）。fcc (225) が基準になった。実在の In は fcc をわずかに正方歪ませた 139 である。<br><b>In</b>：検出 229（5 原子）。fcc (225) が基準になった。実在の In は fcc をわずかに正方歪ませた 139 である。<br><b>In</b>：検出 64（6 原子）。fcc (225) が基準になった。実在の In は fcc をわずかに正方歪ませた 139 である。<br><b>In</b>：検出 229（7 原子）。fcc (225) が基準になった。実在の In は fcc をわずかに正方歪ませた 139 である。<br><b>In</b>：検出 229（8 原子）。fcc (225) が基準になった。実在の In は fcc をわずかに正方歪ませた 139 である。<br><b>In</b>：検出 221（9 原子）。fcc (225) が基準になった。実在の In は fcc をわずかに正方歪ませた 139 である。<br><br>端点が実在相より高いと、生成エネルギーは深く出る。上の元素を含む相の深さはその分だけ割り引く。</p></div><div class="note"><h3>穴</h3><p>撒いたはずの 65 組成すべてで構造が出た。穴は 0。</p></div><div class="note"><h3>分解能</h3><p>数十 meV/atom の差はこの手法の分解能に近い。「包に載った／載らない」を 10 meV 差で言い切らないこと。また探索は 10 原子以下の基本胞に限っているので、それより大きい胞でしか組めない実在相には届かない。</p></div></section>
+ <footer><span>aiida-shotgun-csp 6.24.0</span><span>sweep = gain-lise-2026-09-11</span><span>stage = relaxed / 2026-09-11</span><span>spg_ranks = [1,2,3]</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

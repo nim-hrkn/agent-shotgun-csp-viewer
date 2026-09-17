@@ -1,0 +1,659 @@
+<title>Ca–O 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Ca–O 相図</h1>
+  <p class="lede">凸包に載った化合物は CaO ただ 1 つ。実在の Ca–O 系も安定相は CaO のみで、包の骨格は実在と一致する。cao-2026-09-02 掃引（45 組成）の完了を受けた相図。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>59</dd></div><div class="fact"><dt>凸包上</dt><dd>3</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>16</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は O の原子分率。縦軸は端点（Ca, O）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Ca–O 相図">
+<line class="grid-line" x1="76" x2="846" y1="411.54" y2="411.54"/>
+<text class="tick-text" x="64" y="415.54" text-anchor="end">-3.50</text>
+<line class="grid-line" x1="76" x2="846" y1="394.03" y2="394.03"/>
+<text class="tick-text" x="64" y="398.03" text-anchor="end">-3.25</text>
+<line class="grid-line" x1="76" x2="846" y1="376.52" y2="376.52"/>
+<text class="tick-text" x="64" y="380.52" text-anchor="end">-3.00</text>
+<line class="grid-line" x1="76" x2="846" y1="359.01" y2="359.01"/>
+<text class="tick-text" x="64" y="363.01" text-anchor="end">-2.75</text>
+<line class="grid-line" x1="76" x2="846" y1="341.51" y2="341.51"/>
+<text class="tick-text" x="64" y="345.51" text-anchor="end">-2.50</text>
+<line class="grid-line" x1="76" x2="846" y1="324.00" y2="324.00"/>
+<text class="tick-text" x="64" y="328.00" text-anchor="end">-2.25</text>
+<line class="grid-line" x1="76" x2="846" y1="306.49" y2="306.49"/>
+<text class="tick-text" x="64" y="310.49" text-anchor="end">-2.00</text>
+<line class="grid-line" x1="76" x2="846" y1="288.98" y2="288.98"/>
+<text class="tick-text" x="64" y="292.98" text-anchor="end">-1.75</text>
+<line class="grid-line" x1="76" x2="846" y1="271.47" y2="271.47"/>
+<text class="tick-text" x="64" y="275.47" text-anchor="end">-1.50</text>
+<line class="grid-line" x1="76" x2="846" y1="253.97" y2="253.97"/>
+<text class="tick-text" x="64" y="257.97" text-anchor="end">-1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="236.46" y2="236.46"/>
+<text class="tick-text" x="64" y="240.46" text-anchor="end">-1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="218.95" y2="218.95"/>
+<text class="tick-text" x="64" y="222.95" text-anchor="end">-0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="201.44" y2="201.44"/>
+<text class="tick-text" x="64" y="205.44" text-anchor="end">-0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="183.94" y2="183.94"/>
+<text class="tick-text" x="64" y="187.94" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="166.43" y2="166.43"/>
+<text class="tick-text" x="64" y="170.43" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="148.92" y2="148.92"/>
+<text class="tick-text" x="64" y="152.92" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="131.41" y2="131.41"/>
+<text class="tick-text" x="64" y="135.41" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="113.90" y2="113.90"/>
+<text class="tick-text" x="64" y="117.90" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="96.40" y2="96.40"/>
+<text class="tick-text" x="64" y="100.40" text-anchor="end">1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="78.89" y2="78.89"/>
+<text class="tick-text" x="64" y="82.89" text-anchor="end">1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="61.38" y2="61.38"/>
+<text class="tick-text" x="64" y="65.38" text-anchor="end">1.50</text>
+<line class="grid-line" x1="76" x2="846" y1="43.87" y2="43.87"/>
+<text class="tick-text" x="64" y="47.87" text-anchor="end">1.75</text>
+<line class="grid-line" x1="76" x2="846" y1="26.36" y2="26.36"/>
+<text class="tick-text" x="64" y="30.36" text-anchor="end">2.00</text>
+<line class="axis-line" x1="76" x2="846" y1="166.43" y2="166.43"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Ca</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">O</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">O の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,166.43 461.00,374.65 846.00,166.43"/>
+<line class="tie-drop" x1="461.00" x2="461.00" y1="374.65" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 7"><title>Ca2
+Ca:O = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 2 / 7</title><circle cx="76.00" cy="166.39" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="152.39" text-anchor="middle">Ca2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ca8
+Ca:O = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 64 → 63
+原子数 / 候補 8 / 9</title><circle cx="76.00" cy="166.39" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="186.39" text-anchor="middle">Ca8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 7"><title>Ca4
+Ca:O = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 194
+原子数 / 候補 4 / 7</title><circle cx="76.00" cy="166.36" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="186.36" text-anchor="middle">Ca4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Ca3
+Ca:O = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 3 / 3</title><circle cx="76.00" cy="166.36" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="186.36" text-anchor="middle">Ca3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.031 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 31 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ca7
+Ca:O = 1.000 / 0.000
+E_form 0.031 eV/atom
+包から 31 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="76.00" cy="164.24" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="184.24" text-anchor="middle">Ca7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.031 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 31 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ca6
+Ca:O = 1.000 / 0.000
+E_form 0.031 eV/atom
+包から 31 meV/atom
+空間群 64 → 69
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="164.24" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="184.24" text-anchor="middle">Ca6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.031 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 31 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ca10
+Ca:O = 1.000 / 0.000
+E_form 0.031 eV/atom
+包から 31 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="164.24" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="184.24" text-anchor="middle">Ca10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.031 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 31 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Ca5
+Ca:O = 1.000 / 0.000
+E_form 0.031 eV/atom
+包から 31 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="76.00" cy="164.23" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="184.23" text-anchor="middle">Ca5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.082 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 82 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ca9
+Ca:O = 1.000 / 0.000
+E_form 0.082 eV/atom
+包から 82 meV/atom
+空間群 166
+原子数 / 候補 9 / 3</title><circle cx="76.00" cy="160.67" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="180.67" text-anchor="middle">Ca9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca9O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.449 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 146 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189 → 38&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ca9O
+Ca:O = 0.900 / 0.100
+E_form -0.449 eV/atom
+包から 146 meV/atom
+空間群 189 → 38
+原子数 / 候補 10 / 9</title><circle cx="153.00" cy="197.86" r="5" fill="var(--h3)"/><text class="plabel" x="153.00" y="183.86" text-anchor="middle">Ca9O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca8O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.576 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 84 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ca8O
+Ca:O = 0.889 / 0.111
+E_form -0.576 eV/atom
+包から 84 meV/atom
+空間群 139
+原子数 / 候補 9 / 6</title><circle cx="161.56" cy="206.79" r="5" fill="var(--h2)"/><text class="plabel" x="161.56" y="192.79" text-anchor="middle">Ca8O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca7O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.548 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 196 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 5"><title>Ca7O
+Ca:O = 0.875 / 0.125
+E_form -0.548 eV/atom
+包から 196 meV/atom
+空間群 189
+原子数 / 候補 8 / 5</title><circle cx="172.25" cy="204.79" r="5" fill="var(--h3)"/><text class="plabel" x="172.25" y="224.79" text-anchor="middle">Ca7O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca6O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.643 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 207 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 2"><title>Ca6O
+Ca:O = 0.857 / 0.143
+E_form -0.643 eV/atom
+包から 207 meV/atom
+空間群 189
+原子数 / 候補 7 / 2</title><circle cx="186.00" cy="211.44" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="231.44" text-anchor="middle">Ca6O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca5O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.369 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 622 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>Ca5O
+Ca:O = 0.833 / 0.167
+E_form -0.369 eV/atom
+包から 622 meV/atom
+空間群 139
+原子数 / 候補 6 / 3</title><circle cx="204.33" cy="192.24" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="178.24" text-anchor="middle">Ca5O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca8O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.088 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 102 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 8"><title>Ca8O2
+Ca:O = 0.800 / 0.200
+E_form -1.088 eV/atom
+包から 102 meV/atom
+空間群 194
+原子数 / 候補 10 / 8</title><circle cx="230.00" cy="242.60" r="5" fill="var(--h3)"/><text class="plabel" x="230.00" y="228.60" text-anchor="middle">Ca8O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca4O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.070 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 119 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 8"><title>Ca4O
+Ca:O = 0.800 / 0.200
+E_form -1.070 eV/atom
+包から 119 meV/atom
+空間群 164
+原子数 / 候補 5 / 8</title><circle cx="230.00" cy="241.35" r="5" fill="var(--h3)"/><text class="plabel" x="230.00" y="261.35" text-anchor="middle">Ca4O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca7O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.409 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 912 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 2"><title>Ca7O2
+Ca:O = 0.778 / 0.222
+E_form -0.409 eV/atom
+包から 912 meV/atom
+空間群 139
+原子数 / 候補 9 / 2</title><circle cx="247.11" cy="195.09" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="181.09" text-anchor="middle">Ca7O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca6O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.275 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 212 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 140&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ca6O2
+Ca:O = 0.750 / 0.250
+E_form -1.275 eV/atom
+包から 212 meV/atom
+空間群 140
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="255.69" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="241.69" text-anchor="middle">Ca6O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca3O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.258 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 229 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>Ca3O
+Ca:O = 0.750 / 0.250
+E_form -1.258 eV/atom
+包から 229 meV/atom
+空間群 221
+原子数 / 候補 4 / 6</title><circle cx="268.50" cy="254.50" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="274.50" text-anchor="middle">Ca3O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca5O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.384 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 315 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 5"><title>Ca5O2
+Ca:O = 0.714 / 0.286
+E_form -1.384 eV/atom
+包から 315 meV/atom
+空間群 139 → 1
+原子数 / 候補 7 / 5</title><circle cx="296.00" cy="263.33" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="283.33" text-anchor="middle">Ca5O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca7O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.581 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1203 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 1"><title>Ca7O3
+Ca:O = 0.700 / 0.300
+E_form -0.581 eV/atom
+包から 1203 meV/atom
+空間群 139
+原子数 / 候補 10 / 1</title><circle cx="307.00" cy="207.12" r="5" fill="var(--meta)"/><text class="plabel" x="307.00" y="193.12" text-anchor="middle">Ca7O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca4O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.517 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 466 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ca4O2
+Ca:O = 0.667 / 0.333
+E_form -1.517 eV/atom
+包から 466 meV/atom
+空間群 194
+原子数 / 候補 6 / 9</title><circle cx="332.67" cy="272.63" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="258.63" text-anchor="middle">Ca4O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca2O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.116 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 866 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>Ca2O
+Ca:O = 0.667 / 0.333
+E_form -1.116 eV/atom
+包から 866 meV/atom
+空間群 166
+原子数 / 候補 3 / 6</title><circle cx="332.67" cy="244.60" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="264.60" text-anchor="middle">Ca2O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca3O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.178 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 201 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Ca3O2
+Ca:O = 0.600 / 0.400
+E_form -2.178 eV/atom
+包から 201 meV/atom
+空間群 139
+原子数 / 候補 5 / 3</title><circle cx="384.00" cy="318.93" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="304.93" text-anchor="middle">Ca3O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca6O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.995 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 384 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 55&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ca6O4
+Ca:O = 0.600 / 0.400
+E_form -1.995 eV/atom
+包から 384 meV/atom
+空間群 55
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="306.14" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="326.14" text-anchor="middle">Ca6O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca4O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.354 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 195 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ca4O3
+Ca:O = 0.571 / 0.429
+E_form -2.354 eV/atom
+包から 195 meV/atom
+空間群 139
+原子数 / 候補 7 / 3</title><circle cx="406.00" cy="331.25" r="5" fill="var(--h3)"/><text class="plabel" x="406.00" y="351.25" text-anchor="middle">Ca4O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca4O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.973 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 55 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 7"><title>Ca4O4
+Ca:O = 0.500 / 0.500
+E_form -2.973 eV/atom
+包から 0 meV/atom
+空間群 55 → 225
+原子数 / 候補 8 / 7</title><circle cx="461.00" cy="374.63" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="360.63" text-anchor="middle">Ca4O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca2O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.973 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Ca2O2
+Ca:O = 0.500 / 0.500
+E_form -2.973 eV/atom
+包から 0 meV/atom
+空間群 166
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="374.63" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="394.63" text-anchor="middle">Ca2O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca3O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.337 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 636 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>Ca3O3
+Ca:O = 0.500 / 0.500
+E_form -2.337 eV/atom
+包から 636 meV/atom
+空間群 139
+原子数 / 候補 6 / 3</title><circle cx="461.00" cy="330.11" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="316.11" text-anchor="middle">Ca3O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca5O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.216 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1758 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Ca5O5
+Ca:O = 0.500 / 0.500
+E_form -1.216 eV/atom
+包から 1758 meV/atom
+空間群 189
+原子数 / 候補 10 / 3</title><circle cx="461.00" cy="251.56" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="237.56" text-anchor="middle">Ca5O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca4O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.256 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 387 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ca4O5
+Ca:O = 0.444 / 0.556
+E_form -2.256 eV/atom
+包から 387 meV/atom
+空間群 189
+原子数 / 候補 9 / 3</title><circle cx="503.78" cy="324.41" r="5" fill="var(--meta)"/><text class="plabel" x="503.78" y="310.41" text-anchor="middle">Ca4O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca3O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.160 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 388 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ca3O4
+Ca:O = 0.429 / 0.571
+E_form -2.160 eV/atom
+包から 388 meV/atom
+空間群 139
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="317.72" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="337.72" text-anchor="middle">Ca3O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca4O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.268 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 111 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 14 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ca4O6
+Ca:O = 0.400 / 0.600
+E_form -2.268 eV/atom
+包から 111 meV/atom
+空間群 14 → 1
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="325.26" r="5" fill="var(--h3)"/><text class="plabel" x="538.00" y="345.26" text-anchor="middle">Ca4O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca2O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.227 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 152 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Ca2O3
+Ca:O = 0.400 / 0.600
+E_form -2.227 eV/atom
+包から 152 meV/atom
+空間群 12
+原子数 / 候補 5 / 6</title><circle cx="538.00" cy="322.35" r="5" fill="var(--h3)"/><text class="plabel" x="538.00" y="342.35" text-anchor="middle">Ca2O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca3O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.735 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 495 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Ca3O5
+Ca:O = 0.375 / 0.625
+E_form -1.735 eV/atom
+包から 495 meV/atom
+空間群 139
+原子数 / 候補 8 / 3</title><circle cx="557.25" cy="287.95" r="5" fill="var(--meta)"/><text class="plabel" x="557.25" y="273.95" text-anchor="middle">Ca3O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CaO2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.865 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 117 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>CaO2
+Ca:O = 0.333 / 0.667
+E_form -1.865 eV/atom
+包から 117 meV/atom
+空間群 139
+原子数 / 候補 3 / 9</title><circle cx="589.33" cy="297.04" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="283.04" text-anchor="middle">CaO2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca2O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.861 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 121 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 136&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ca2O4
+Ca:O = 0.333 / 0.667
+E_form -1.861 eV/atom
+包から 121 meV/atom
+空間群 136
+原子数 / 候補 6 / 9</title><circle cx="589.33" cy="296.76" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="316.76" text-anchor="middle">Ca2O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca2O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.226 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 473 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Ca2O5
+Ca:O = 0.286 / 0.714
+E_form -1.226 eV/atom
+包から 473 meV/atom
+空間群 139
+原子数 / 候補 7 / 3</title><circle cx="626.00" cy="252.31" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="238.31" text-anchor="middle">Ca2O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca2O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.365 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 122 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 15 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ca2O6
+Ca:O = 0.250 / 0.750
+E_form -1.365 eV/atom
+包から 122 meV/atom
+空間群 15 → 1
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="262.01" r="5" fill="var(--h3)"/><text class="plabel" x="653.50" y="248.01" text-anchor="middle">Ca2O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CaO3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.711 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 776 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>CaO3
+Ca:O = 0.250 / 0.750
+E_form -0.711 eV/atom
+包から 776 meV/atom
+空間群 166
+原子数 / 候補 4 / 9</title><circle cx="653.50" cy="216.21" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="202.21" text-anchor="middle">CaO3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca2O8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.041 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 148 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ca2O8
+Ca:O = 0.200 / 0.800
+E_form -1.041 eV/atom
+包から 148 meV/atom
+空間群 63 → 1
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="239.32" r="5" fill="var(--h3)"/><text class="plabel" x="692.00" y="225.32" text-anchor="middle">Ca2O8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CaO4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.972 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 217 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>CaO4
+Ca:O = 0.200 / 0.800
+E_form -0.972 eV/atom
+包から 217 meV/atom
+空間群 166
+原子数 / 候補 5 / 9</title><circle cx="692.00" cy="234.49" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="254.49" text-anchor="middle">CaO4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CaO5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.793 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 198 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>CaO5
+Ca:O = 0.167 / 0.833
+E_form -0.793 eV/atom
+包から 198 meV/atom
+空間群 87 → 1
+原子数 / 候補 6 / 6</title><circle cx="717.67" cy="221.93" r="5" fill="var(--h3)"/><text class="plabel" x="717.67" y="241.93" text-anchor="middle">CaO5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CaO6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.663 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 186 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>CaO6
+Ca:O = 0.143 / 0.857
+E_form -0.663 eV/atom
+包から 186 meV/atom
+空間群 87 → 1
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="212.87" r="5" fill="var(--h3)"/><text class="plabel" x="736.00" y="198.87" text-anchor="middle">CaO6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CaO7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.548 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 196 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 4&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>CaO7
+Ca:O = 0.125 / 0.875
+E_form -0.548 eV/atom
+包から 196 meV/atom
+空間群 87 → 4
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="204.78" r="5" fill="var(--h3)"/><text class="plabel" x="749.75" y="224.78" text-anchor="middle">CaO7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CaO8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.493 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 168 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>CaO8
+Ca:O = 0.111 / 0.889
+E_form -0.493 eV/atom
+包から 168 meV/atom
+空間群 166 → 1
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="200.95" r="5" fill="var(--h3)"/><text class="plabel" x="760.44" y="220.95" text-anchor="middle">CaO8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CaO9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.433 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 162 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 71 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>CaO9
+Ca:O = 0.100 / 0.900
+E_form -0.433 eV/atom
+包から 162 meV/atom
+空間群 71 → 1
+原子数 / 候補 10 / 9</title><circle cx="769.00" cy="196.74" r="5" fill="var(--h3)"/><text class="plabel" x="769.00" y="216.74" text-anchor="middle">CaO9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.004 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 9&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>O4
+Ca:O = 0.000 / 1.000
+E_form 0.004 eV/atom
+包から 4 meV/atom
+空間群 9
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="166.15" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="152.15" text-anchor="middle">O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.006 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>O6
+Ca:O = 0.000 / 1.000
+E_form 0.006 eV/atom
+包から 6 meV/atom
+空間群 12
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="165.99" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="185.99" text-anchor="middle">O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.011 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 11 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>O8
+Ca:O = 0.000 / 1.000
+E_form 0.011 eV/atom
+包から 11 meV/atom
+空間群 12
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="165.68" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="185.68" text-anchor="middle">O8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.152 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 152 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>O9
+Ca:O = 0.000 / 1.000
+E_form 0.152 eV/atom
+包から 152 meV/atom
+空間群 12 → 2
+原子数 / 候補 9 / 6</title><circle cx="846.00" cy="155.79" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="175.79" text-anchor="middle">O9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.213 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 213 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>O5
+Ca:O = 0.000 / 1.000
+E_form 0.213 eV/atom
+包から 213 meV/atom
+空間群 12 → 11
+原子数 / 候補 5 / 3</title><circle cx="846.00" cy="151.52" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="171.52" text-anchor="middle">O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.237 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 237 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 5&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>O10
+Ca:O = 0.000 / 1.000
+E_form 0.237 eV/atom
+包から 237 meV/atom
+空間群 12 → 5
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="149.82" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="169.82" text-anchor="middle">O10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.386 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 386 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>O3
+Ca:O = 0.000 / 1.000
+E_form 0.386 eV/atom
+包から 386 meV/atom
+空間群 12 → 11
+原子数 / 候補 3 / 6</title><circle cx="846.00" cy="139.40" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="159.40" text-anchor="middle">O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.497 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 497 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>O7
+Ca:O = 0.000 / 1.000
+E_form 0.497 eV/atom
+包から 497 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="131.59" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="117.59" text-anchor="middle">O7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.472 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1472 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>O
+Ca:O = 0.000 / 1.000
+E_form 1.472 eV/atom
+包から 1472 meV/atom
+空間群 12
+原子数 / 候補 1 / 9</title><circle cx="846.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="49.35" text-anchor="middle">O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ca&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>Ca
+Ca:O = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 225
+原子数 / 候補 1 / 9</title><circle cx="76.00" cy="166.43" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="186.43" text-anchor="middle">Ca</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;CaO&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.973 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>CaO
+Ca:O = 0.500 / 0.500
+E_form -2.973 eV/atom
+包から 0（凸包上）
+空間群 225
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="461.00" y="394.65" text-anchor="middle">CaO</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ca:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 17"><title>O2
+Ca:O = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 166 → 2
+原子数 / 候補 2 / 17</title><circle cx="846.00" cy="166.43" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="186.43" text-anchor="middle">O2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Ca</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">CaO</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">O2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Ca4O4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca2O2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">O4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">4 meV</span></li>
+<li class="bar-row"><span class="bar-name">O6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">O8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">11 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca7</span><span class="bar-track"><span class="bar-fill" style="width:1.78%;background:var(--h1)"></span></span><span class="bar-val">31 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca6</span><span class="bar-track"><span class="bar-fill" style="width:1.78%;background:var(--h1)"></span></span><span class="bar-val">31 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca10</span><span class="bar-track"><span class="bar-fill" style="width:1.78%;background:var(--h1)"></span></span><span class="bar-val">31 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca5</span><span class="bar-track"><span class="bar-fill" style="width:1.79%;background:var(--h1)"></span></span><span class="bar-val">31 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca9</span><span class="bar-track"><span class="bar-fill" style="width:4.68%;background:var(--h2)"></span></span><span class="bar-val">82 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca8O</span><span class="bar-track"><span class="bar-fill" style="width:4.80%;background:var(--h2)"></span></span><span class="bar-val">84 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca8O2</span><span class="bar-track"><span class="bar-fill" style="width:5.78%;background:var(--h3)"></span></span><span class="bar-val">102 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca4O6</span><span class="bar-track"><span class="bar-fill" style="width:6.29%;background:var(--h3)"></span></span><span class="bar-val">111 meV</span></li>
+<li class="bar-row"><span class="bar-name">CaO2</span><span class="bar-track"><span class="bar-fill" style="width:6.66%;background:var(--h3)"></span></span><span class="bar-val">117 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca4O</span><span class="bar-track"><span class="bar-fill" style="width:6.79%;background:var(--h3)"></span></span><span class="bar-val">119 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca2O4</span><span class="bar-track"><span class="bar-fill" style="width:6.89%;background:var(--h3)"></span></span><span class="bar-val">121 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca2O6</span><span class="bar-track"><span class="bar-fill" style="width:6.92%;background:var(--h3)"></span></span><span class="bar-val">122 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca9O</span><span class="bar-track"><span class="bar-fill" style="width:8.29%;background:var(--h3)"></span></span><span class="bar-val">146 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca2O8</span><span class="bar-track"><span class="bar-fill" style="width:8.44%;background:var(--h3)"></span></span><span class="bar-val">148 meV</span></li>
+<li class="bar-row"><span class="bar-name">O9</span><span class="bar-track"><span class="bar-fill" style="width:8.64%;background:var(--h3)"></span></span><span class="bar-val">152 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca2O3</span><span class="bar-track"><span class="bar-fill" style="width:8.65%;background:var(--h3)"></span></span><span class="bar-val">152 meV</span></li>
+<li class="bar-row"><span class="bar-name">CaO9</span><span class="bar-track"><span class="bar-fill" style="width:9.21%;background:var(--h3)"></span></span><span class="bar-val">162 meV</span></li>
+<li class="bar-row"><span class="bar-name">CaO8</span><span class="bar-track"><span class="bar-fill" style="width:9.54%;background:var(--h3)"></span></span><span class="bar-val">168 meV</span></li>
+<li class="bar-row"><span class="bar-name">CaO6</span><span class="bar-track"><span class="bar-fill" style="width:10.59%;background:var(--h3)"></span></span><span class="bar-val">186 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca4O3</span><span class="bar-track"><span class="bar-fill" style="width:11.09%;background:var(--h3)"></span></span><span class="bar-val">195 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca7O</span><span class="bar-track"><span class="bar-fill" style="width:11.12%;background:var(--h3)"></span></span><span class="bar-val">196 meV</span></li>
+<li class="bar-row"><span class="bar-name">CaO7</span><span class="bar-track"><span class="bar-fill" style="width:11.13%;background:var(--h3)"></span></span><span class="bar-val">196 meV</span></li>
+<li class="bar-row"><span class="bar-name">CaO5</span><span class="bar-track"><span class="bar-fill" style="width:11.29%;background:var(--h3)"></span></span><span class="bar-val">198 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca3O2</span><span class="bar-track"><span class="bar-fill" style="width:11.44%;background:var(--meta)"></span></span><span class="bar-val">201 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca6O</span><span class="bar-track"><span class="bar-fill" style="width:11.77%;background:var(--meta)"></span></span><span class="bar-val">207 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca6O2</span><span class="bar-track"><span class="bar-fill" style="width:12.06%;background:var(--meta)"></span></span><span class="bar-val">212 meV</span></li>
+<li class="bar-row"><span class="bar-name">O5</span><span class="bar-track"><span class="bar-fill" style="width:12.11%;background:var(--meta)"></span></span><span class="bar-val">213 meV</span></li>
+<li class="bar-row"><span class="bar-name">CaO4</span><span class="bar-track"><span class="bar-fill" style="width:12.36%;background:var(--meta)"></span></span><span class="bar-val">217 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca3O</span><span class="bar-track"><span class="bar-fill" style="width:13.03%;background:var(--meta)"></span></span><span class="bar-val">229 meV</span></li>
+<li class="bar-row"><span class="bar-name">O10</span><span class="bar-track"><span class="bar-fill" style="width:13.50%;background:var(--meta)"></span></span><span class="bar-val">237 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca5O2</span><span class="bar-track"><span class="bar-fill" style="width:17.93%;background:var(--meta)"></span></span><span class="bar-val">315 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca6O4</span><span class="bar-track"><span class="bar-fill" style="width:21.83%;background:var(--meta)"></span></span><span class="bar-val">384 meV</span></li>
+<li class="bar-row"><span class="bar-name">O3</span><span class="bar-track"><span class="bar-fill" style="width:21.96%;background:var(--meta)"></span></span><span class="bar-val">386 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca4O5</span><span class="bar-track"><span class="bar-fill" style="width:22.01%;background:var(--meta)"></span></span><span class="bar-val">387 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca3O4</span><span class="bar-track"><span class="bar-fill" style="width:22.08%;background:var(--meta)"></span></span><span class="bar-val">388 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca4O2</span><span class="bar-track"><span class="bar-fill" style="width:26.49%;background:var(--meta)"></span></span><span class="bar-val">466 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca2O5</span><span class="bar-track"><span class="bar-fill" style="width:26.89%;background:var(--meta)"></span></span><span class="bar-val">473 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca3O5</span><span class="bar-track"><span class="bar-fill" style="width:28.15%;background:var(--meta)"></span></span><span class="bar-val">495 meV</span></li>
+<li class="bar-row"><span class="bar-name">O7</span><span class="bar-track"><span class="bar-fill" style="width:28.30%;background:var(--meta)"></span></span><span class="bar-val">497 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca5O</span><span class="bar-track"><span class="bar-fill" style="width:35.41%;background:var(--meta)"></span></span><span class="bar-val">622 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca3O3</span><span class="bar-track"><span class="bar-fill" style="width:36.17%;background:var(--meta)"></span></span><span class="bar-val">636 meV</span></li>
+<li class="bar-row"><span class="bar-name">CaO3</span><span class="bar-track"><span class="bar-fill" style="width:44.14%;background:var(--meta)"></span></span><span class="bar-val">776 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca2O</span><span class="bar-track"><span class="bar-fill" style="width:49.27%;background:var(--meta)"></span></span><span class="bar-val">866 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca7O2</span><span class="bar-track"><span class="bar-fill" style="width:51.89%;background:var(--meta)"></span></span><span class="bar-val">912 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca7O3</span><span class="bar-track"><span class="bar-fill" style="width:68.43%;background:var(--meta)"></span></span><span class="bar-val">1203 meV</span></li>
+<li class="bar-row"><span class="bar-name">O</span><span class="bar-track"><span class="bar-fill" style="width:83.74%;background:var(--meta)"></span></span><span class="bar-val">1472 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ca5O5</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">1758 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 3 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Ca</th><th>O</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Ca <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>225</td><td>1</td></tr>
+<tr class="stable"><td class="name">CaO <span class="pill">凸包上</span></td><td>0.500</td><td>0.500</td><td>-2.9732</td><td>225</td><td>2</td></tr>
+<tr class="stable"><td class="name">O2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>166 → 2</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>Ca は fcc（225）で信用できる。O は分子性 O<sub>2</sub> 結晶が基準。酸化物の絶対深さは割引き、序列だけを読む。</p></div><div class="note"><h3>この系でいちばん効く但し書き</h3><p><b>酸素端点が分子性の O<sub>2</sub> セル（要求 166 → 検出 2）である。</b>実在の固体酸素（α-O<sub>2</sub>・C2/m）ではないので、<b>この系の生成エネルギーの絶対値はすべて O<sub>2</sub> 基準の取り方に引きずられる。</b>実際 CaO の -2.97 eV/atom は実測相当（約 -3.29 eV/atom）より浅い。<b>酸化物どうしの相対比較には使えるが、絶対値と、酸素過剰側の高さは割り引いて読むこと。</b></p></div><div class="note"><h3>この系の読み方</h3><p><b>CaO（岩塩型 225, -2973 meV）が唯一の安定化合物として載った。実在の Ca–O 系もこれ 1 つだけなので、包の骨格は正しい。</b>Ca<sub>4</sub>O<sub>4</sub>（55）と Ca<sub>2</sub>O<sub>2</sub>（166）が +0 meV に並ぶのは同じ CaO の別セルで、化合物が増えたわけではない。次に近い <b>CaO<sub>2</sub>（+117 meV・検出 139 = I4/mmm）は実在の過酸化カルシウムと同じ空間群</b>で、構造は当てているが高さが出すぎている疑いがある —— CaO の生成エネルギー -2.97 eV/atom も実測（-3.29 eV/atom 相当）より約 0.3 eV/atom 浅く、<b>両方とも O<sub>2</sub> 端点で説明が付く</b>（下記）。Ca 過剰側の Ca<sub>8</sub>O・Ca<sub>8</sub>O<sub>2</sub>・Ca<sub>4</sub>O は +84〜119 meV で、実在の Ca に亜酸化物が知られていないことと整合する（Rb・Cs のような亜酸化物系ではない）。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に Ca<sub>8</sub>O（+84 meV, spg 139）。分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴が 4 組成</h3><p>≤10 原子・既約 33 組成のうち 4 組成に点が無い（Ca<sub>2</sub>O<sub>7</sub>・Ca<sub>3</sub>O<sub>7</sub>・Ca<sub>5</sub>O<sub>3</sub>・Ca<sub>5</sub>O<sub>4</sub>）。gcd>1 も数える csp_coverage では 6 組成（Ca<sub>3</sub>O<sub>6</sub>・Ca<sub>6</sub>O<sub>3</sub> が加わる）。そこは「相が無い」ではなく「その空間群に載る Wyckoff 配置が作れなかった」である。</p></div><div class="note"><h3>exit 430 と穴は別物</h3><p>45 組成のうち 25 件が exit 430 で終わったが、<b>穴は 6 組成しかない</b>。430 は「3 つ試した空間群のうち 1〜2 つで配置が作れなかった」であって、残りの空間群からは構造が出ている。<b>430 の件数を穴の数と読み違えないこと。</b></p></div></section>
+ <footer><span>掃引 cao-2026-09-02（default: spg_ranks=[1,2,3]・scope=compounds・basis=all: gcd>1 込み・max_atoms=10）</span><span>振り分け mygarden6:mygardenx2:laurel = 1:3:6（4/14/27 件）</span><span>2026-09-02 取得 · group_by=structure 390 構造 · aiida-shotgun-csp 5.3.1</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

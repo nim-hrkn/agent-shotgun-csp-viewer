@@ -1,0 +1,596 @@
+<title>Na–S 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Na–S 相図</h1>
+  <p class="lede">凸包に載った化合物は Na<sub>2</sub>S、Na<sub>3</sub>S<sub>7</sub>。na-2026-08-29 掃引の完了を受けた相図。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>54</dd></div><div class="fact"><dt>凸包上</dt><dd>4</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>21</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は S の原子分率。縦軸は端点（Na, S）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Na–S 相図">
+<line class="grid-line" x1="76" x2="846" y1="401.42" y2="401.42"/>
+<text class="tick-text" x="64" y="405.42" text-anchor="end">-1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="349.13" y2="349.13"/>
+<text class="tick-text" x="64" y="353.13" text-anchor="end">-1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="296.84" y2="296.84"/>
+<text class="tick-text" x="64" y="300.84" text-anchor="end">-0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="244.56" y2="244.56"/>
+<text class="tick-text" x="64" y="248.56" text-anchor="end">-0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="192.27" y2="192.27"/>
+<text class="tick-text" x="64" y="196.27" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="139.99" y2="139.99"/>
+<text class="tick-text" x="64" y="143.99" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="87.70" y2="87.70"/>
+<text class="tick-text" x="64" y="91.70" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="35.41" y2="35.41"/>
+<text class="tick-text" x="64" y="39.41" text-anchor="end">0.50</text>
+<line class="axis-line" x1="76" x2="846" y1="139.99" y2="139.99"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Na</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">S</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">S の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,139.99 332.67,374.65 615.00,253.86 846.00,139.99"/>
+<line class="tie-drop" x1="332.67" x2="332.67" y1="374.65" y2="412"/>
+<line class="tie-drop" x1="615.00" x2="615.00" y1="253.86" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>Na
+Na:S = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 225
+原子数 / 候補 1 / 6</title><circle cx="76.00" cy="139.99" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="125.99" text-anchor="middle">Na</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>Na2
+Na:S = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 2 / 9</title><circle cx="76.00" cy="139.86" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="159.86" text-anchor="middle">Na2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>Na8
+Na:S = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 64
+原子数 / 候補 8 / 8</title><circle cx="76.00" cy="139.76" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="159.76" text-anchor="middle">Na8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Na4
+Na:S = 1.000 / 0.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 194
+原子数 / 候補 4 / 9</title><circle cx="76.00" cy="139.59" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="159.59" text-anchor="middle">Na4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.005 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 5 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Na6
+Na:S = 1.000 / 0.000
+E_form 0.005 eV/atom
+包から 5 meV/atom
+空間群 64 → 69
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="138.86" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="158.86" text-anchor="middle">Na6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.006 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Na5
+Na:S = 1.000 / 0.000
+E_form 0.006 eV/atom
+包から 6 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="76.00" cy="138.67" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="158.67" text-anchor="middle">Na5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.040 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 40 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Na7
+Na:S = 1.000 / 0.000
+E_form 0.040 eV/atom
+包から 40 meV/atom
+空間群 217
+原子数 / 候補 7 / 3</title><circle cx="76.00" cy="131.62" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="151.62" text-anchor="middle">Na7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.044 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 44 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Na10
+Na:S = 1.000 / 0.000
+E_form 0.044 eV/atom
+包から 44 meV/atom
+空間群 64
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="130.76" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="150.76" text-anchor="middle">Na10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.219 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 219 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Na9
+Na:S = 1.000 / 0.000
+E_form 0.219 eV/atom
+包から 219 meV/atom
+空間群 217
+原子数 / 候補 9 / 3</title><circle cx="76.00" cy="94.12" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="80.12" text-anchor="middle">Na9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na9S&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.181 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 155 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Na9S
+Na:S = 0.900 / 0.100
+E_form -0.181 eV/atom
+包から 155 meV/atom
+空間群 166
+原子数 / 候補 10 / 6</title><circle cx="153.00" cy="177.88" r="5" fill="var(--h3)"/><text class="plabel" x="153.00" y="163.88" text-anchor="middle">Na9S</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na8S&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.219 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 155 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Na8S
+Na:S = 0.889 / 0.111
+E_form -0.219 eV/atom
+包から 155 meV/atom
+空間群 166
+原子数 / 候補 9 / 6</title><circle cx="161.56" cy="185.87" r="5" fill="var(--h3)"/><text class="plabel" x="161.56" y="171.87" text-anchor="middle">Na8S</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na7S&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.251 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 170 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Na7S
+Na:S = 0.875 / 0.125
+E_form -0.251 eV/atom
+包から 170 meV/atom
+空間群 166
+原子数 / 候補 8 / 6</title><circle cx="172.25" cy="192.48" r="5" fill="var(--h3)"/><text class="plabel" x="172.25" y="178.48" text-anchor="middle">Na7S</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na6S&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.273 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 208 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Na6S
+Na:S = 0.857 / 0.143
+E_form -0.273 eV/atom
+包から 208 meV/atom
+空間群 166
+原子数 / 候補 7 / 9</title><circle cx="186.00" cy="196.98" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="182.98" text-anchor="middle">Na6S</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na5S&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.383 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 178 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>Na5S
+Na:S = 0.833 / 0.167
+E_form -0.383 eV/atom
+包から 178 meV/atom
+空間群 166
+原子数 / 候補 6 / 3</title><circle cx="204.33" cy="220.11" r="5" fill="var(--h3)"/><text class="plabel" x="204.33" y="206.11" text-anchor="middle">Na5S</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na4S&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.542 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 131 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Na4S
+Na:S = 0.800 / 0.200
+E_form -0.542 eV/atom
+包から 131 meV/atom
+空間群 221
+原子数 / 候補 5 / 6</title><circle cx="230.00" cy="253.40" r="5" fill="var(--h3)"/><text class="plabel" x="230.00" y="239.40" text-anchor="middle">Na4S</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na8S2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.477 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 196 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Na8S2
+Na:S = 0.800 / 0.200
+E_form -0.477 eV/atom
+包から 196 meV/atom
+空間群 187
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="239.71" r="5" fill="var(--h3)"/><text class="plabel" x="230.00" y="259.71" text-anchor="middle">Na8S2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na7S2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.596 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 152 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Na7S2
+Na:S = 0.778 / 0.222
+E_form -0.596 eV/atom
+包から 152 meV/atom
+空間群 166
+原子数 / 候補 9 / 3</title><circle cx="247.11" cy="264.61" r="5" fill="var(--h3)"/><text class="plabel" x="247.11" y="284.61" text-anchor="middle">Na7S2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na6S2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.716 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 126 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Na6S2
+Na:S = 0.750 / 0.250
+E_form -0.716 eV/atom
+包から 126 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="289.65" r="5" fill="var(--h3)"/><text class="plabel" x="268.50" y="309.65" text-anchor="middle">Na6S2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na3S&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.532 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 309 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Na3S
+Na:S = 0.750 / 0.250
+E_form -0.532 eV/atom
+包から 309 meV/atom
+空間群 221
+原子数 / 候補 4 / 9</title><circle cx="268.50" cy="251.27" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="237.27" text-anchor="middle">Na3S</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na5S2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.847 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 115 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 2"><title>Na5S2
+Na:S = 0.714 / 0.286
+E_form -0.847 eV/atom
+包から 115 meV/atom
+空間群 166
+原子数 / 候補 7 / 2</title><circle cx="296.00" cy="317.11" r="5" fill="var(--h3)"/><text class="plabel" x="296.00" y="337.11" text-anchor="middle">Na5S2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na7S3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.877 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 133 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Na7S3
+Na:S = 0.700 / 0.300
+E_form -0.877 eV/atom
+包から 133 meV/atom
+空間群 12
+原子数 / 候補 10 / 3</title><circle cx="307.00" cy="323.34" r="5" fill="var(--h3)"/><text class="plabel" x="307.00" y="343.34" text-anchor="middle">Na7S3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na4S2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.017 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 105 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 129&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Na4S2
+Na:S = 0.667 / 0.333
+E_form -1.017 eV/atom
+包から 105 meV/atom
+空間群 129
+原子数 / 候補 6 / 9</title><circle cx="332.67" cy="352.60" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="372.60" text-anchor="middle">Na4S2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na6S4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.876 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 141 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Na6S4
+Na:S = 0.600 / 0.400
+E_form -0.876 eV/atom
+包から 141 meV/atom
+空間群 194
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="323.20" r="5" fill="var(--h3)"/><text class="plabel" x="384.00" y="309.20" text-anchor="middle">Na6S4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na3S2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.823 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 194 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Na3S2
+Na:S = 0.600 / 0.400
+E_form -0.823 eV/atom
+包から 194 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="384.00" cy="312.05" r="5" fill="var(--h3)"/><text class="plabel" x="384.00" y="332.05" text-anchor="middle">Na3S2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na2S2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.798 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 62 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Na2S2
+Na:S = 0.500 / 0.500
+E_form -0.798 eV/atom
+包から 62 meV/atom
+空間群 194
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="306.86" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="292.86" text-anchor="middle">Na2S2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na4S4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.781 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 79 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 129&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Na4S4
+Na:S = 0.500 / 0.500
+E_form -0.781 eV/atom
+包から 79 meV/atom
+空間群 129
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="303.31" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="323.31" text-anchor="middle">Na4S4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NaS&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.645 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 215 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>NaS
+Na:S = 0.500 / 0.500
+E_form -0.645 eV/atom
+包から 215 meV/atom
+空間群 221
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="274.84" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="260.84" text-anchor="middle">NaS</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na4S6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.702 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Na4S6
+Na:S = 0.400 / 0.600
+E_form -0.702 eV/atom
+包から 0 meV/atom
+空間群 12 → 1
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="286.76" r="5" fill="var(--h1)"/><text class="plabel" x="538.00" y="272.76" text-anchor="middle">Na4S6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na2S4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.487 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 110 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Na2S4
+Na:S = 0.333 / 0.667
+E_form -0.487 eV/atom
+包から 110 meV/atom
+空間群 63
+原子数 / 候補 6 / 9</title><circle cx="589.33" cy="241.90" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="227.90" text-anchor="middle">Na2S4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na3S6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.425 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 172 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Na3S6
+Na:S = 0.333 / 0.667
+E_form -0.425 eV/atom
+包から 172 meV/atom
+空間群 12
+原子数 / 候補 9 / 3</title><circle cx="589.33" cy="228.93" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="248.93" text-anchor="middle">Na3S6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NaS2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.333 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 264 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>NaS2
+Na:S = 0.333 / 0.667
+E_form -0.333 eV/atom
+包から 264 meV/atom
+空間群 12
+原子数 / 候補 3 / 9</title><circle cx="589.33" cy="209.63" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="195.63" text-anchor="middle">NaS2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na2S6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.427 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 27 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Na2S6
+Na:S = 0.250 / 0.750
+E_form -0.427 eV/atom
+包から 27 meV/atom
+空間群 2 → 1
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="229.21" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="215.21" text-anchor="middle">Na2S6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NaS3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.020 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 434 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 3"><title>NaS3
+Na:S = 0.250 / 0.750
+E_form -0.020 eV/atom
+包から 434 meV/atom
+空間群 166
+原子数 / 候補 4 / 3</title><circle cx="653.50" cy="144.17" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="130.17" text-anchor="middle">NaS3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na2S7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.337 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 67 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Na2S7
+Na:S = 0.222 / 0.778
+E_form -0.337 eV/atom
+包から 67 meV/atom
+空間群 2 → 1
+原子数 / 候補 9 / 3</title><circle cx="674.89" cy="210.38" r="5" fill="var(--h2)"/><text class="plabel" x="674.89" y="230.38" text-anchor="middle">Na2S7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na2S8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.341 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 22 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Na2S8
+Na:S = 0.200 / 0.800
+E_form -0.341 eV/atom
+包から 22 meV/atom
+空間群 63 → 1
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="211.35" r="5" fill="var(--h1)"/><text class="plabel" x="692.00" y="197.35" text-anchor="middle">Na2S8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NaS4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.311 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 52 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 10 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>NaS4
+Na:S = 0.200 / 0.800
+E_form -0.311 eV/atom
+包から 52 meV/atom
+空間群 10 → 1
+原子数 / 候補 5 / 6</title><circle cx="692.00" cy="205.03" r="5" fill="var(--h2)"/><text class="plabel" x="692.00" y="225.03" text-anchor="middle">NaS4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NaS5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.197 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 106 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>NaS5
+Na:S = 0.167 / 0.833
+E_form -0.197 eV/atom
+包から 106 meV/atom
+空間群 2
+原子数 / 候補 6 / 6</title><circle cx="717.67" cy="181.12" r="5" fill="var(--h3)"/><text class="plabel" x="717.67" y="167.12" text-anchor="middle">NaS5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NaS6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.192 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 68 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 5 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>NaS6
+Na:S = 0.143 / 0.857
+E_form -0.192 eV/atom
+包から 68 meV/atom
+空間群 5 → 1
+原子数 / 候補 7 / 6</title><circle cx="736.00" cy="180.06" r="5" fill="var(--h2)"/><text class="plabel" x="736.00" y="200.06" text-anchor="middle">NaS6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NaS7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.178 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 49 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 5 → 4&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>NaS7
+Na:S = 0.125 / 0.875
+E_form -0.178 eV/atom
+包から 49 meV/atom
+空間群 5 → 4
+原子数 / 候補 8 / 6</title><circle cx="749.75" cy="177.13" r="5" fill="var(--h1)"/><text class="plabel" x="749.75" y="197.13" text-anchor="middle">NaS7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NaS8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.145 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 57 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 5&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>NaS8
+Na:S = 0.111 / 0.889
+E_form -0.145 eV/atom
+包から 57 meV/atom
+空間群 5
+原子数 / 候補 9 / 6</title><circle cx="760.44" cy="170.23" r="5" fill="var(--h2)"/><text class="plabel" x="760.44" y="156.23" text-anchor="middle">NaS8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NaS9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.156 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 25 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>NaS9
+Na:S = 0.100 / 0.900
+E_form -0.156 eV/atom
+包から 25 meV/atom
+空間群 2 → 1
+原子数 / 候補 10 / 6</title><circle cx="769.00" cy="172.63" r="5" fill="var(--h1)"/><text class="plabel" x="769.00" y="158.63" text-anchor="middle">NaS9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;S6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.016 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 16 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 22"><title>S6
+Na:S = 0.000 / 1.000
+E_form 0.016 eV/atom
+包から 16 meV/atom
+空間群 12 → 2
+原子数 / 候補 6 / 22</title><circle cx="846.00" cy="136.64" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="122.64" text-anchor="middle">S6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;S2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.016 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 16 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>S2
+Na:S = 0.000 / 1.000
+E_form 0.016 eV/atom
+包から 16 meV/atom
+空間群 2
+原子数 / 候補 2 / 9</title><circle cx="846.00" cy="136.62" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="156.62" text-anchor="middle">S2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;S9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.025 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 25 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>S9
+Na:S = 0.000 / 1.000
+E_form 0.025 eV/atom
+包から 25 meV/atom
+空間群 1
+原子数 / 候補 9 / 9</title><circle cx="846.00" cy="134.86" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="154.86" text-anchor="middle">S9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;S8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.025 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 25 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 7&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 19"><title>S8
+Na:S = 0.000 / 1.000
+E_form 0.025 eV/atom
+包から 25 meV/atom
+空間群 8 → 7
+原子数 / 候補 8 / 19</title><circle cx="846.00" cy="134.74" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="154.74" text-anchor="middle">S8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;S4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.070 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 70 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 20"><title>S4
+Na:S = 0.000 / 1.000
+E_form 0.070 eV/atom
+包から 70 meV/atom
+空間群 87
+原子数 / 候補 4 / 20</title><circle cx="846.00" cy="125.28" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="145.28" text-anchor="middle">S4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;S5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.103 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 103 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>S5
+Na:S = 0.000 / 1.000
+E_form 0.103 eV/atom
+包から 103 meV/atom
+空間群 8
+原子数 / 候補 5 / 6</title><circle cx="846.00" cy="118.38" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="138.38" text-anchor="middle">S5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;S7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.143 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 143 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>S7
+Na:S = 0.000 / 1.000
+E_form 0.143 eV/atom
+包から 143 meV/atom
+空間群 8
+原子数 / 候補 7 / 6</title><circle cx="846.00" cy="110.12" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="130.12" text-anchor="middle">S7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;S3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.295 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 295 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>S3
+Na:S = 0.000 / 1.000
+E_form 0.295 eV/atom
+包から 295 meV/atom
+空間群 12
+原子数 / 候補 3 / 9</title><circle cx="846.00" cy="78.31" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="64.31" text-anchor="middle">S3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;S&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.366 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 366 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>S
+Na:S = 0.000 / 1.000
+E_form 0.366 eV/atom
+包から 366 meV/atom
+空間群 139
+原子数 / 候補 1 / 6</title><circle cx="846.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="83.35" text-anchor="middle">S</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Na3
+Na:S = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 166
+原子数 / 候補 3 / 3</title><circle cx="76.00" cy="139.99" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="159.99" text-anchor="middle">Na3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na2S&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.122 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>Na2S
+Na:S = 0.667 / 0.333
+E_form -1.122 eV/atom
+包から 0（凸包上）
+空間群 225
+原子数 / 候補 3 / 6</title><circle cx="332.67" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="332.67" y="394.65" text-anchor="middle">Na2S</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Na3S7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.545 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Na3S7
+Na:S = 0.300 / 0.700
+E_form -0.545 eV/atom
+包から 0（凸包上）
+空間群 12 → 1
+原子数 / 候補 10 / 6</title><circle cx="615.00" cy="253.86" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="615.00" y="273.86" text-anchor="middle">Na3S7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;S10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Na:S&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>S10
+Na:S = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 1
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="139.99" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="159.99" text-anchor="middle">S10</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Na3</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Na</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Na2S</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Na3S7</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">S10</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Na4S6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na6</span><span class="bar-track"><span class="bar-fill" style="width:1.25%;background:var(--h1)"></span></span><span class="bar-val">5 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na5</span><span class="bar-track"><span class="bar-fill" style="width:1.45%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">S6</span><span class="bar-track"><span class="bar-fill" style="width:3.69%;background:var(--h1)"></span></span><span class="bar-val">16 meV</span></li>
+<li class="bar-row"><span class="bar-name">S2</span><span class="bar-track"><span class="bar-fill" style="width:3.71%;background:var(--h1)"></span></span><span class="bar-val">16 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na2S8</span><span class="bar-track"><span class="bar-fill" style="width:5.03%;background:var(--h1)"></span></span><span class="bar-val">22 meV</span></li>
+<li class="bar-row"><span class="bar-name">S9</span><span class="bar-track"><span class="bar-fill" style="width:5.65%;background:var(--h1)"></span></span><span class="bar-val">25 meV</span></li>
+<li class="bar-row"><span class="bar-name">S8</span><span class="bar-track"><span class="bar-fill" style="width:5.79%;background:var(--h1)"></span></span><span class="bar-val">25 meV</span></li>
+<li class="bar-row"><span class="bar-name">NaS9</span><span class="bar-track"><span class="bar-fill" style="width:5.86%;background:var(--h1)"></span></span><span class="bar-val">25 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na2S6</span><span class="bar-track"><span class="bar-fill" style="width:6.25%;background:var(--h1)"></span></span><span class="bar-val">27 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na7</span><span class="bar-track"><span class="bar-fill" style="width:9.22%;background:var(--h1)"></span></span><span class="bar-val">40 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na10</span><span class="bar-track"><span class="bar-fill" style="width:10.17%;background:var(--h1)"></span></span><span class="bar-val">44 meV</span></li>
+<li class="bar-row"><span class="bar-name">NaS7</span><span class="bar-track"><span class="bar-fill" style="width:11.37%;background:var(--h1)"></span></span><span class="bar-val">49 meV</span></li>
+<li class="bar-row"><span class="bar-name">NaS4</span><span class="bar-track"><span class="bar-fill" style="width:11.99%;background:var(--h2)"></span></span><span class="bar-val">52 meV</span></li>
+<li class="bar-row"><span class="bar-name">NaS8</span><span class="bar-track"><span class="bar-fill" style="width:13.17%;background:var(--h2)"></span></span><span class="bar-val">57 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na2S2</span><span class="bar-track"><span class="bar-fill" style="width:14.18%;background:var(--h2)"></span></span><span class="bar-val">62 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na2S7</span><span class="bar-track"><span class="bar-fill" style="width:15.38%;background:var(--h2)"></span></span><span class="bar-val">67 meV</span></li>
+<li class="bar-row"><span class="bar-name">NaS6</span><span class="bar-track"><span class="bar-fill" style="width:15.61%;background:var(--h2)"></span></span><span class="bar-val">68 meV</span></li>
+<li class="bar-row"><span class="bar-name">S4</span><span class="bar-track"><span class="bar-fill" style="width:16.21%;background:var(--h2)"></span></span><span class="bar-val">70 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na4S4</span><span class="bar-track"><span class="bar-fill" style="width:18.12%;background:var(--h2)"></span></span><span class="bar-val">79 meV</span></li>
+<li class="bar-row"><span class="bar-name">S5</span><span class="bar-track"><span class="bar-fill" style="width:23.82%;background:var(--h3)"></span></span><span class="bar-val">103 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na4S2</span><span class="bar-track"><span class="bar-fill" style="width:24.30%;background:var(--h3)"></span></span><span class="bar-val">105 meV</span></li>
+<li class="bar-row"><span class="bar-name">NaS5</span><span class="bar-track"><span class="bar-fill" style="width:24.39%;background:var(--h3)"></span></span><span class="bar-val">106 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na2S4</span><span class="bar-track"><span class="bar-fill" style="width:25.29%;background:var(--h3)"></span></span><span class="bar-val">110 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na5S2</span><span class="bar-track"><span class="bar-fill" style="width:26.47%;background:var(--h3)"></span></span><span class="bar-val">115 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na6S2</span><span class="bar-track"><span class="bar-fill" style="width:29.03%;background:var(--h3)"></span></span><span class="bar-val">126 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na4S</span><span class="bar-track"><span class="bar-fill" style="width:30.18%;background:var(--h3)"></span></span><span class="bar-val">131 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na7S3</span><span class="bar-track"><span class="bar-fill" style="width:30.69%;background:var(--h3)"></span></span><span class="bar-val">133 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na6S4</span><span class="bar-track"><span class="bar-fill" style="width:32.49%;background:var(--h3)"></span></span><span class="bar-val">141 meV</span></li>
+<li class="bar-row"><span class="bar-name">S7</span><span class="bar-track"><span class="bar-fill" style="width:32.93%;background:var(--h3)"></span></span><span class="bar-val">143 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na7S2</span><span class="bar-track"><span class="bar-fill" style="width:35.07%;background:var(--h3)"></span></span><span class="bar-val">152 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na8S</span><span class="bar-track"><span class="bar-fill" style="width:35.65%;background:var(--h3)"></span></span><span class="bar-val">155 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na9S</span><span class="bar-track"><span class="bar-fill" style="width:35.83%;background:var(--h3)"></span></span><span class="bar-val">155 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na7S</span><span class="bar-track"><span class="bar-fill" style="width:39.13%;background:var(--h3)"></span></span><span class="bar-val">170 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na3S6</span><span class="bar-track"><span class="bar-fill" style="width:39.57%;background:var(--h3)"></span></span><span class="bar-val">172 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na5S</span><span class="bar-track"><span class="bar-fill" style="width:41.02%;background:var(--h3)"></span></span><span class="bar-val">178 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na3S2</span><span class="bar-track"><span class="bar-fill" style="width:44.80%;background:var(--h3)"></span></span><span class="bar-val">194 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na8S2</span><span class="bar-track"><span class="bar-fill" style="width:45.28%;background:var(--h3)"></span></span><span class="bar-val">196 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na6S</span><span class="bar-track"><span class="bar-fill" style="width:48.03%;background:var(--meta)"></span></span><span class="bar-val">208 meV</span></li>
+<li class="bar-row"><span class="bar-name">NaS</span><span class="bar-track"><span class="bar-fill" style="width:49.50%;background:var(--meta)"></span></span><span class="bar-val">215 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na9</span><span class="bar-track"><span class="bar-fill" style="width:50.56%;background:var(--meta)"></span></span><span class="bar-val">219 meV</span></li>
+<li class="bar-row"><span class="bar-name">NaS2</span><span class="bar-track"><span class="bar-fill" style="width:60.87%;background:var(--meta)"></span></span><span class="bar-val">264 meV</span></li>
+<li class="bar-row"><span class="bar-name">S3</span><span class="bar-track"><span class="bar-fill" style="width:68.00%;background:var(--meta)"></span></span><span class="bar-val">295 meV</span></li>
+<li class="bar-row"><span class="bar-name">Na3S</span><span class="bar-track"><span class="bar-fill" style="width:71.34%;background:var(--meta)"></span></span><span class="bar-val">309 meV</span></li>
+<li class="bar-row"><span class="bar-name">S</span><span class="bar-track"><span class="bar-fill" style="width:84.48%;background:var(--meta)"></span></span><span class="bar-val">366 meV</span></li>
+<li class="bar-row"><span class="bar-name">NaS3</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">434 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 4 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Na</th><th>S</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Na3 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>166</td><td>3</td></tr>
+<tr class="stable"><td class="name">Na2S <span class="pill">凸包上</span></td><td>0.667</td><td>0.333</td><td>-1.1220</td><td>225</td><td>3</td></tr>
+<tr class="stable"><td class="name">Na3S7 <span class="pill">凸包上</span></td><td>0.300</td><td>0.700</td><td>-0.5445</td><td>12 → 1</td><td>10</td></tr>
+<tr class="stable"><td class="name">S10 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>1</td><td>10</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>Na は 1〜3 原子胞の 166（菱面体）で実在の bcc と厳密には別。差は小さい。S は S 環基準で α-S（S<sub>8</sub>・128 原子）より約 26 meV 浅く、硫化物は僅かに深めに出る。</p></div><div class="note"><h3>この系の読み方</h3><p>Na<sub>2</sub>S（逆蛍石 225）が -1122 meV で最深。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に Na<sub>4</sub>S<sub>6</sub>（+0 meV, spg 12）。分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴が 8 組成</h3><p>≤10 原子・既約 33 組成のうち 8 組成に点が無い（exit 430 等）。そこは「相が無い」ではなく「探していない」。</p></div></section>
+ <footer><span>掃引 na-2026-08-29（default: spg_ranks=[1,2,3]・scope=all・max_atoms=10）</span><span>2026-08-30 取得 · group_by=structure 398 構造</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

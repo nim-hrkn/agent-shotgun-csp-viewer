@@ -1,0 +1,676 @@
+<title>Mo–N 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Mo–N 相図</h1>
+  <p class="lede">Mo–N を 45 通りの比で刻んだ。下側凸包に載った化合物は 1 個：MoN（-344 meV/atom、検出 spg 194）。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>60</dd></div><div class="fact"><dt>凸包上</dt><dd>3</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>10</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は N の原子分率。縦軸は端点（Mo, N）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Mo–N 相図">
+<line class="grid-line" x1="76" x2="846" y1="411.65" y2="411.65"/>
+<text class="tick-text" x="64" y="415.65" text-anchor="end">-1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="397.55" y2="397.55"/>
+<text class="tick-text" x="64" y="401.55" text-anchor="end">-0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="383.45" y2="383.45"/>
+<text class="tick-text" x="64" y="387.45" text-anchor="end">-0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="369.36" y2="369.36"/>
+<text class="tick-text" x="64" y="373.36" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="355.26" y2="355.26"/>
+<text class="tick-text" x="64" y="359.26" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="341.16" y2="341.16"/>
+<text class="tick-text" x="64" y="345.16" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="327.06" y2="327.06"/>
+<text class="tick-text" x="64" y="331.06" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="312.96" y2="312.96"/>
+<text class="tick-text" x="64" y="316.96" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="298.86" y2="298.86"/>
+<text class="tick-text" x="64" y="302.86" text-anchor="end">1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="284.76" y2="284.76"/>
+<text class="tick-text" x="64" y="288.76" text-anchor="end">1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="270.66" y2="270.66"/>
+<text class="tick-text" x="64" y="274.66" text-anchor="end">1.50</text>
+<line class="grid-line" x1="76" x2="846" y1="256.56" y2="256.56"/>
+<text class="tick-text" x="64" y="260.56" text-anchor="end">1.75</text>
+<line class="grid-line" x1="76" x2="846" y1="242.47" y2="242.47"/>
+<text class="tick-text" x="64" y="246.47" text-anchor="end">2.00</text>
+<line class="grid-line" x1="76" x2="846" y1="228.37" y2="228.37"/>
+<text class="tick-text" x="64" y="232.37" text-anchor="end">2.25</text>
+<line class="grid-line" x1="76" x2="846" y1="214.27" y2="214.27"/>
+<text class="tick-text" x="64" y="218.27" text-anchor="end">2.50</text>
+<line class="grid-line" x1="76" x2="846" y1="200.17" y2="200.17"/>
+<text class="tick-text" x="64" y="204.17" text-anchor="end">2.75</text>
+<line class="grid-line" x1="76" x2="846" y1="186.07" y2="186.07"/>
+<text class="tick-text" x="64" y="190.07" text-anchor="end">3.00</text>
+<line class="grid-line" x1="76" x2="846" y1="171.97" y2="171.97"/>
+<text class="tick-text" x="64" y="175.97" text-anchor="end">3.25</text>
+<line class="grid-line" x1="76" x2="846" y1="157.87" y2="157.87"/>
+<text class="tick-text" x="64" y="161.87" text-anchor="end">3.50</text>
+<line class="grid-line" x1="76" x2="846" y1="143.77" y2="143.77"/>
+<text class="tick-text" x="64" y="147.77" text-anchor="end">3.75</text>
+<line class="grid-line" x1="76" x2="846" y1="129.68" y2="129.68"/>
+<text class="tick-text" x="64" y="133.68" text-anchor="end">4.00</text>
+<line class="grid-line" x1="76" x2="846" y1="115.58" y2="115.58"/>
+<text class="tick-text" x="64" y="119.58" text-anchor="end">4.25</text>
+<line class="grid-line" x1="76" x2="846" y1="101.48" y2="101.48"/>
+<text class="tick-text" x="64" y="105.48" text-anchor="end">4.50</text>
+<line class="grid-line" x1="76" x2="846" y1="87.38" y2="87.38"/>
+<text class="tick-text" x="64" y="91.38" text-anchor="end">4.75</text>
+<line class="grid-line" x1="76" x2="846" y1="73.28" y2="73.28"/>
+<text class="tick-text" x="64" y="77.28" text-anchor="end">5.00</text>
+<line class="grid-line" x1="76" x2="846" y1="59.18" y2="59.18"/>
+<text class="tick-text" x="64" y="63.18" text-anchor="end">5.25</text>
+<line class="grid-line" x1="76" x2="846" y1="45.08" y2="45.08"/>
+<text class="tick-text" x="64" y="49.08" text-anchor="end">5.50</text>
+<line class="grid-line" x1="76" x2="846" y1="30.98" y2="30.98"/>
+<text class="tick-text" x="64" y="34.98" text-anchor="end">5.75</text>
+<line class="axis-line" x1="76" x2="846" y1="355.26" y2="355.26"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Mo</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">N</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">N の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,355.26 461.00,374.65 846.00,355.26"/>
+<line class="tie-drop" x1="461.00" x2="461.00" y1="374.65" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>Mo
+Mo:N = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 229
+原子数 / 候補 1 / 9</title><circle cx="76.00" cy="355.26" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="341.26" text-anchor="middle">Mo</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.481 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 481 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Mo7
+Mo:N = 1.000 / 0.000
+E_form 0.481 eV/atom
+包から 481 meV/atom
+空間群 229
+原子数 / 候補 7 / 3</title><circle cx="76.00" cy="328.14" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="348.14" text-anchor="middle">Mo7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.901 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 901 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Mo9
+Mo:N = 1.000 / 0.000
+E_form 0.901 eV/atom
+包から 901 meV/atom
+空間群 225
+原子数 / 候補 9 / 3</title><circle cx="76.00" cy="304.43" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="290.43" text-anchor="middle">Mo9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1001 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 4"><title>Mo10
+Mo:N = 1.000 / 0.000
+E_form 1.001 eV/atom
+包から 1001 meV/atom
+空間群 194
+原子数 / 候補 10 / 4</title><circle cx="76.00" cy="298.81" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="318.81" text-anchor="middle">Mo10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo9N&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.267 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 336 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Mo9N
+Mo:N = 0.900 / 0.100
+E_form 0.267 eV/atom
+包から 336 meV/atom
+空間群 82 → 1
+原子数 / 候補 10 / 9</title><circle cx="153.00" cy="340.18" r="5" fill="var(--meta)"/><text class="plabel" x="153.00" y="326.18" text-anchor="middle">Mo9N</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo8N&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.020 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 96 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Mo8N
+Mo:N = 0.889 / 0.111
+E_form 0.020 eV/atom
+包から 96 meV/atom
+空間群 82 → 139
+原子数 / 候補 9 / 9</title><circle cx="161.56" cy="354.14" r="5" fill="var(--h2)"/><text class="plabel" x="161.56" y="340.14" text-anchor="middle">Mo8N</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo7N&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.287 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 373 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 82 → 129&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Mo7N
+Mo:N = 0.875 / 0.125
+E_form 0.287 eV/atom
+包から 373 meV/atom
+空間群 82 → 129
+原子数 / 候補 8 / 9</title><circle cx="172.25" cy="339.10" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="359.10" text-anchor="middle">Mo7N</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo6N&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.077 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 21 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 7"><title>Mo6N
+Mo:N = 0.857 / 0.143
+E_form -0.077 eV/atom
+包から 21 meV/atom
+空間群 162
+原子数 / 候補 7 / 7</title><circle cx="186.00" cy="359.62" r="5" fill="var(--h1)"/><text class="plabel" x="186.00" y="379.62" text-anchor="middle">Mo6N</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo5N&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.575 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 690 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 25&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 4"><title>Mo5N
+Mo:N = 0.833 / 0.167
+E_form 0.575 eV/atom
+包から 690 meV/atom
+空間群 25
+原子数 / 候補 6 / 4</title><circle cx="204.33" cy="322.82" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="308.82" text-anchor="middle">Mo5N</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo8N2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.007 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 130 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 8"><title>Mo8N2
+Mo:N = 0.800 / 0.200
+E_form -0.007 eV/atom
+包から 130 meV/atom
+空間群 166
+原子数 / 候補 10 / 8</title><circle cx="230.00" cy="355.67" r="5" fill="var(--h3)"/><text class="plabel" x="230.00" y="341.67" text-anchor="middle">Mo8N2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo4N&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.076 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 214 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 7"><title>Mo4N
+Mo:N = 0.800 / 0.200
+E_form 0.076 eV/atom
+包から 214 meV/atom
+空間群 164
+原子数 / 候補 5 / 7</title><circle cx="230.00" cy="350.97" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="370.97" text-anchor="middle">Mo4N</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo7N2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.211 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 364 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Mo7N2
+Mo:N = 0.778 / 0.222
+E_form 0.211 eV/atom
+包から 364 meV/atom
+空間群 162
+原子数 / 候補 9 / 9</title><circle cx="247.11" cy="343.35" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="363.35" text-anchor="middle">Mo7N2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo3N&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.041 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 131 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Mo3N
+Mo:N = 0.750 / 0.250
+E_form -0.041 eV/atom
+包から 131 meV/atom
+空間群 164
+原子数 / 候補 4 / 9</title><circle cx="268.50" cy="357.58" r="5" fill="var(--h3)"/><text class="plabel" x="268.50" y="377.58" text-anchor="middle">Mo3N</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo6N2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.025 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 147 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162 → 193&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 7"><title>Mo6N2
+Mo:N = 0.750 / 0.250
+E_form -0.025 eV/atom
+包から 147 meV/atom
+空間群 162 → 193
+原子数 / 候補 8 / 7</title><circle cx="268.50" cy="356.69" r="5" fill="var(--h3)"/><text class="plabel" x="268.50" y="376.69" text-anchor="middle">Mo6N2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo5N2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.092 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 105 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Mo5N2
+Mo:N = 0.714 / 0.286
+E_form -0.092 eV/atom
+包から 105 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="296.00" cy="360.44" r="5" fill="var(--h3)"/><text class="plabel" x="296.00" y="346.44" text-anchor="middle">Mo5N2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo7N3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.298 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 504 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Mo7N3
+Mo:N = 0.700 / 0.300
+E_form 0.298 eV/atom
+包から 504 meV/atom
+空間群 162
+原子数 / 候補 10 / 6</title><circle cx="307.00" cy="338.45" r="5" fill="var(--meta)"/><text class="plabel" x="307.00" y="358.45" text-anchor="middle">Mo7N3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo6N3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.210 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 19 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Mo6N3
+Mo:N = 0.667 / 0.333
+E_form -0.210 eV/atom
+包から 19 meV/atom
+空間群 162
+原子数 / 候補 9 / 3</title><circle cx="332.67" cy="367.11" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="387.11" text-anchor="middle">Mo6N3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo2N&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.196 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 33 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 25 → 47&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>Mo2N
+Mo:N = 0.667 / 0.333
+E_form -0.196 eV/atom
+包から 33 meV/atom
+空間群 25 → 47
+原子数 / 候補 3 / 9</title><circle cx="332.67" cy="366.30" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="386.30" text-anchor="middle">Mo2N</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo4N2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.192 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 38 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 25 → 47&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 8"><title>Mo4N2
+Mo:N = 0.667 / 0.333
+E_form -0.192 eV/atom
+包から 38 meV/atom
+空間群 25 → 47
+原子数 / 候補 6 / 8</title><circle cx="332.67" cy="366.07" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="386.07" text-anchor="middle">Mo4N2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo5N3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.107 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 365 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Mo5N3
+Mo:N = 0.625 / 0.375
+E_form 0.107 eV/atom
+包から 365 meV/atom
+空間群 189
+原子数 / 候補 8 / 9</title><circle cx="364.75" cy="349.24" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="335.24" text-anchor="middle">Mo5N3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo6N4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.136 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 139 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 162&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Mo6N4
+Mo:N = 0.600 / 0.400
+E_form -0.136 eV/atom
+包から 139 meV/atom
+空間群 162
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="362.95" r="5" fill="var(--h3)"/><text class="plabel" x="384.00" y="348.95" text-anchor="middle">Mo6N4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo3N2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.150 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 425 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>Mo3N2
+Mo:N = 0.600 / 0.400
+E_form 0.150 eV/atom
+包から 425 meV/atom
+空間群 187
+原子数 / 候補 5 / 9</title><circle cx="384.00" cy="346.80" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="366.80" text-anchor="middle">Mo3N2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo4N3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.093 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 202 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Mo4N3
+Mo:N = 0.571 / 0.429
+E_form -0.093 eV/atom
+包から 202 meV/atom
+空間群 221
+原子数 / 候補 7 / 6</title><circle cx="406.00" cy="360.48" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="380.48" text-anchor="middle">Mo4N3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo5N4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.025 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 281 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 8"><title>Mo5N4
+Mo:N = 0.556 / 0.444
+E_form -0.025 eV/atom
+包から 281 meV/atom
+空間群 8 → 1
+原子数 / 候補 9 / 8</title><circle cx="418.22" cy="356.65" r="5" fill="var(--meta)"/><text class="plabel" x="418.22" y="342.65" text-anchor="middle">Mo5N4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MoN&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.262 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 82 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>MoN
+Mo:N = 0.500 / 0.500
+E_form -0.262 eV/atom
+包から 82 meV/atom
+空間群 187
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="370.04" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="356.04" text-anchor="middle">MoN</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo3N3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.227 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 117 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Mo3N3
+Mo:N = 0.500 / 0.500
+E_form -0.227 eV/atom
+包から 117 meV/atom
+空間群 221
+原子数 / 候補 6 / 9</title><circle cx="461.00" cy="368.05" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="388.05" text-anchor="middle">Mo3N3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo4N4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.039 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 383 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 71 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Mo4N4
+Mo:N = 0.500 / 0.500
+E_form 0.039 eV/atom
+包から 383 meV/atom
+空間群 71 → 225
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="353.03" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="373.03" text-anchor="middle">Mo4N4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo5N5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.062 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 406 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Mo5N5
+Mo:N = 0.500 / 0.500
+E_form 0.062 eV/atom
+包から 406 meV/atom
+空間群 8 → 1
+原子数 / 候補 10 / 9</title><circle cx="461.00" cy="351.75" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="371.75" text-anchor="middle">Mo5N5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo4N5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.056 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 361 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Mo4N5
+Mo:N = 0.444 / 0.556
+E_form 0.056 eV/atom
+包から 361 meV/atom
+空間群 8 → 1
+原子数 / 候補 9 / 9</title><circle cx="503.78" cy="352.12" r="5" fill="var(--meta)"/><text class="plabel" x="503.78" y="338.12" text-anchor="middle">Mo4N5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo3N4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.147 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 148 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Mo3N4
+Mo:N = 0.429 / 0.571
+E_form -0.147 eV/atom
+包から 148 meV/atom
+空間群 221
+原子数 / 候補 7 / 9</title><circle cx="516.00" cy="363.54" r="5" fill="var(--h3)"/><text class="plabel" x="516.00" y="349.54" text-anchor="middle">Mo3N4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo4N6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.203 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 72 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Mo4N6
+Mo:N = 0.400 / 0.600
+E_form -0.203 eV/atom
+包から 72 meV/atom
+空間群 167
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="366.71" r="5" fill="var(--h2)"/><text class="plabel" x="538.00" y="352.71" text-anchor="middle">Mo4N6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo2N3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.034 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 241 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>Mo2N3
+Mo:N = 0.400 / 0.600
+E_form -0.034 eV/atom
+包から 241 meV/atom
+空間群 164
+原子数 / 候補 5 / 9</title><circle cx="538.00" cy="357.19" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="377.19" text-anchor="middle">Mo2N3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo3N5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.099 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 357 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 25 → 47&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Mo3N5
+Mo:N = 0.375 / 0.625
+E_form 0.099 eV/atom
+包から 357 meV/atom
+空間群 25 → 47
+原子数 / 候補 8 / 9</title><circle cx="557.25" cy="349.66" r="5" fill="var(--meta)"/><text class="plabel" x="557.25" y="369.66" text-anchor="middle">Mo3N5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MoN2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.071 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 158 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>MoN2
+Mo:N = 0.333 / 0.667
+E_form -0.071 eV/atom
+包から 158 meV/atom
+空間群 187
+原子数 / 候補 3 / 9</title><circle cx="589.33" cy="359.26" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="379.26" text-anchor="middle">MoN2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo2N4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.248 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 477 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 71 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 8"><title>Mo2N4
+Mo:N = 0.333 / 0.667
+E_form 0.248 eV/atom
+包から 477 meV/atom
+空間群 71 → 123
+原子数 / 候補 6 / 8</title><circle cx="589.33" cy="341.30" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="327.30" text-anchor="middle">Mo2N4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo3N6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.349 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 579 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 71 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Mo3N6
+Mo:N = 0.333 / 0.667
+E_form 0.349 eV/atom
+包から 579 meV/atom
+空間群 71 → 1
+原子数 / 候補 9 / 9</title><circle cx="589.33" cy="335.55" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="355.55" text-anchor="middle">Mo3N6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo3N7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.325 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 531 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Mo3N7
+Mo:N = 0.300 / 0.700
+E_form 0.325 eV/atom
+包から 531 meV/atom
+空間群 8 → 1
+原子数 / 候補 10 / 9</title><circle cx="615.00" cy="336.93" r="5" fill="var(--meta)"/><text class="plabel" x="615.00" y="356.93" text-anchor="middle">Mo3N7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo2N5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.425 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 622 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>Mo2N5
+Mo:N = 0.286 / 0.714
+E_form 0.425 eV/atom
+包から 622 meV/atom
+空間群 12 → 1
+原子数 / 候補 7 / 9</title><circle cx="626.00" cy="331.28" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="317.28" text-anchor="middle">Mo2N5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MoN3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.350 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 522 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 160&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>MoN3
+Mo:N = 0.250 / 0.750
+E_form 0.350 eV/atom
+包から 522 meV/atom
+空間群 160
+原子数 / 候補 4 / 9</title><circle cx="653.50" cy="335.52" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="321.52" text-anchor="middle">MoN3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo2N6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.439 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 610 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 36 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Mo2N6
+Mo:N = 0.250 / 0.750
+E_form 0.439 eV/atom
+包から 610 meV/atom
+空間群 36 → 1
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="330.53" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="350.53" text-anchor="middle">Mo2N6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo2N7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.413 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 565 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Mo2N7
+Mo:N = 0.222 / 0.778
+E_form 0.413 eV/atom
+包から 565 meV/atom
+空間群 12
+原子数 / 候補 9 / 9</title><circle cx="674.89" cy="331.99" r="5" fill="var(--meta)"/><text class="plabel" x="674.89" y="351.99" text-anchor="middle">Mo2N7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo2N8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.372 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 509 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 141 → 4&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Mo2N8
+Mo:N = 0.200 / 0.800
+E_form 0.372 eV/atom
+包から 509 meV/atom
+空間群 141 → 4
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="334.28" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="320.28" text-anchor="middle">Mo2N8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MoN4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.773 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 910 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>MoN4
+Mo:N = 0.200 / 0.800
+E_form 0.773 eV/atom
+包から 910 meV/atom
+空間群 164
+原子数 / 候補 5 / 9</title><circle cx="692.00" cy="311.69" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="331.69" text-anchor="middle">MoN4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MoN5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.414 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 529 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164 → 8&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>MoN5
+Mo:N = 0.167 / 0.833
+E_form 0.414 eV/atom
+包から 529 meV/atom
+空間群 164 → 8
+原子数 / 候補 6 / 9</title><circle cx="717.67" cy="331.89" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="351.89" text-anchor="middle">MoN5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MoN6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.536 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 635 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 107 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>MoN6
+Mo:N = 0.143 / 0.857
+E_form 0.536 eV/atom
+包から 635 meV/atom
+空間群 107 → 1
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="325.01" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="311.01" text-anchor="middle">MoN6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MoN7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.289 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 375 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 5&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>MoN7
+Mo:N = 0.125 / 0.875
+E_form 0.289 eV/atom
+包から 375 meV/atom
+空間群 5
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="338.97" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="358.97" text-anchor="middle">MoN7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MoN8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.228 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 304 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>MoN8
+Mo:N = 0.111 / 0.889
+E_form 0.228 eV/atom
+包から 304 meV/atom
+空間群 87 → 1
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="342.40" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="328.40" text-anchor="middle">MoN8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MoN9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.269 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 337 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>MoN9
+Mo:N = 0.100 / 0.900
+E_form 0.269 eV/atom
+包から 337 meV/atom
+空間群 12 → 1
+原子数 / 候補 10 / 9</title><circle cx="769.00" cy="340.11" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="360.11" text-anchor="middle">MoN9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;N2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.006 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 6"><title>N2
+Mo:N = 0.000 / 1.000
+E_form 0.006 eV/atom
+包から 6 meV/atom
+空間群 12
+原子数 / 候補 2 / 6</title><circle cx="846.00" cy="354.92" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="340.92" text-anchor="middle">N2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;N8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.032 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 32 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>N8
+Mo:N = 0.000 / 1.000
+E_form 0.032 eV/atom
+包から 32 meV/atom
+空間群 12
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="353.46" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="373.46" text-anchor="middle">N8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;N7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.465 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 465 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>N7
+Mo:N = 0.000 / 1.000
+E_form 0.465 eV/atom
+包から 465 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="846.00" cy="329.03" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="349.03" text-anchor="middle">N7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;N9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.537 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 537 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>N9
+Mo:N = 0.000 / 1.000
+E_form 0.537 eV/atom
+包から 537 meV/atom
+空間群 12 → 1
+原子数 / 候補 9 / 6</title><circle cx="846.00" cy="324.98" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="344.98" text-anchor="middle">N9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;N10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.592 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 592 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 15 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>N10
+Mo:N = 0.000 / 1.000
+E_form 0.592 eV/atom
+包から 592 meV/atom
+空間群 15 → 1
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="321.88" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="307.88" text-anchor="middle">N10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;N5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.884 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 884 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>N5
+Mo:N = 0.000 / 1.000
+E_form 0.884 eV/atom
+包から 884 meV/atom
+空間群 12 → 1
+原子数 / 候補 5 / 6</title><circle cx="846.00" cy="305.39" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="325.39" text-anchor="middle">N5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;N6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.006 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1006 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>N6
+Mo:N = 0.000 / 1.000
+E_form 1.006 eV/atom
+包から 1006 meV/atom
+空間群 12
+原子数 / 候補 6 / 6</title><circle cx="846.00" cy="298.55" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="318.55" text-anchor="middle">N6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;N3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.109 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1109 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>N3
+Mo:N = 0.000 / 1.000
+E_form 1.109 eV/atom
+包から 1109 meV/atom
+空間群 12
+原子数 / 候補 3 / 6</title><circle cx="846.00" cy="292.72" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="312.72" text-anchor="middle">N3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;N&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 5.176 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 5176 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 15"><title>N
+Mo:N = 0.000 / 1.000
+E_form 5.176 eV/atom
+包から 5176 meV/atom
+空間群 225
+原子数 / 候補 1 / 15</title><circle cx="846.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="49.35" text-anchor="middle">N</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Mo8
+Mo:N = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 229
+原子数 / 候補 8 / 6</title><circle cx="76.00" cy="355.26" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="375.26" text-anchor="middle">Mo8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mo2N2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.344 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164 → 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Mo2N2
+Mo:N = 0.500 / 0.500
+E_form -0.344 eV/atom
+包から 0（凸包上）
+空間群 164 → 194
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="461.00" y="394.65" text-anchor="middle">Mo2N2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;N4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mo:N&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 9&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>N4
+Mo:N = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 9
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="355.26" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="375.26" text-anchor="middle">N4</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Mo8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Mo</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Mo2N2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">N4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">N2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo6N3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">19 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo6N</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">21 meV</span></li>
+<li class="bar-row"><span class="bar-name">N8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">32 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo2N</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">33 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo4N2</span><span class="bar-track"><span class="bar-fill" style="width:0.72%;background:var(--h1)"></span></span><span class="bar-val">38 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo4N6</span><span class="bar-track"><span class="bar-fill" style="width:1.39%;background:var(--h2)"></span></span><span class="bar-val">72 meV</span></li>
+<li class="bar-row"><span class="bar-name">MoN</span><span class="bar-track"><span class="bar-fill" style="width:1.58%;background:var(--h2)"></span></span><span class="bar-val">82 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo8N</span><span class="bar-track"><span class="bar-fill" style="width:1.86%;background:var(--h2)"></span></span><span class="bar-val">96 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo5N2</span><span class="bar-track"><span class="bar-fill" style="width:2.02%;background:var(--h3)"></span></span><span class="bar-val">105 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo3N3</span><span class="bar-track"><span class="bar-fill" style="width:2.26%;background:var(--h3)"></span></span><span class="bar-val">117 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo8N2</span><span class="bar-track"><span class="bar-fill" style="width:2.52%;background:var(--h3)"></span></span><span class="bar-val">130 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo3N</span><span class="bar-track"><span class="bar-fill" style="width:2.53%;background:var(--h3)"></span></span><span class="bar-val">131 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo6N4</span><span class="bar-track"><span class="bar-fill" style="width:2.68%;background:var(--h3)"></span></span><span class="bar-val">139 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo6N2</span><span class="bar-track"><span class="bar-fill" style="width:2.83%;background:var(--h3)"></span></span><span class="bar-val">147 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo3N4</span><span class="bar-track"><span class="bar-fill" style="width:2.86%;background:var(--h3)"></span></span><span class="bar-val">148 meV</span></li>
+<li class="bar-row"><span class="bar-name">MoN2</span><span class="bar-track"><span class="bar-fill" style="width:3.06%;background:var(--h3)"></span></span><span class="bar-val">158 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo4N3</span><span class="bar-track"><span class="bar-fill" style="width:3.90%;background:var(--meta)"></span></span><span class="bar-val">202 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo4N</span><span class="bar-track"><span class="bar-fill" style="width:4.12%;background:var(--meta)"></span></span><span class="bar-val">214 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo2N3</span><span class="bar-track"><span class="bar-fill" style="width:4.65%;background:var(--meta)"></span></span><span class="bar-val">241 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo5N4</span><span class="bar-track"><span class="bar-fill" style="width:5.43%;background:var(--meta)"></span></span><span class="bar-val">281 meV</span></li>
+<li class="bar-row"><span class="bar-name">MoN8</span><span class="bar-track"><span class="bar-fill" style="width:5.88%;background:var(--meta)"></span></span><span class="bar-val">304 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo9N</span><span class="bar-track"><span class="bar-fill" style="width:6.50%;background:var(--meta)"></span></span><span class="bar-val">336 meV</span></li>
+<li class="bar-row"><span class="bar-name">MoN9</span><span class="bar-track"><span class="bar-fill" style="width:6.52%;background:var(--meta)"></span></span><span class="bar-val">337 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo3N5</span><span class="bar-track"><span class="bar-fill" style="width:6.90%;background:var(--meta)"></span></span><span class="bar-val">357 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo4N5</span><span class="bar-track"><span class="bar-fill" style="width:6.98%;background:var(--meta)"></span></span><span class="bar-val">361 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo7N2</span><span class="bar-track"><span class="bar-fill" style="width:7.03%;background:var(--meta)"></span></span><span class="bar-val">364 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo5N3</span><span class="bar-track"><span class="bar-fill" style="width:7.04%;background:var(--meta)"></span></span><span class="bar-val">365 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo7N</span><span class="bar-track"><span class="bar-fill" style="width:7.20%;background:var(--meta)"></span></span><span class="bar-val">373 meV</span></li>
+<li class="bar-row"><span class="bar-name">MoN7</span><span class="bar-track"><span class="bar-fill" style="width:7.24%;background:var(--meta)"></span></span><span class="bar-val">375 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo4N4</span><span class="bar-track"><span class="bar-fill" style="width:7.40%;background:var(--meta)"></span></span><span class="bar-val">383 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo5N5</span><span class="bar-track"><span class="bar-fill" style="width:7.84%;background:var(--meta)"></span></span><span class="bar-val">406 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo3N2</span><span class="bar-track"><span class="bar-fill" style="width:8.21%;background:var(--meta)"></span></span><span class="bar-val">425 meV</span></li>
+<li class="bar-row"><span class="bar-name">N7</span><span class="bar-track"><span class="bar-fill" style="width:8.99%;background:var(--meta)"></span></span><span class="bar-val">465 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo2N4</span><span class="bar-track"><span class="bar-fill" style="width:9.21%;background:var(--meta)"></span></span><span class="bar-val">477 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo7</span><span class="bar-track"><span class="bar-fill" style="width:9.29%;background:var(--meta)"></span></span><span class="bar-val">481 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo7N3</span><span class="bar-track"><span class="bar-fill" style="width:9.74%;background:var(--meta)"></span></span><span class="bar-val">504 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo2N8</span><span class="bar-track"><span class="bar-fill" style="width:9.84%;background:var(--meta)"></span></span><span class="bar-val">509 meV</span></li>
+<li class="bar-row"><span class="bar-name">MoN3</span><span class="bar-track"><span class="bar-fill" style="width:10.08%;background:var(--meta)"></span></span><span class="bar-val">522 meV</span></li>
+<li class="bar-row"><span class="bar-name">MoN5</span><span class="bar-track"><span class="bar-fill" style="width:10.22%;background:var(--meta)"></span></span><span class="bar-val">529 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo3N7</span><span class="bar-track"><span class="bar-fill" style="width:10.26%;background:var(--meta)"></span></span><span class="bar-val">531 meV</span></li>
+<li class="bar-row"><span class="bar-name">N9</span><span class="bar-track"><span class="bar-fill" style="width:10.37%;background:var(--meta)"></span></span><span class="bar-val">537 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo2N7</span><span class="bar-track"><span class="bar-fill" style="width:10.92%;background:var(--meta)"></span></span><span class="bar-val">565 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo3N6</span><span class="bar-track"><span class="bar-fill" style="width:11.18%;background:var(--meta)"></span></span><span class="bar-val">579 meV</span></li>
+<li class="bar-row"><span class="bar-name">N10</span><span class="bar-track"><span class="bar-fill" style="width:11.43%;background:var(--meta)"></span></span><span class="bar-val">592 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo2N6</span><span class="bar-track"><span class="bar-fill" style="width:11.79%;background:var(--meta)"></span></span><span class="bar-val">610 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo2N5</span><span class="bar-track"><span class="bar-fill" style="width:12.01%;background:var(--meta)"></span></span><span class="bar-val">622 meV</span></li>
+<li class="bar-row"><span class="bar-name">MoN6</span><span class="bar-track"><span class="bar-fill" style="width:12.26%;background:var(--meta)"></span></span><span class="bar-val">635 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo5N</span><span class="bar-track"><span class="bar-fill" style="width:13.33%;background:var(--meta)"></span></span><span class="bar-val">690 meV</span></li>
+<li class="bar-row"><span class="bar-name">N5</span><span class="bar-track"><span class="bar-fill" style="width:17.08%;background:var(--meta)"></span></span><span class="bar-val">884 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo9</span><span class="bar-track"><span class="bar-fill" style="width:17.41%;background:var(--meta)"></span></span><span class="bar-val">901 meV</span></li>
+<li class="bar-row"><span class="bar-name">MoN4</span><span class="bar-track"><span class="bar-fill" style="width:17.58%;background:var(--meta)"></span></span><span class="bar-val">910 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mo10</span><span class="bar-track"><span class="bar-fill" style="width:19.34%;background:var(--meta)"></span></span><span class="bar-val">1001 meV</span></li>
+<li class="bar-row"><span class="bar-name">N6</span><span class="bar-track"><span class="bar-fill" style="width:19.43%;background:var(--meta)"></span></span><span class="bar-val">1006 meV</span></li>
+<li class="bar-row"><span class="bar-name">N3</span><span class="bar-track"><span class="bar-fill" style="width:21.42%;background:var(--meta)"></span></span><span class="bar-val">1109 meV</span></li>
+<li class="bar-row"><span class="bar-name">N</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">5176 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 3 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Mo</th><th>N</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Mo8 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>229</td><td>8</td></tr>
+<tr class="stable"><td class="name">Mo2N2 <span class="pill">凸包上</span></td><td>0.500</td><td>0.500</td><td>-0.3438</td><td>164 → 194</td><td>4</td></tr>
+<tr class="stable"><td class="name">N4 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>9</td><td>4</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>どの三元の辺か</h3><p>Mo–N–Si の辺として、同じ回で描いた。三角図の周縁に並ぶ点の高さはこの図でしか読めない。</p></div><div class="note"><h3>端点が信用できるか</h3><p>Mo は 229（bcc）で当たった。N は 9 で出たが実在相は 205（&alpha;-N<sub>2</sub>（分子性、8 分子））。　外れた端点はその元素側の基準を押し下げも押し上げもするので、<b>この系の生成エネルギーの絶対値は割り引いて読む</b>。組成どうしの序列（どちらが深いか）は端点を共有するので保たれる。</p></div><div class="note"><h3>穴</h3><p>撒いた 45 組成すべてから点が出ている。<b>欠けは無い</b>。</p></div><div class="note"><h3>この手法の分解能</h3><p>MatterSim による緩和エネルギーの差が数十 meV/atom のところでは、「凸包に載る／載らない」を言い切れない。10 meV 差で序列を断定しないこと。</p></div></section>
+ <footer><span>aiida-shotgun-csp 6.24.0</span><span>sweep = interconnect-bin-2026-09-11</span><span>spg_ranks = [1, 2, 3] / stages = all / max_atoms = 10</span><span>点 60 件・安定相 3 件</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

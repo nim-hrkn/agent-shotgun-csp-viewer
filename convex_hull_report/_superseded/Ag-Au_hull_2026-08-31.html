@@ -1,0 +1,499 @@
+<title>Ag–Au 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Ag–Au 相図</h1>
+  <p class="lede">凸包に載った化合物は Ag<sub>3</sub>Au、Ag<sub>4</sub>Au<sub>2</sub>、AgAu、AgAu<sub>3</sub>。データはあったのに相図が無かった二元系を、既存データから引き直したもの。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>39</dd></div><div class="fact"><dt>凸包上</dt><dd>6</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>28</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Au の原子分率。縦軸は端点（Ag, Au）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Ag–Au 相図">
+<line class="grid-line" x1="76" x2="846" y1="408.51" y2="408.51"/>
+<text class="tick-text" x="64" y="412.51" text-anchor="end">-0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="368.57" y2="368.57"/>
+<text class="tick-text" x="64" y="372.57" text-anchor="end">-0.05</text>
+<line class="grid-line" x1="76" x2="846" y1="328.63" y2="328.63"/>
+<text class="tick-text" x="64" y="332.63" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="288.69" y2="288.69"/>
+<text class="tick-text" x="64" y="292.69" text-anchor="end">0.05</text>
+<line class="grid-line" x1="76" x2="846" y1="248.76" y2="248.76"/>
+<text class="tick-text" x="64" y="252.76" text-anchor="end">0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="208.82" y2="208.82"/>
+<text class="tick-text" x="64" y="212.82" text-anchor="end">0.15</text>
+<line class="grid-line" x1="76" x2="846" y1="168.88" y2="168.88"/>
+<text class="tick-text" x="64" y="172.88" text-anchor="end">0.20</text>
+<line class="grid-line" x1="76" x2="846" y1="128.94" y2="128.94"/>
+<text class="tick-text" x="64" y="132.94" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="89.00" y2="89.00"/>
+<text class="tick-text" x="64" y="93.00" text-anchor="end">0.30</text>
+<line class="grid-line" x1="76" x2="846" y1="49.06" y2="49.06"/>
+<text class="tick-text" x="64" y="53.06" text-anchor="end">0.35</text>
+<line class="axis-line" x1="76" x2="846" y1="328.63" y2="328.63"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Ag</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Au</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Au の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,328.63 268.50,367.86 332.67,370.25 461.00,374.65 653.50,359.07 846.00,328.63"/>
+<line class="tie-drop" x1="268.50" x2="268.50" y1="367.86" y2="412"/>
+<line class="tie-drop" x1="332.67" x2="332.67" y1="370.25" y2="412"/>
+<line class="tie-drop" x1="461.00" x2="461.00" y1="374.65" y2="412"/>
+<line class="tie-drop" x1="653.50" x2="653.50" y1="359.07" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>Ag2
+Ag:Au = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 2 / 9</title><circle cx="76.00" cy="328.63" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="314.63" text-anchor="middle">Ag2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ag8
+Ag:Au = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="76.00" cy="328.55" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="348.55" text-anchor="middle">Ag8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Ag3
+Ag:Au = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 3 / 3</title><circle cx="76.00" cy="328.16" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="348.16" text-anchor="middle">Ag3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Ag4
+Ag:Au = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 12 → 69
+原子数 / 候補 4 / 9</title><circle cx="76.00" cy="328.16" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="348.16" text-anchor="middle">Ag4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Ag5
+Ag:Au = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 5 / 6</title><circle cx="76.00" cy="327.76" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="347.76" text-anchor="middle">Ag5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Ag7
+Ag:Au = 1.000 / 0.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="76.00" cy="326.40" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="346.40" text-anchor="middle">Ag7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.018 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 18 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ag10
+Ag:Au = 1.000 / 0.000
+E_form 0.018 eV/atom
+包から 18 meV/atom
+空間群 12 → 2
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="314.50" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="334.50" text-anchor="middle">Ag10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.062 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 62 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ag6
+Ag:Au = 1.000 / 0.000
+E_form 0.062 eV/atom
+包から 62 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="279.11" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="265.11" text-anchor="middle">Ag6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.124 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 124 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ag9
+Ag:Au = 1.000 / 0.000
+E_form 0.124 eV/atom
+包から 124 meV/atom
+空間群 166
+原子数 / 候補 9 / 6</title><circle cx="76.00" cy="229.98" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="215.98" text-anchor="middle">Ag9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag8Au2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.050 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 90 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 59&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ag8Au2
+Ag:Au = 0.800 / 0.200
+E_form 0.050 eV/atom
+包から 90 meV/atom
+空間群 59
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="288.54" r="5" fill="var(--h2)"/><text class="plabel" x="230.00" y="274.54" text-anchor="middle">Ag8Au2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag6Au2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.048 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ag6Au2
+Ag:Au = 0.750 / 0.250
+E_form -0.048 eV/atom
+包から 1 meV/atom
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="366.90" r="5" fill="var(--h1)"/><text class="plabel" x="268.50" y="352.90" text-anchor="middle">Ag6Au2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag2Au&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.032 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 20 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 10"><title>Ag2Au
+Ag:Au = 0.667 / 0.333
+E_form -0.032 eV/atom
+包から 20 meV/atom
+空間群 166
+原子数 / 候補 3 / 10</title><circle cx="332.67" cy="353.96" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="339.96" text-anchor="middle">Ag2Au</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag6Au3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.250 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 302 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Ag6Au3
+Ag:Au = 0.667 / 0.333
+E_form 0.250 eV/atom
+包から 302 meV/atom
+空間群 139
+原子数 / 候補 9 / 3</title><circle cx="332.67" cy="128.62" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="114.62" text-anchor="middle">Ag6Au3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag6Au4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.078 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 133 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 59&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ag6Au4
+Ag:Au = 0.600 / 0.400
+E_form 0.078 eV/atom
+包から 133 meV/atom
+空間群 59
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="266.01" r="5" fill="var(--h3)"/><text class="plabel" x="384.00" y="252.01" text-anchor="middle">Ag6Au4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag4Au4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.058 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ag4Au4
+Ag:Au = 0.500 / 0.500
+E_form -0.058 eV/atom
+包から 0 meV/atom
+空間群 139 → 123
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="374.57" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="360.57" text-anchor="middle">Ag4Au4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag2Au2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.057 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 12"><title>Ag2Au2
+Ag:Au = 0.500 / 0.500
+E_form -0.057 eV/atom
+包から 0 meV/atom
+空間群 139 → 123
+原子数 / 候補 4 / 12</title><circle cx="461.00" cy="374.33" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="394.33" text-anchor="middle">Ag2Au2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag3Au3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.103 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 160 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Ag3Au3
+Ag:Au = 0.500 / 0.500
+E_form 0.103 eV/atom
+包から 160 meV/atom
+空間群 166
+原子数 / 候補 6 / 6</title><circle cx="461.00" cy="246.60" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="232.60" text-anchor="middle">Ag3Au3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag5Au5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.332 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 390 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Ag5Au5
+Ag:Au = 0.500 / 0.500
+E_form 0.332 eV/atom
+包から 390 meV/atom
+空間群 139
+原子数 / 候補 10 / 3</title><circle cx="461.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="49.35" text-anchor="middle">Ag5Au5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag4Au6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.056 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 106 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 59&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ag4Au6
+Ag:Au = 0.400 / 0.600
+E_form 0.056 eV/atom
+包から 106 meV/atom
+空間群 59
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="283.58" r="5" fill="var(--h3)"/><text class="plabel" x="538.00" y="269.58" text-anchor="middle">Ag4Au6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;AgAu2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.036 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 9 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 14"><title>AgAu2
+Ag:Au = 0.333 / 0.667
+E_form -0.036 eV/atom
+包から 9 meV/atom
+空間群 12
+原子数 / 候補 3 / 14</title><circle cx="589.33" cy="357.31" r="5" fill="var(--h1)"/><text class="plabel" x="589.33" y="343.31" text-anchor="middle">AgAu2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag3Au6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.025 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 19 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Ag3Au6
+Ag:Au = 0.333 / 0.667
+E_form -0.025 eV/atom
+包から 19 meV/atom
+空間群 12 → 11
+原子数 / 候補 9 / 6</title><circle cx="589.33" cy="348.84" r="5" fill="var(--h1)"/><text class="plabel" x="589.33" y="368.84" text-anchor="middle">Ag3Au6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag2Au4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.055 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 100 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 59&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ag2Au4
+Ag:Au = 0.333 / 0.667
+E_form 0.055 eV/atom
+包から 100 meV/atom
+空間群 59
+原子数 / 候補 6 / 9</title><circle cx="589.33" cy="284.46" r="5" fill="var(--h2)"/><text class="plabel" x="589.33" y="270.46" text-anchor="middle">Ag2Au4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag2Au6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.032 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 59 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ag2Au6
+Ag:Au = 0.250 / 0.750
+E_form -0.032 eV/atom
+包から 6 meV/atom
+空間群 59 → 139
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="354.52" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="340.52" text-anchor="middle">Ag2Au6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag2Au8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.021 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 10 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 6&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ag2Au8
+Ag:Au = 0.200 / 0.800
+E_form -0.021 eV/atom
+包から 10 meV/atom
+空間群 12 → 6
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="345.33" r="5" fill="var(--h1)"/><text class="plabel" x="692.00" y="331.33" text-anchor="middle">Ag2Au8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>Au2
+Ag:Au = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 166
+原子数 / 候補 2 / 9</title><circle cx="846.00" cy="328.47" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="314.47" text-anchor="middle">Au2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Au8
+Ag:Au = 0.000 / 1.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166 → 225
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="328.08" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="348.08" text-anchor="middle">Au8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 8"><title>Au4
+Ag:Au = 0.000 / 1.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 194
+原子数 / 候補 4 / 8</title><circle cx="846.00" cy="327.36" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="347.36" text-anchor="middle">Au4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Au3
+Ag:Au = 0.000 / 1.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 166
+原子数 / 候補 3 / 3</title><circle cx="846.00" cy="326.88" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="346.88" text-anchor="middle">Au3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.045 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 45 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Au5
+Ag:Au = 0.000 / 1.000
+E_form 0.045 eV/atom
+包から 45 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="846.00" cy="293.09" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="279.09" text-anchor="middle">Au5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.045 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 45 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Au7
+Ag:Au = 0.000 / 1.000
+E_form 0.045 eV/atom
+包から 45 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="292.37" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="312.37" text-anchor="middle">Au7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.047 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 47 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Au10
+Ag:Au = 0.000 / 1.000
+E_form 0.047 eV/atom
+包から 47 meV/atom
+空間群 166 → 12
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="290.85" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="310.85" text-anchor="middle">Au10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.076 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 76 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Au6
+Ag:Au = 0.000 / 1.000
+E_form 0.076 eV/atom
+包から 76 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 6</title><circle cx="846.00" cy="268.09" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="288.09" text-anchor="middle">Au6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.102 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 102 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Au9
+Ag:Au = 0.000 / 1.000
+E_form 0.102 eV/atom
+包から 102 meV/atom
+空間群 166
+原子数 / 候補 9 / 3</title><circle cx="846.00" cy="247.32" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="233.32" text-anchor="middle">Au9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>Ag
+Ag:Au = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 225
+原子数 / 候補 1 / 6</title><circle cx="76.00" cy="328.63" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="348.63" text-anchor="middle">Ag</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag3Au&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.049 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 18"><title>Ag3Au
+Ag:Au = 0.750 / 0.250
+E_form -0.049 eV/atom
+包から 0（凸包上）
+空間群 139
+原子数 / 候補 4 / 18</title><circle cx="268.50" cy="367.86" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="268.50" y="387.86" text-anchor="middle">Ag3Au</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ag4Au2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.052 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 59 → 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ag4Au2
+Ag:Au = 0.667 / 0.333
+E_form -0.052 eV/atom
+包から 0（凸包上）
+空間群 59 → 71
+原子数 / 候補 6 / 9</title><circle cx="332.67" cy="370.25" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="332.67" y="356.25" text-anchor="middle">Ag4Au2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;AgAu&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.058 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 17"><title>AgAu
+Ag:Au = 0.500 / 0.500
+E_form -0.058 eV/atom
+包から 0（凸包上）
+空間群 12 → 123
+原子数 / 候補 2 / 17</title><circle cx="461.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="461.00" y="394.65" text-anchor="middle">AgAu</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;AgAu3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.038 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 19"><title>AgAu3
+Ag:Au = 0.250 / 0.750
+E_form -0.038 eV/atom
+包から 0（凸包上）
+空間群 139
+原子数 / 候補 4 / 19</title><circle cx="653.50" cy="359.07" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="653.50" y="345.07" text-anchor="middle">AgAu3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Au&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ag:Au&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 8"><title>Au
+Ag:Au = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 225
+原子数 / 候補 1 / 8</title><circle cx="846.00" cy="328.63" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="348.63" text-anchor="middle">Au</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Ag</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Ag2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Ag3Au</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Ag4Au2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">AgAu</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">AgAu3</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Au</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Ag8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag4Au4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag2Au2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag5</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag6Au2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag7</span><span class="bar-track"><span class="bar-fill" style="width:0.72%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag2Au6</span><span class="bar-track"><span class="bar-fill" style="width:1.46%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">AgAu2</span><span class="bar-track"><span class="bar-fill" style="width:2.23%;background:var(--h1)"></span></span><span class="bar-val">9 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag2Au8</span><span class="bar-track"><span class="bar-fill" style="width:2.46%;background:var(--h1)"></span></span><span class="bar-val">10 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag10</span><span class="bar-track"><span class="bar-fill" style="width:4.54%;background:var(--h1)"></span></span><span class="bar-val">18 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag3Au6</span><span class="bar-track"><span class="bar-fill" style="width:4.95%;background:var(--h1)"></span></span><span class="bar-val">19 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag2Au</span><span class="bar-track"><span class="bar-fill" style="width:5.23%;background:var(--h1)"></span></span><span class="bar-val">20 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au5</span><span class="bar-track"><span class="bar-fill" style="width:11.42%;background:var(--h1)"></span></span><span class="bar-val">45 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au7</span><span class="bar-track"><span class="bar-fill" style="width:11.65%;background:var(--h1)"></span></span><span class="bar-val">45 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au10</span><span class="bar-track"><span class="bar-fill" style="width:12.14%;background:var(--h1)"></span></span><span class="bar-val">47 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag6</span><span class="bar-track"><span class="bar-fill" style="width:15.91%;background:var(--h2)"></span></span><span class="bar-val">62 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au6</span><span class="bar-track"><span class="bar-fill" style="width:19.45%;background:var(--h2)"></span></span><span class="bar-val">76 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag8Au2</span><span class="bar-track"><span class="bar-fill" style="width:22.97%;background:var(--h2)"></span></span><span class="bar-val">90 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag2Au4</span><span class="bar-track"><span class="bar-fill" style="width:25.64%;background:var(--h2)"></span></span><span class="bar-val">100 meV</span></li>
+<li class="bar-row"><span class="bar-name">Au9</span><span class="bar-track"><span class="bar-fill" style="width:26.12%;background:var(--h3)"></span></span><span class="bar-val">102 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag4Au6</span><span class="bar-track"><span class="bar-fill" style="width:27.25%;background:var(--h3)"></span></span><span class="bar-val">106 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag9</span><span class="bar-track"><span class="bar-fill" style="width:31.69%;background:var(--h3)"></span></span><span class="bar-val">124 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag6Au4</span><span class="bar-track"><span class="bar-fill" style="width:34.03%;background:var(--h3)"></span></span><span class="bar-val">133 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag3Au3</span><span class="bar-track"><span class="bar-fill" style="width:41.13%;background:var(--h3)"></span></span><span class="bar-val">160 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag6Au3</span><span class="bar-track"><span class="bar-fill" style="width:77.60%;background:var(--meta)"></span></span><span class="bar-val">302 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ag5Au5</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">390 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 6 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Ag</th><th>Au</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Ag <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>225</td><td>1</td></tr>
+<tr class="stable"><td class="name">Ag3Au <span class="pill">凸包上</span></td><td>0.750</td><td>0.250</td><td>-0.0491</td><td>139</td><td>4</td></tr>
+<tr class="stable"><td class="name">Ag4Au2 <span class="pill">凸包上</span></td><td>0.667</td><td>0.333</td><td>-0.0521</td><td>59 → 71</td><td>6</td></tr>
+<tr class="stable"><td class="name">AgAu <span class="pill">凸包上</span></td><td>0.500</td><td>0.500</td><td>-0.0576</td><td>12 → 123</td><td>2</td></tr>
+<tr class="stable"><td class="name">AgAu3 <span class="pill">凸包上</span></td><td>0.250</td><td>0.750</td><td>-0.0381</td><td>139</td><td>4</td></tr>
+<tr class="stable"><td class="name">Au <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>225</td><td>1</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>Ag は fcc（225）で信用できる。Au は fcc（225）で信用できる。</p></div><div class="note"><h3>この系の読み方</h3><p><b>実在の Ag–Au 系は全率固溶体（fcc）で、規則相は実験的には確認されていない。</b>包に載った AgAu（12）・Ag<sub>3</sub>Au（139 = L1<sub>2</sub>）・AgAu<sub>3</sub>（139）は固溶体の規則配列であり、-38〜-57 meV という浅さも分解能に近い。<b>穴が 26/33 と多い</b>点も併せ、この図は「Ag–Au は弱く規則化する傾向がある」以上のことを言わない。両端点とも fcc で実在どおり。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に Ag<sub>4</sub>Au<sub>4</sub>（+0 meV, spg 139）。分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴が 26 組成</h3><p>≤10 原子・既約 33 組成のうち 26 組成に点が無い（exit 430 等）。そこは「相が無い」ではなく「探していない」。この図は穴だらけで、包の形そのものが変わりうる。</p></div><div class="note"><h3>この図の出自</h3><p>二元系 309 系と相図の一覧を突き合わせたところ、データはあるのに相図が無い系が 19 見つかった。その穴埋めとして既存データから引き直した 1 枚である。単一の掃引の産物ではなく、この系に対して蓄積された全データを使っている。</p></div></section>
+ <footer><span>相図が欠けていた二元系の穴埋め（spg_ranks=[1,2,3]・scope=all・basis=all・max_atoms=10）</span><span>2026-08-31 取得 · group_by=structure 322 構造</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

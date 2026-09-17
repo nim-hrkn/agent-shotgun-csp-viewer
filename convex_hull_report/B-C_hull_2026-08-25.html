@@ -1,0 +1,611 @@
+<title>B–C 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>B–C 相図</h1>
+  <p class="lede"><b>凸包に化合物が 1 つも載らなかった。</b>45 組成すべてから構造は出ているのに、最も低い B₈C₂ ですら +138 meV/atom 上にある。これは B–C に化合物が無いという意味ではない——実在の炭化ホウ素 B₄C は <b>B₁₂ 二十面体と C–B–C 鎖からなる 15 原子の菱面体晶</b>で、10 原子というセルの上限の外にある。<b>この図は B₄C を見ていない。</b></p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>55</dd></div><div class="fact"><dt>凸包上</dt><dd>2</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>5</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は C の原子分率。縦軸は端点（B, C）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="B–C 相図">
+<line class="grid-line" x1="76" x2="846" y1="402.93" y2="402.93"/>
+<text class="tick-text" x="64" y="406.93" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<text class="tick-text" x="64" y="378.65" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="346.36" y2="346.36"/>
+<text class="tick-text" x="64" y="350.36" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="318.08" y2="318.08"/>
+<text class="tick-text" x="64" y="322.08" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="289.79" y2="289.79"/>
+<text class="tick-text" x="64" y="293.79" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="261.51" y2="261.51"/>
+<text class="tick-text" x="64" y="265.51" text-anchor="end">1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="233.23" y2="233.23"/>
+<text class="tick-text" x="64" y="237.23" text-anchor="end">1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="204.94" y2="204.94"/>
+<text class="tick-text" x="64" y="208.94" text-anchor="end">1.50</text>
+<line class="grid-line" x1="76" x2="846" y1="176.66" y2="176.66"/>
+<text class="tick-text" x="64" y="180.66" text-anchor="end">1.75</text>
+<line class="grid-line" x1="76" x2="846" y1="148.38" y2="148.38"/>
+<text class="tick-text" x="64" y="152.38" text-anchor="end">2.00</text>
+<line class="grid-line" x1="76" x2="846" y1="120.09" y2="120.09"/>
+<text class="tick-text" x="64" y="124.09" text-anchor="end">2.25</text>
+<line class="grid-line" x1="76" x2="846" y1="91.81" y2="91.81"/>
+<text class="tick-text" x="64" y="95.81" text-anchor="end">2.50</text>
+<line class="grid-line" x1="76" x2="846" y1="63.52" y2="63.52"/>
+<text class="tick-text" x="64" y="67.52" text-anchor="end">2.75</text>
+<line class="grid-line" x1="76" x2="846" y1="35.24" y2="35.24"/>
+<text class="tick-text" x="64" y="39.24" text-anchor="end">3.00</text>
+<line class="axis-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">B</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">C</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">C の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,374.65 846.00,374.65"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.009 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 9 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 20 → 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>B8
+B:C = 1.000 / 0.000
+E_form 0.009 eV/atom
+包から 9 meV/atom
+空間群 20 → 63
+原子数 / 候補 8 / 9</title><circle cx="76.00" cy="373.63" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="359.63" text-anchor="middle">B8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.041 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 41 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 8"><title>B2
+B:C = 1.000 / 0.000
+E_form 0.041 eV/atom
+包から 41 meV/atom
+空間群 194
+原子数 / 候補 2 / 8</title><circle cx="76.00" cy="370.00" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="390.00" text-anchor="middle">B2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.117 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 117 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 42 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>B
+B:C = 1.000 / 0.000
+E_form 0.117 eV/atom
+包から 117 meV/atom
+空間群 42 → 69
+原子数 / 候補 1 / 9</title><circle cx="76.00" cy="361.39" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="381.39" text-anchor="middle">B</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.301 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 301 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>B4
+B:C = 1.000 / 0.000
+E_form 0.301 eV/atom
+包から 301 meV/atom
+空間群 194
+原子数 / 候補 4 / 9</title><circle cx="76.00" cy="340.61" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="326.61" text-anchor="middle">B4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B9C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.155 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 155 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>B9C
+B:C = 0.900 / 0.100
+E_form 0.155 eV/atom
+包から 155 meV/atom
+空間群 12 → 11
+原子数 / 候補 10 / 6</title><circle cx="153.00" cy="357.13" r="5" fill="var(--h3)"/><text class="plabel" x="153.00" y="343.13" text-anchor="middle">B9C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B8C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.218 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 218 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>B8C
+B:C = 0.889 / 0.111
+E_form 0.218 eV/atom
+包から 218 meV/atom
+空間群 12
+原子数 / 候補 9 / 6</title><circle cx="161.56" cy="349.99" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="369.99" text-anchor="middle">B8C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B7C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.215 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 215 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>B7C
+B:C = 0.875 / 0.125
+E_form 0.215 eV/atom
+包から 215 meV/atom
+空間群 12 → 1
+原子数 / 候補 8 / 6</title><circle cx="172.25" cy="350.28" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="370.28" text-anchor="middle">B7C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B6C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.175 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 175 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>B6C
+B:C = 0.857 / 0.143
+E_form 0.175 eV/atom
+包から 175 meV/atom
+空間群 166 → 1
+原子数 / 候補 7 / 3</title><circle cx="186.00" cy="354.82" r="5" fill="var(--h3)"/><text class="plabel" x="186.00" y="374.82" text-anchor="middle">B6C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B5C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.815 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 815 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>B5C
+B:C = 0.833 / 0.167
+E_form 0.815 eV/atom
+包から 815 meV/atom
+空間群 166
+原子数 / 候補 6 / 3</title><circle cx="204.33" cy="282.49" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="268.49" text-anchor="middle">B5C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B8C2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.138 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 138 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>B8C2
+B:C = 0.800 / 0.200
+E_form 0.138 eV/atom
+包から 138 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="359.02" r="5" fill="var(--h3)"/><text class="plabel" x="230.00" y="345.02" text-anchor="middle">B8C2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B4C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.914 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 914 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>B4C
+B:C = 0.800 / 0.200
+E_form 0.914 eV/atom
+包から 914 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="230.00" cy="271.27" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="291.27" text-anchor="middle">B4C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B7C2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.339 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 339 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>B7C2
+B:C = 0.778 / 0.222
+E_form 0.339 eV/atom
+包から 339 meV/atom
+空間群 166 → 1
+原子数 / 候補 9 / 3</title><circle cx="247.11" cy="336.35" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="356.35" text-anchor="middle">B7C2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B6C2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.269 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 269 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>B6C2
+B:C = 0.750 / 0.250
+E_form 0.269 eV/atom
+包から 269 meV/atom
+空間群 166 → 1
+原子数 / 候補 8 / 6</title><circle cx="268.50" cy="344.18" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="364.18" text-anchor="middle">B6C2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B3C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.546 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 546 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 3"><title>B3C
+B:C = 0.750 / 0.250
+E_form 0.546 eV/atom
+包から 546 meV/atom
+空間群 166
+原子数 / 候補 4 / 3</title><circle cx="268.50" cy="312.91" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="298.91" text-anchor="middle">B3C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B5C2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.334 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 334 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 160&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>B5C2
+B:C = 0.714 / 0.286
+E_form 0.334 eV/atom
+包から 334 meV/atom
+空間群 166 → 160
+原子数 / 候補 7 / 3</title><circle cx="296.00" cy="336.91" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="322.91" text-anchor="middle">B5C2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B7C3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.244 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 244 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>B7C3
+B:C = 0.700 / 0.300
+E_form 0.244 eV/atom
+包から 244 meV/atom
+空間群 166 → 1
+原子数 / 候補 10 / 3</title><circle cx="307.00" cy="347.07" r="5" fill="var(--meta)"/><text class="plabel" x="307.00" y="333.07" text-anchor="middle">B7C3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B4C2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.360 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 360 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 8&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>B4C2
+B:C = 0.667 / 0.333
+E_form 0.360 eV/atom
+包から 360 meV/atom
+空間群 166 → 8
+原子数 / 候補 6 / 9</title><circle cx="332.67" cy="333.91" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="353.91" text-anchor="middle">B4C2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B6C3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.437 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 437 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>B6C3
+B:C = 0.667 / 0.333
+E_form 0.437 eV/atom
+包から 437 meV/atom
+空間群 166 → 1
+原子数 / 候補 9 / 3</title><circle cx="332.67" cy="325.26" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="345.26" text-anchor="middle">B6C3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B2C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.157 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1157 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>B2C
+B:C = 0.667 / 0.333
+E_form 1.157 eV/atom
+包から 1157 meV/atom
+空間群 166 → 12
+原子数 / 候補 3 / 3</title><circle cx="332.67" cy="243.75" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="229.75" text-anchor="middle">B2C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B5C3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.279 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 279 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 5&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>B5C3
+B:C = 0.625 / 0.375
+E_form 0.279 eV/atom
+包から 279 meV/atom
+空間群 166 → 5
+原子数 / 候補 8 / 3</title><circle cx="364.75" cy="343.13" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="363.13" text-anchor="middle">B5C3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B6C4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.458 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 458 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>B6C4
+B:C = 0.600 / 0.400
+E_form 0.458 eV/atom
+包から 458 meV/atom
+空間群 64 → 2
+原子数 / 候補 10 / 6</title><circle cx="384.00" cy="322.78" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="308.78" text-anchor="middle">B6C4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B3C2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.733 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 733 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>B3C2
+B:C = 0.600 / 0.400
+E_form 0.733 eV/atom
+包から 733 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="384.00" cy="291.75" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="277.75" text-anchor="middle">B3C2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B4C3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.168 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 168 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>B4C3
+B:C = 0.571 / 0.429
+E_form 0.168 eV/atom
+包から 168 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="406.00" cy="355.70" r="5" fill="var(--h3)"/><text class="plabel" x="406.00" y="341.70" text-anchor="middle">B4C3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B5C4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.261 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 261 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>B5C4
+B:C = 0.556 / 0.444
+E_form 0.261 eV/atom
+包から 261 meV/atom
+空間群 166 → 1
+原子数 / 候補 9 / 3</title><circle cx="418.22" cy="345.16" r="5" fill="var(--meta)"/><text class="plabel" x="418.22" y="365.16" text-anchor="middle">B5C4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B2C2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.258 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 258 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>B2C2
+B:C = 0.500 / 0.500
+E_form 0.258 eV/atom
+包から 258 meV/atom
+空間群 166
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="345.49" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="331.49" text-anchor="middle">B2C2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B4C4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.377 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 377 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 29&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>B4C4
+B:C = 0.500 / 0.500
+E_form 0.377 eV/atom
+包から 377 meV/atom
+空間群 64 → 29
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="332.05" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="352.05" text-anchor="middle">B4C4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B5C5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.695 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 695 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>B5C5
+B:C = 0.500 / 0.500
+E_form 0.695 eV/atom
+包から 695 meV/atom
+空間群 166 → 1
+原子数 / 候補 10 / 3</title><circle cx="461.00" cy="296.07" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="282.07" text-anchor="middle">B5C5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B3C3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.895 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 895 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>B3C3
+B:C = 0.500 / 0.500
+E_form 0.895 eV/atom
+包から 895 meV/atom
+空間群 166 → 1
+原子数 / 候補 6 / 3</title><circle cx="461.00" cy="273.40" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="293.40" text-anchor="middle">B3C3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;BC&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.352 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1352 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 6"><title>BC
+B:C = 0.500 / 0.500
+E_form 1.352 eV/atom
+包から 1352 meV/atom
+空間群 166 → 225
+原子数 / 候補 2 / 6</title><circle cx="461.00" cy="221.68" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="207.68" text-anchor="middle">BC</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B4C5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.574 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 574 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>B4C5
+B:C = 0.444 / 0.556
+E_form 0.574 eV/atom
+包から 574 meV/atom
+空間群 166
+原子数 / 候補 9 / 3</title><circle cx="503.78" cy="309.73" r="5" fill="var(--meta)"/><text class="plabel" x="503.78" y="295.73" text-anchor="middle">B4C5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B3C4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.204 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1204 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>B3C4
+B:C = 0.429 / 0.571
+E_form 1.204 eV/atom
+包から 1204 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="238.44" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="224.44" text-anchor="middle">B3C4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B4C6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.273 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 273 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>B4C6
+B:C = 0.400 / 0.600
+E_form 0.273 eV/atom
+包から 273 meV/atom
+空間群 166
+原子数 / 候補 10 / 6</title><circle cx="538.00" cy="343.74" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="329.74" text-anchor="middle">B4C6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B2C3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.757 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 757 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 5&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>B2C3
+B:C = 0.400 / 0.600
+E_form 0.757 eV/atom
+包から 757 meV/atom
+空間群 166 → 5
+原子数 / 候補 5 / 3</title><circle cx="538.00" cy="289.05" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="275.05" text-anchor="middle">B2C3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B3C5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.597 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 597 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>B3C5
+B:C = 0.375 / 0.625
+E_form 0.597 eV/atom
+包から 597 meV/atom
+空間群 166 → 1
+原子数 / 候補 8 / 3</title><circle cx="557.25" cy="307.07" r="5" fill="var(--meta)"/><text class="plabel" x="557.25" y="293.07" text-anchor="middle">B3C5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B2C4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.773 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 773 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 4&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>B2C4
+B:C = 0.333 / 0.667
+E_form 0.773 eV/atom
+包から 773 meV/atom
+空間群 64 → 4
+原子数 / 候補 6 / 9</title><circle cx="589.33" cy="287.21" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="307.21" text-anchor="middle">B2C4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B3C6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.876 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 876 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>B3C6
+B:C = 0.333 / 0.667
+E_form 0.876 eV/atom
+包から 876 meV/atom
+空間群 166 → 1
+原子数 / 候補 9 / 3</title><circle cx="589.33" cy="275.57" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="261.57" text-anchor="middle">B3C6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;BC2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.965 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 965 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>BC2
+B:C = 0.333 / 0.667
+E_form 0.965 eV/atom
+包から 965 meV/atom
+空間群 166
+原子数 / 候補 3 / 3</title><circle cx="589.33" cy="265.50" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="285.50" text-anchor="middle">BC2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B3C7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.853 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 853 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>B3C7
+B:C = 0.300 / 0.700
+E_form 0.853 eV/atom
+包から 853 meV/atom
+空間群 166
+原子数 / 候補 10 / 3</title><circle cx="615.00" cy="278.14" r="5" fill="var(--meta)"/><text class="plabel" x="615.00" y="298.14" text-anchor="middle">B3C7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B2C5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.685 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 685 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 8&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>B2C5
+B:C = 0.286 / 0.714
+E_form 0.685 eV/atom
+包から 685 meV/atom
+空間群 166 → 8
+原子数 / 候補 7 / 3</title><circle cx="626.00" cy="297.20" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="317.20" text-anchor="middle">B2C5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B2C6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.301 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 301 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>B2C6
+B:C = 0.250 / 0.750
+E_form 0.301 eV/atom
+包から 301 meV/atom
+空間群 166
+原子数 / 候補 8 / 6</title><circle cx="653.50" cy="340.57" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="326.57" text-anchor="middle">B2C6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;BC3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.852 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 852 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 3"><title>BC3
+B:C = 0.250 / 0.750
+E_form 0.852 eV/atom
+包から 852 meV/atom
+空間群 166
+原子数 / 候補 4 / 3</title><circle cx="653.50" cy="278.23" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="264.23" text-anchor="middle">BC3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B2C7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.639 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 639 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>B2C7
+B:C = 0.222 / 0.778
+E_form 0.639 eV/atom
+包から 639 meV/atom
+空間群 12
+原子数 / 候補 9 / 6</title><circle cx="674.89" cy="302.40" r="5" fill="var(--meta)"/><text class="plabel" x="674.89" y="288.40" text-anchor="middle">B2C7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B2C8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.447 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 447 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>B2C8
+B:C = 0.200 / 0.800
+E_form 0.447 eV/atom
+包から 447 meV/atom
+空間群 12
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="324.05" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="310.05" text-anchor="middle">B2C8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;BC4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.452 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1452 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>BC4
+B:C = 0.200 / 0.800
+E_form 1.452 eV/atom
+包から 1452 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="692.00" cy="210.35" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="196.35" text-anchor="middle">BC4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;BC5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.888 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 888 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>BC5
+B:C = 0.167 / 0.833
+E_form 0.888 eV/atom
+包から 888 meV/atom
+空間群 166
+原子数 / 候補 6 / 3</title><circle cx="717.67" cy="274.16" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="260.16" text-anchor="middle">BC5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;BC6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.016 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1016 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>BC6
+B:C = 0.143 / 0.857
+E_form 1.016 eV/atom
+包から 1016 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="736.00" cy="259.67" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="279.67" text-anchor="middle">BC6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;BC7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.587 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 587 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>BC7
+B:C = 0.125 / 0.875
+E_form 0.587 eV/atom
+包から 587 meV/atom
+空間群 12 → 2
+原子数 / 候補 8 / 6</title><circle cx="749.75" cy="308.29" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="294.29" text-anchor="middle">BC7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;BC8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.554 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 554 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>BC8
+B:C = 0.111 / 0.889
+E_form 0.554 eV/atom
+包から 554 meV/atom
+空間群 12 → 2
+原子数 / 候補 9 / 6</title><circle cx="760.44" cy="311.96" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="297.96" text-anchor="middle">BC8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;BC9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.349 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 349 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 5&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>BC9
+B:C = 0.100 / 0.900
+E_form 0.349 eV/atom
+包から 349 meV/atom
+空間群 12 → 5
+原子数 / 候補 10 / 6</title><circle cx="769.00" cy="335.17" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="321.17" text-anchor="middle">BC9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 8"><title>C2
+B:C = 0.000 / 1.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 166
+原子数 / 候補 2 / 8</title><circle cx="846.00" cy="374.37" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="360.37" text-anchor="middle">C2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.150 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 150 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>C8
+B:C = 0.000 / 1.000
+E_form 0.150 eV/atom
+包から 150 meV/atom
+空間群 8 → 63
+原子数 / 候補 8 / 8</title><circle cx="846.00" cy="357.71" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="377.71" text-anchor="middle">C8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.821 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 821 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>C6
+B:C = 0.000 / 1.000
+E_form 0.821 eV/atom
+包から 821 meV/atom
+空間群 64 → 69
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="281.80" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="267.80" text-anchor="middle">C6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 2.752 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2752 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>C
+B:C = 0.000 / 1.000
+E_form 2.752 eV/atom
+包から 2752 meV/atom
+空間群 166 → 221
+原子数 / 候補 1 / 6</title><circle cx="846.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="49.35" text-anchor="middle">C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;B12&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 12 / 16"><title>B12
+B:C = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 166 → 1
+原子数 / 候補 12 / 16</title><circle cx="76.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="394.65" text-anchor="middle">B12</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;B:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>C4
+B:C = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 64 → 69
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="394.65" text-anchor="middle">C4</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">B12</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">C4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">C2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">B8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">9 meV</span></li>
+<li class="bar-row"><span class="bar-name">B2</span><span class="bar-track"><span class="bar-fill" style="width:1.49%;background:var(--h1)"></span></span><span class="bar-val">41 meV</span></li>
+<li class="bar-row"><span class="bar-name">B</span><span class="bar-track"><span class="bar-fill" style="width:4.26%;background:var(--h3)"></span></span><span class="bar-val">117 meV</span></li>
+<li class="bar-row"><span class="bar-name">B8C2</span><span class="bar-track"><span class="bar-fill" style="width:5.02%;background:var(--h3)"></span></span><span class="bar-val">138 meV</span></li>
+<li class="bar-row"><span class="bar-name">C8</span><span class="bar-track"><span class="bar-fill" style="width:5.44%;background:var(--h3)"></span></span><span class="bar-val">150 meV</span></li>
+<li class="bar-row"><span class="bar-name">B9C</span><span class="bar-track"><span class="bar-fill" style="width:5.63%;background:var(--h3)"></span></span><span class="bar-val">155 meV</span></li>
+<li class="bar-row"><span class="bar-name">B4C3</span><span class="bar-track"><span class="bar-fill" style="width:6.09%;background:var(--h3)"></span></span><span class="bar-val">168 meV</span></li>
+<li class="bar-row"><span class="bar-name">B6C</span><span class="bar-track"><span class="bar-fill" style="width:6.37%;background:var(--h3)"></span></span><span class="bar-val">175 meV</span></li>
+<li class="bar-row"><span class="bar-name">B7C</span><span class="bar-track"><span class="bar-fill" style="width:7.83%;background:var(--meta)"></span></span><span class="bar-val">215 meV</span></li>
+<li class="bar-row"><span class="bar-name">B8C</span><span class="bar-track"><span class="bar-fill" style="width:7.92%;background:var(--meta)"></span></span><span class="bar-val">218 meV</span></li>
+<li class="bar-row"><span class="bar-name">B7C3</span><span class="bar-track"><span class="bar-fill" style="width:8.86%;background:var(--meta)"></span></span><span class="bar-val">244 meV</span></li>
+<li class="bar-row"><span class="bar-name">B2C2</span><span class="bar-track"><span class="bar-fill" style="width:9.37%;background:var(--meta)"></span></span><span class="bar-val">258 meV</span></li>
+<li class="bar-row"><span class="bar-name">B5C4</span><span class="bar-track"><span class="bar-fill" style="width:9.47%;background:var(--meta)"></span></span><span class="bar-val">261 meV</span></li>
+<li class="bar-row"><span class="bar-name">B6C2</span><span class="bar-track"><span class="bar-fill" style="width:9.79%;background:var(--meta)"></span></span><span class="bar-val">269 meV</span></li>
+<li class="bar-row"><span class="bar-name">B4C6</span><span class="bar-track"><span class="bar-fill" style="width:9.93%;background:var(--meta)"></span></span><span class="bar-val">273 meV</span></li>
+<li class="bar-row"><span class="bar-name">B5C3</span><span class="bar-track"><span class="bar-fill" style="width:10.13%;background:var(--meta)"></span></span><span class="bar-val">279 meV</span></li>
+<li class="bar-row"><span class="bar-name">B4</span><span class="bar-track"><span class="bar-fill" style="width:10.93%;background:var(--meta)"></span></span><span class="bar-val">301 meV</span></li>
+<li class="bar-row"><span class="bar-name">B2C6</span><span class="bar-track"><span class="bar-fill" style="width:10.95%;background:var(--meta)"></span></span><span class="bar-val">301 meV</span></li>
+<li class="bar-row"><span class="bar-name">B5C2</span><span class="bar-track"><span class="bar-fill" style="width:12.12%;background:var(--meta)"></span></span><span class="bar-val">334 meV</span></li>
+<li class="bar-row"><span class="bar-name">B7C2</span><span class="bar-track"><span class="bar-fill" style="width:12.30%;background:var(--meta)"></span></span><span class="bar-val">339 meV</span></li>
+<li class="bar-row"><span class="bar-name">BC9</span><span class="bar-track"><span class="bar-fill" style="width:12.68%;background:var(--meta)"></span></span><span class="bar-val">349 meV</span></li>
+<li class="bar-row"><span class="bar-name">B4C2</span><span class="bar-track"><span class="bar-fill" style="width:13.09%;background:var(--meta)"></span></span><span class="bar-val">360 meV</span></li>
+<li class="bar-row"><span class="bar-name">B4C4</span><span class="bar-track"><span class="bar-fill" style="width:13.68%;background:var(--meta)"></span></span><span class="bar-val">377 meV</span></li>
+<li class="bar-row"><span class="bar-name">B6C3</span><span class="bar-track"><span class="bar-fill" style="width:15.86%;background:var(--meta)"></span></span><span class="bar-val">437 meV</span></li>
+<li class="bar-row"><span class="bar-name">B2C8</span><span class="bar-track"><span class="bar-fill" style="width:16.25%;background:var(--meta)"></span></span><span class="bar-val">447 meV</span></li>
+<li class="bar-row"><span class="bar-name">B6C4</span><span class="bar-track"><span class="bar-fill" style="width:16.66%;background:var(--meta)"></span></span><span class="bar-val">458 meV</span></li>
+<li class="bar-row"><span class="bar-name">B3C</span><span class="bar-track"><span class="bar-fill" style="width:19.83%;background:var(--meta)"></span></span><span class="bar-val">546 meV</span></li>
+<li class="bar-row"><span class="bar-name">BC8</span><span class="bar-track"><span class="bar-fill" style="width:20.14%;background:var(--meta)"></span></span><span class="bar-val">554 meV</span></li>
+<li class="bar-row"><span class="bar-name">B4C5</span><span class="bar-track"><span class="bar-fill" style="width:20.85%;background:var(--meta)"></span></span><span class="bar-val">574 meV</span></li>
+<li class="bar-row"><span class="bar-name">BC7</span><span class="bar-track"><span class="bar-fill" style="width:21.32%;background:var(--meta)"></span></span><span class="bar-val">587 meV</span></li>
+<li class="bar-row"><span class="bar-name">B3C5</span><span class="bar-track"><span class="bar-fill" style="width:21.71%;background:var(--meta)"></span></span><span class="bar-val">597 meV</span></li>
+<li class="bar-row"><span class="bar-name">B2C7</span><span class="bar-track"><span class="bar-fill" style="width:23.21%;background:var(--meta)"></span></span><span class="bar-val">639 meV</span></li>
+<li class="bar-row"><span class="bar-name">B2C5</span><span class="bar-track"><span class="bar-fill" style="width:24.88%;background:var(--meta)"></span></span><span class="bar-val">685 meV</span></li>
+<li class="bar-row"><span class="bar-name">B5C5</span><span class="bar-track"><span class="bar-fill" style="width:25.24%;background:var(--meta)"></span></span><span class="bar-val">695 meV</span></li>
+<li class="bar-row"><span class="bar-name">B3C2</span><span class="bar-track"><span class="bar-fill" style="width:26.63%;background:var(--meta)"></span></span><span class="bar-val">733 meV</span></li>
+<li class="bar-row"><span class="bar-name">B2C3</span><span class="bar-track"><span class="bar-fill" style="width:27.50%;background:var(--meta)"></span></span><span class="bar-val">757 meV</span></li>
+<li class="bar-row"><span class="bar-name">B2C4</span><span class="bar-track"><span class="bar-fill" style="width:28.09%;background:var(--meta)"></span></span><span class="bar-val">773 meV</span></li>
+<li class="bar-row"><span class="bar-name">B5C</span><span class="bar-track"><span class="bar-fill" style="width:29.61%;background:var(--meta)"></span></span><span class="bar-val">815 meV</span></li>
+<li class="bar-row"><span class="bar-name">C6</span><span class="bar-track"><span class="bar-fill" style="width:29.83%;background:var(--meta)"></span></span><span class="bar-val">821 meV</span></li>
+<li class="bar-row"><span class="bar-name">BC3</span><span class="bar-track"><span class="bar-fill" style="width:30.97%;background:var(--meta)"></span></span><span class="bar-val">852 meV</span></li>
+<li class="bar-row"><span class="bar-name">B3C7</span><span class="bar-track"><span class="bar-fill" style="width:31.00%;background:var(--meta)"></span></span><span class="bar-val">853 meV</span></li>
+<li class="bar-row"><span class="bar-name">B3C6</span><span class="bar-track"><span class="bar-fill" style="width:31.83%;background:var(--meta)"></span></span><span class="bar-val">876 meV</span></li>
+<li class="bar-row"><span class="bar-name">BC5</span><span class="bar-track"><span class="bar-fill" style="width:32.28%;background:var(--meta)"></span></span><span class="bar-val">888 meV</span></li>
+<li class="bar-row"><span class="bar-name">B3C3</span><span class="bar-track"><span class="bar-fill" style="width:32.52%;background:var(--meta)"></span></span><span class="bar-val">895 meV</span></li>
+<li class="bar-row"><span class="bar-name">B4C</span><span class="bar-track"><span class="bar-fill" style="width:33.21%;background:var(--meta)"></span></span><span class="bar-val">914 meV</span></li>
+<li class="bar-row"><span class="bar-name">BC2</span><span class="bar-track"><span class="bar-fill" style="width:35.06%;background:var(--meta)"></span></span><span class="bar-val">965 meV</span></li>
+<li class="bar-row"><span class="bar-name">BC6</span><span class="bar-track"><span class="bar-fill" style="width:36.94%;background:var(--meta)"></span></span><span class="bar-val">1016 meV</span></li>
+<li class="bar-row"><span class="bar-name">B2C</span><span class="bar-track"><span class="bar-fill" style="width:42.05%;background:var(--meta)"></span></span><span class="bar-val">1157 meV</span></li>
+<li class="bar-row"><span class="bar-name">B3C4</span><span class="bar-track"><span class="bar-fill" style="width:43.75%;background:var(--meta)"></span></span><span class="bar-val">1204 meV</span></li>
+<li class="bar-row"><span class="bar-name">BC</span><span class="bar-track"><span class="bar-fill" style="width:49.14%;background:var(--meta)"></span></span><span class="bar-val">1352 meV</span></li>
+<li class="bar-row"><span class="bar-name">BC4</span><span class="bar-track"><span class="bar-fill" style="width:52.78%;background:var(--meta)"></span></span><span class="bar-val">1452 meV</span></li>
+<li class="bar-row"><span class="bar-name">C</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">2752 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 2 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>B</th><th>C</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">B12 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>166 → 1</td><td>12</td></tr>
+<tr class="stable"><td class="name">C4 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>64 → 69</td><td>4</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>B₄C は 15 原子</h3><p>実在の B₄C（R3̄m、15 原子/セル）は B₁₂ 二十面体が骨格を作る。今回の 5 原子セルの「B₄C」（+914 meV）は名前が同じだけの別物である。<b>セル上限を 15 以上に上げないと、この系の凸包は意味を持たない。</b></p></div><div class="note"><h3>端点の B は当たっている</h3><p>B 側の端点に採られたのは <b>B₁₂（spg 166）</b>——α 菱面体晶ボロンそのもので、12 原子の二十面体が正しく組めている。つまり「B₁₂ は作れるのに B₁₂ ＋ C 鎖は作れない」という、<b>セル上限がちょうど間に挟まった状態</b>である。</p></div><div class="note"><h3>穴は無い</h3><p>45 組成すべてから構造が出た（緩和後 298 個）。</p></div><div class="note"><h3>C 端点は 4 原子</h3><p>C₄（spg 64）が採られた。グラファイトの積層に近い。ダイヤモンド（spg 227）はこれより高く出ている。</p></div><div class="note"><h3>セルの上限は 10 原子</h3><p>2 元は a+b ≤ 10 の 45 組、3 元は既約な 109 組をすべて撒いた。<b>これより大きなセルでしか組めない相は、原理的に出てこない。</b>凸包に載らなかったからといって実在しないわけではない。</p></div><div class="note"><h3>空間群は予測の上位 3 位だけ</h3><p>各組成につき ShotgunCSP-GW が予測した順位 1〜3 位の空間群でのみ構造を作った。<b>正解が 4 位以下にあると、その組成は不当に高く出る。</b>図中で「requested」と「detected」がずれている点は、緩和中に対称性が上がった（下がった）もの。</p></div><div class="note"><h3>数十 meV の差を信じない</h3><p>この手法（MatterSim + 有限個の候補）の分解能は数十 meV/atom 程度で、凸包の上か下かが 10 meV で入れ替わる点は「どちらとも言えない」と読むのが正しい。</p></div></section>
+ <footer><span>aiida-shotgun-csp 4.5.0 · MatterSim</span><span>sweep = bc-le10</span><span>spg_ranks = [1,2,3]</span><span>10 原子まで</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

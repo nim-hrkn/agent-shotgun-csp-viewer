@@ -1,0 +1,664 @@
+<title>Li–Mn 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Li–Mn 相図</h1>
+  <p class="lede">端点以外に安定な化合物は出なかった。既存の三元系の辺として、これまで単独の相図が無かった二元系。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>64</dd></div><div class="fact"><dt>凸包上</dt><dd>2</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>12</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Mn の原子分率。縦軸は端点（Li, Mn）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Li–Mn 相図">
+<line class="grid-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<text class="tick-text" x="64" y="378.65" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="335.87" y2="335.87"/>
+<text class="tick-text" x="64" y="339.87" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="297.10" y2="297.10"/>
+<text class="tick-text" x="64" y="301.10" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="258.32" y2="258.32"/>
+<text class="tick-text" x="64" y="262.32" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="219.55" y2="219.55"/>
+<text class="tick-text" x="64" y="223.55" text-anchor="end">1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="180.78" y2="180.78"/>
+<text class="tick-text" x="64" y="184.78" text-anchor="end">1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="142.00" y2="142.00"/>
+<text class="tick-text" x="64" y="146.00" text-anchor="end">1.50</text>
+<line class="grid-line" x1="76" x2="846" y1="103.23" y2="103.23"/>
+<text class="tick-text" x="64" y="107.23" text-anchor="end">1.75</text>
+<line class="grid-line" x1="76" x2="846" y1="64.46" y2="64.46"/>
+<text class="tick-text" x="64" y="68.46" text-anchor="end">2.00</text>
+<line class="axis-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Li</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Mn</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Mn の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,374.65 846.00,374.65"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 22"><title>Li4
+Li:Mn = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 4 / 22</title><circle cx="76.00" cy="374.52" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="360.52" text-anchor="middle">Li4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Li5
+Li:Mn = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="76.00" cy="374.51" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.51" text-anchor="middle">Li5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Li6
+Li:Mn = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 64 → 139
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="374.46" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.46" text-anchor="middle">Li6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.002 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Li8
+Li:Mn = 1.000 / 0.000
+E_form 0.002 eV/atom
+包から 2 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="76.00" cy="374.37" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.37" text-anchor="middle">Li8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>Li2
+Li:Mn = 1.000 / 0.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 166
+原子数 / 候補 2 / 9</title><circle cx="76.00" cy="374.15" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.15" text-anchor="middle">Li2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.003 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Li7
+Li:Mn = 1.000 / 0.000
+E_form 0.003 eV/atom
+包から 3 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="76.00" cy="374.12" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.12" text-anchor="middle">Li7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.009 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 9 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Li3
+Li:Mn = 1.000 / 0.000
+E_form 0.009 eV/atom
+包から 9 meV/atom
+空間群 166
+原子数 / 候補 3 / 3</title><circle cx="76.00" cy="373.25" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="393.25" text-anchor="middle">Li3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.055 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 55 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 72&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Li10
+Li:Mn = 1.000 / 0.000
+E_form 0.055 eV/atom
+包から 55 meV/atom
+空間群 72
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="366.19" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="386.19" text-anchor="middle">Li10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li9Mn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.109 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 109 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Li9Mn
+Li:Mn = 0.900 / 0.100
+E_form 0.109 eV/atom
+包から 109 meV/atom
+空間群 166
+原子数 / 候補 10 / 6</title><circle cx="153.00" cy="357.69" r="5" fill="var(--h3)"/><text class="plabel" x="153.00" y="343.69" text-anchor="middle">Li9Mn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li8Mn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.287 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 287 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Li8Mn
+Li:Mn = 0.889 / 0.111
+E_form 0.287 eV/atom
+包から 287 meV/atom
+空間群 166
+原子数 / 候補 9 / 6</title><circle cx="161.56" cy="330.16" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="350.16" text-anchor="middle">Li8Mn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li7Mn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.135 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 135 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Li7Mn
+Li:Mn = 0.875 / 0.125
+E_form 0.135 eV/atom
+包から 135 meV/atom
+空間群 166
+原子数 / 候補 8 / 6</title><circle cx="172.25" cy="353.66" r="5" fill="var(--h3)"/><text class="plabel" x="172.25" y="373.66" text-anchor="middle">Li7Mn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li6Mn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.156 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 156 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Li6Mn
+Li:Mn = 0.857 / 0.143
+E_form 0.156 eV/atom
+包から 156 meV/atom
+空間群 166
+原子数 / 候補 7 / 6</title><circle cx="186.00" cy="350.40" r="5" fill="var(--h3)"/><text class="plabel" x="186.00" y="370.40" text-anchor="middle">Li6Mn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li5Mn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.204 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 204 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Li5Mn
+Li:Mn = 0.833 / 0.167
+E_form 0.204 eV/atom
+包から 204 meV/atom
+空間群 187
+原子数 / 候補 6 / 6</title><circle cx="204.33" cy="343.04" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="329.04" text-anchor="middle">Li5Mn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li8Mn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.200 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 200 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Li8Mn2
+Li:Mn = 0.800 / 0.200
+E_form 0.200 eV/atom
+包から 200 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="343.56" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="363.56" text-anchor="middle">Li8Mn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4Mn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.217 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 217 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Li4Mn
+Li:Mn = 0.800 / 0.200
+E_form 0.217 eV/atom
+包から 217 meV/atom
+空間群 166
+原子数 / 候補 5 / 6</title><circle cx="230.00" cy="340.96" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="360.96" text-anchor="middle">Li4Mn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li7Mn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.292 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 292 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Li7Mn2
+Li:Mn = 0.778 / 0.222
+E_form 0.292 eV/atom
+包から 292 meV/atom
+空間群 166
+原子数 / 候補 9 / 3</title><circle cx="247.11" cy="329.31" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="315.31" text-anchor="middle">Li7Mn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li6Mn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.246 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 246 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Li6Mn2
+Li:Mn = 0.750 / 0.250
+E_form 0.246 eV/atom
+包から 246 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="336.43" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="322.43" text-anchor="middle">Li6Mn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3Mn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.270 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 270 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Li3Mn
+Li:Mn = 0.750 / 0.250
+E_form 0.270 eV/atom
+包から 270 meV/atom
+空間群 216 → 225
+原子数 / 候補 4 / 9</title><circle cx="268.50" cy="332.72" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="352.72" text-anchor="middle">Li3Mn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li5Mn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.429 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 429 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Li5Mn2
+Li:Mn = 0.714 / 0.286
+E_form 0.429 eV/atom
+包から 429 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="296.00" cy="308.13" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="328.13" text-anchor="middle">Li5Mn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li7Mn3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.700 / 0.300&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.308 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 308 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Li7Mn3
+Li:Mn = 0.700 / 0.300
+E_form 0.308 eV/atom
+包から 308 meV/atom
+空間群 166
+原子数 / 候補 10 / 6</title><circle cx="307.00" cy="326.92" r="5" fill="var(--meta)"/><text class="plabel" x="307.00" y="346.92" text-anchor="middle">Li7Mn3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4Mn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.323 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 323 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Li4Mn2
+Li:Mn = 0.667 / 0.333
+E_form 0.323 eV/atom
+包から 323 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 9</title><circle cx="332.67" cy="324.57" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="310.57" text-anchor="middle">Li4Mn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Mn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.369 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 369 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>Li2Mn
+Li:Mn = 0.667 / 0.333
+E_form 0.369 eV/atom
+包から 369 meV/atom
+空間群 187
+原子数 / 候補 3 / 9</title><circle cx="332.67" cy="317.49" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="337.49" text-anchor="middle">Li2Mn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li6Mn3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.479 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 479 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Li6Mn3
+Li:Mn = 0.667 / 0.333
+E_form 0.479 eV/atom
+包から 479 meV/atom
+空間群 166
+原子数 / 候補 9 / 3</title><circle cx="332.67" cy="300.35" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="320.35" text-anchor="middle">Li6Mn3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li5Mn3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.357 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 357 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Li5Mn3
+Li:Mn = 0.625 / 0.375
+E_form 0.357 eV/atom
+包から 357 meV/atom
+空間群 166
+原子数 / 候補 8 / 3</title><circle cx="364.75" cy="319.35" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="339.35" text-anchor="middle">Li5Mn3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li6Mn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.333 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 333 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Li6Mn4
+Li:Mn = 0.600 / 0.400
+E_form 0.333 eV/atom
+包から 333 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="384.00" cy="322.98" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="308.98" text-anchor="middle">Li6Mn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3Mn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.365 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 365 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Li3Mn2
+Li:Mn = 0.600 / 0.400
+E_form 0.365 eV/atom
+包から 365 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="384.00" cy="318.08" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="338.08" text-anchor="middle">Li3Mn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4Mn3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.515 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 515 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Li4Mn3
+Li:Mn = 0.571 / 0.429
+E_form 0.515 eV/atom
+包から 515 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="406.00" cy="294.79" r="5" fill="var(--meta)"/><text class="plabel" x="406.00" y="314.79" text-anchor="middle">Li4Mn3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li5Mn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.284 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 284 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 160&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Li5Mn4
+Li:Mn = 0.556 / 0.444
+E_form 0.284 eV/atom
+包から 284 meV/atom
+空間群 160
+原子数 / 候補 9 / 6</title><circle cx="418.22" cy="330.55" r="5" fill="var(--meta)"/><text class="plabel" x="418.22" y="350.55" text-anchor="middle">Li5Mn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4Mn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.273 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 273 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Li4Mn4
+Li:Mn = 0.500 / 0.500
+E_form 0.273 eV/atom
+包から 273 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="332.24" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="318.24" text-anchor="middle">Li4Mn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li5Mn5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.362 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 362 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Li5Mn5
+Li:Mn = 0.500 / 0.500
+E_form 0.362 eV/atom
+包から 362 meV/atom
+空間群 38
+原子数 / 候補 10 / 6</title><circle cx="461.00" cy="318.47" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="338.47" text-anchor="middle">Li5Mn5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiMn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.380 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 380 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>LiMn
+Li:Mn = 0.500 / 0.500
+E_form 0.380 eV/atom
+包から 380 meV/atom
+空間群 187
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="315.76" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="335.76" text-anchor="middle">LiMn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Mn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.385 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 385 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 44 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Li2Mn2
+Li:Mn = 0.500 / 0.500
+E_form 0.385 eV/atom
+包から 385 meV/atom
+空間群 44 → 123
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="314.90" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="334.90" text-anchor="middle">Li2Mn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3Mn3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.409 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 409 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>Li3Mn3
+Li:Mn = 0.500 / 0.500
+E_form 0.409 eV/atom
+包から 409 meV/atom
+空間群 166
+原子数 / 候補 6 / 3</title><circle cx="461.00" cy="311.18" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="331.18" text-anchor="middle">Li3Mn3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4Mn5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.482 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 482 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Li4Mn5
+Li:Mn = 0.444 / 0.556
+E_form 0.482 eV/atom
+包から 482 meV/atom
+空間群 38
+原子数 / 候補 9 / 6</title><circle cx="503.78" cy="299.84" r="5" fill="var(--meta)"/><text class="plabel" x="503.78" y="285.84" text-anchor="middle">Li4Mn5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3Mn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.437 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 437 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Li3Mn4
+Li:Mn = 0.429 / 0.571
+E_form 0.437 eV/atom
+包から 437 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="306.84" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="292.84" text-anchor="middle">Li3Mn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li4Mn6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.325 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 325 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Li4Mn6
+Li:Mn = 0.400 / 0.600
+E_form 0.325 eV/atom
+包から 325 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="324.21" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="310.21" text-anchor="middle">Li4Mn6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Mn3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.367 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 367 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Li2Mn3
+Li:Mn = 0.400 / 0.600
+E_form 0.367 eV/atom
+包から 367 meV/atom
+空間群 166
+原子数 / 候補 5 / 6</title><circle cx="538.00" cy="317.76" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="337.76" text-anchor="middle">Li2Mn3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3Mn5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.354 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 354 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Li3Mn5
+Li:Mn = 0.375 / 0.625
+E_form 0.354 eV/atom
+包から 354 meV/atom
+空間群 166
+原子数 / 候補 8 / 6</title><circle cx="557.25" cy="319.73" r="5" fill="var(--meta)"/><text class="plabel" x="557.25" y="339.73" text-anchor="middle">Li3Mn5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Mn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.382 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 382 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Li2Mn4
+Li:Mn = 0.333 / 0.667
+E_form 0.382 eV/atom
+包から 382 meV/atom
+空間群 194
+原子数 / 候補 6 / 6</title><circle cx="589.33" cy="315.43" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="301.43" text-anchor="middle">Li2Mn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3Mn6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.398 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 398 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Li3Mn6
+Li:Mn = 0.333 / 0.667
+E_form 0.398 eV/atom
+包から 398 meV/atom
+空間群 166
+原子数 / 候補 9 / 6</title><circle cx="589.33" cy="313.00" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="333.00" text-anchor="middle">Li3Mn6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiMn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.836 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 836 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>LiMn2
+Li:Mn = 0.333 / 0.667
+E_form 0.836 eV/atom
+包から 836 meV/atom
+空間群 225
+原子数 / 候補 3 / 3</title><circle cx="589.33" cy="245.00" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="231.00" text-anchor="middle">LiMn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li3Mn7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.331 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 331 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Li3Mn7
+Li:Mn = 0.300 / 0.700
+E_form 0.331 eV/atom
+包から 331 meV/atom
+空間群 166
+原子数 / 候補 10 / 6</title><circle cx="615.00" cy="323.36" r="5" fill="var(--meta)"/><text class="plabel" x="615.00" y="343.36" text-anchor="middle">Li3Mn7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Mn5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.261 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 261 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Li2Mn5
+Li:Mn = 0.286 / 0.714
+E_form 0.261 eV/atom
+包から 261 meV/atom
+空間群 166
+原子数 / 候補 7 / 6</title><circle cx="626.00" cy="334.12" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="354.12" text-anchor="middle">Li2Mn5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Mn6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.232 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 232 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Li2Mn6
+Li:Mn = 0.250 / 0.750
+E_form 0.232 eV/atom
+包から 232 meV/atom
+空間群 166
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="338.74" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="358.74" text-anchor="middle">Li2Mn6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiMn3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.310 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 310 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 44 → 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>LiMn3
+Li:Mn = 0.250 / 0.750
+E_form 0.310 eV/atom
+包から 310 meV/atom
+空間群 44 → 71
+原子数 / 候補 4 / 9</title><circle cx="653.50" cy="326.64" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="312.64" text-anchor="middle">LiMn3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Mn7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.427 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 427 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Li2Mn7
+Li:Mn = 0.222 / 0.778
+E_form 0.427 eV/atom
+包から 427 meV/atom
+空間群 166
+原子数 / 候補 9 / 6</title><circle cx="674.89" cy="308.36" r="5" fill="var(--meta)"/><text class="plabel" x="674.89" y="328.36" text-anchor="middle">Li2Mn7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiMn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.211 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 211 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>LiMn4
+Li:Mn = 0.200 / 0.800
+E_form 0.211 eV/atom
+包から 211 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="692.00" cy="341.95" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="361.95" text-anchor="middle">LiMn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li2Mn8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.243 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 243 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Li2Mn8
+Li:Mn = 0.200 / 0.800
+E_form 0.243 eV/atom
+包から 243 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="336.93" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="356.93" text-anchor="middle">Li2Mn8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiMn5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.292 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 292 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 5"><title>LiMn5
+Li:Mn = 0.167 / 0.833
+E_form 0.292 eV/atom
+包から 292 meV/atom
+空間群 166
+原子数 / 候補 6 / 5</title><circle cx="717.67" cy="329.33" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="315.33" text-anchor="middle">LiMn5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiMn6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.478 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 478 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>LiMn6
+Li:Mn = 0.143 / 0.857
+E_form 0.478 eV/atom
+包から 478 meV/atom
+空間群 166
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="300.53" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="320.53" text-anchor="middle">LiMn6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiMn7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.165 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 165 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>LiMn7
+Li:Mn = 0.125 / 0.875
+E_form 0.165 eV/atom
+包から 165 meV/atom
+空間群 166
+原子数 / 候補 8 / 6</title><circle cx="749.75" cy="349.07" r="5" fill="var(--h3)"/><text class="plabel" x="749.75" y="335.07" text-anchor="middle">LiMn7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiMn8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.354 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 354 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>LiMn8
+Li:Mn = 0.111 / 0.889
+E_form 0.354 eV/atom
+包から 354 meV/atom
+空間群 166
+原子数 / 候補 9 / 6</title><circle cx="760.44" cy="319.77" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="339.77" text-anchor="middle">LiMn8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LiMn9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.142 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 142 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>LiMn9
+Li:Mn = 0.100 / 0.900
+E_form 0.142 eV/atom
+包から 142 meV/atom
+空間群 166
+原子数 / 候補 10 / 6</title><circle cx="769.00" cy="352.65" r="5" fill="var(--h3)"/><text class="plabel" x="769.00" y="372.65" text-anchor="middle">LiMn9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.005 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 5 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>Mn4
+Li:Mn = 0.000 / 1.000
+E_form 0.005 eV/atom
+包から 5 meV/atom
+空間群 194
+原子数 / 候補 4 / 6</title><circle cx="846.00" cy="373.92" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="359.92" text-anchor="middle">Mn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.009 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 9 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>Mn
+Li:Mn = 0.000 / 1.000
+E_form 0.009 eV/atom
+包から 9 meV/atom
+空間群 225
+原子数 / 候補 1 / 9</title><circle cx="846.00" cy="373.31" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="393.31" text-anchor="middle">Mn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.037 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 37 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>Mn8
+Li:Mn = 0.000 / 1.000
+E_form 0.037 eV/atom
+包から 37 meV/atom
+空間群 217 → 229
+原子数 / 候補 8 / 8</title><circle cx="846.00" cy="368.94" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="388.94" text-anchor="middle">Mn8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.110 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 110 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Mn6
+Li:Mn = 0.000 / 1.000
+E_form 0.110 eV/atom
+包から 110 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="357.65" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="377.65" text-anchor="middle">Mn6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.204 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 204 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Mn7
+Li:Mn = 0.000 / 1.000
+E_form 0.204 eV/atom
+包から 204 meV/atom
+空間群 217
+原子数 / 候補 7 / 6</title><circle cx="846.00" cy="342.97" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="328.97" text-anchor="middle">Mn7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.292 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 292 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 7"><title>Mn10
+Li:Mn = 0.000 / 1.000
+E_form 0.292 eV/atom
+包から 292 meV/atom
+空間群 194
+原子数 / 候補 10 / 7</title><circle cx="846.00" cy="329.31" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="349.31" text-anchor="middle">Mn10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.464 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 464 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Mn3
+Li:Mn = 0.000 / 1.000
+E_form 0.464 eV/atom
+包から 464 meV/atom
+空間群 225
+原子数 / 候補 3 / 3</title><circle cx="846.00" cy="302.67" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="288.67" text-anchor="middle">Mn3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.914 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 914 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Mn5
+Li:Mn = 0.000 / 1.000
+E_form 0.914 eV/atom
+包から 914 meV/atom
+空間群 221
+原子数 / 候補 5 / 3</title><circle cx="846.00" cy="232.87" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="218.87" text-anchor="middle">Mn5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 2.007 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 2007 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 217 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Mn9
+Li:Mn = 0.000 / 1.000
+E_form 2.007 eV/atom
+包から 2007 meV/atom
+空間群 217 → 229
+原子数 / 候補 9 / 3</title><circle cx="846.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="49.35" text-anchor="middle">Mn9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Li&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 18"><title>Li
+Li:Mn = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 229
+原子数 / 候補 1 / 18</title><circle cx="76.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="394.65" text-anchor="middle">Li</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Li:Mn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 6"><title>Mn2
+Li:Mn = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 2 / 6</title><circle cx="846.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="394.65" text-anchor="middle">Mn2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Li</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Mn2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Li4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li5</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">2 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li7</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">3 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">5 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">9 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li3</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">9 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn8</span><span class="bar-track"><span class="bar-fill" style="width:1.83%;background:var(--h1)"></span></span><span class="bar-val">37 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li10</span><span class="bar-track"><span class="bar-fill" style="width:2.72%;background:var(--h2)"></span></span><span class="bar-val">55 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li9Mn</span><span class="bar-track"><span class="bar-fill" style="width:5.45%;background:var(--h3)"></span></span><span class="bar-val">109 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn6</span><span class="bar-track"><span class="bar-fill" style="width:5.46%;background:var(--h3)"></span></span><span class="bar-val">110 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li7Mn</span><span class="bar-track"><span class="bar-fill" style="width:6.74%;background:var(--h3)"></span></span><span class="bar-val">135 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiMn9</span><span class="bar-track"><span class="bar-fill" style="width:7.06%;background:var(--h3)"></span></span><span class="bar-val">142 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li6Mn</span><span class="bar-track"><span class="bar-fill" style="width:7.79%;background:var(--h3)"></span></span><span class="bar-val">156 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiMn7</span><span class="bar-track"><span class="bar-fill" style="width:8.22%;background:var(--h3)"></span></span><span class="bar-val">165 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li8Mn2</span><span class="bar-track"><span class="bar-fill" style="width:9.98%;background:var(--meta)"></span></span><span class="bar-val">200 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li5Mn</span><span class="bar-track"><span class="bar-fill" style="width:10.15%;background:var(--meta)"></span></span><span class="bar-val">204 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn7</span><span class="bar-track"><span class="bar-fill" style="width:10.17%;background:var(--meta)"></span></span><span class="bar-val">204 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiMn4</span><span class="bar-track"><span class="bar-fill" style="width:10.50%;background:var(--meta)"></span></span><span class="bar-val">211 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li4Mn</span><span class="bar-track"><span class="bar-fill" style="width:10.82%;background:var(--meta)"></span></span><span class="bar-val">217 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Mn6</span><span class="bar-track"><span class="bar-fill" style="width:11.53%;background:var(--meta)"></span></span><span class="bar-val">232 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Mn8</span><span class="bar-track"><span class="bar-fill" style="width:12.12%;background:var(--meta)"></span></span><span class="bar-val">243 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li6Mn2</span><span class="bar-track"><span class="bar-fill" style="width:12.28%;background:var(--meta)"></span></span><span class="bar-val">246 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Mn5</span><span class="bar-track"><span class="bar-fill" style="width:13.02%;background:var(--meta)"></span></span><span class="bar-val">261 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li3Mn</span><span class="bar-track"><span class="bar-fill" style="width:13.47%;background:var(--meta)"></span></span><span class="bar-val">270 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li4Mn4</span><span class="bar-track"><span class="bar-fill" style="width:13.62%;background:var(--meta)"></span></span><span class="bar-val">273 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li5Mn4</span><span class="bar-track"><span class="bar-fill" style="width:14.16%;background:var(--meta)"></span></span><span class="bar-val">284 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li8Mn</span><span class="bar-track"><span class="bar-fill" style="width:14.29%;background:var(--meta)"></span></span><span class="bar-val">287 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiMn5</span><span class="bar-track"><span class="bar-fill" style="width:14.56%;background:var(--meta)"></span></span><span class="bar-val">292 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li7Mn2</span><span class="bar-track"><span class="bar-fill" style="width:14.56%;background:var(--meta)"></span></span><span class="bar-val">292 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn10</span><span class="bar-track"><span class="bar-fill" style="width:14.56%;background:var(--meta)"></span></span><span class="bar-val">292 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li7Mn3</span><span class="bar-track"><span class="bar-fill" style="width:15.33%;background:var(--meta)"></span></span><span class="bar-val">308 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiMn3</span><span class="bar-track"><span class="bar-fill" style="width:15.42%;background:var(--meta)"></span></span><span class="bar-val">310 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li4Mn2</span><span class="bar-track"><span class="bar-fill" style="width:16.09%;background:var(--meta)"></span></span><span class="bar-val">323 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li4Mn6</span><span class="bar-track"><span class="bar-fill" style="width:16.20%;background:var(--meta)"></span></span><span class="bar-val">325 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li3Mn7</span><span class="bar-track"><span class="bar-fill" style="width:16.48%;background:var(--meta)"></span></span><span class="bar-val">331 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li6Mn4</span><span class="bar-track"><span class="bar-fill" style="width:16.60%;background:var(--meta)"></span></span><span class="bar-val">333 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiMn8</span><span class="bar-track"><span class="bar-fill" style="width:17.63%;background:var(--meta)"></span></span><span class="bar-val">354 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li3Mn5</span><span class="bar-track"><span class="bar-fill" style="width:17.64%;background:var(--meta)"></span></span><span class="bar-val">354 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li5Mn3</span><span class="bar-track"><span class="bar-fill" style="width:17.76%;background:var(--meta)"></span></span><span class="bar-val">357 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li5Mn5</span><span class="bar-track"><span class="bar-fill" style="width:18.05%;background:var(--meta)"></span></span><span class="bar-val">362 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li3Mn2</span><span class="bar-track"><span class="bar-fill" style="width:18.17%;background:var(--meta)"></span></span><span class="bar-val">365 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Mn3</span><span class="bar-track"><span class="bar-fill" style="width:18.28%;background:var(--meta)"></span></span><span class="bar-val">367 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Mn</span><span class="bar-track"><span class="bar-fill" style="width:18.36%;background:var(--meta)"></span></span><span class="bar-val">369 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiMn</span><span class="bar-track"><span class="bar-fill" style="width:18.92%;background:var(--meta)"></span></span><span class="bar-val">380 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Mn4</span><span class="bar-track"><span class="bar-fill" style="width:19.02%;background:var(--meta)"></span></span><span class="bar-val">382 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Mn2</span><span class="bar-track"><span class="bar-fill" style="width:19.19%;background:var(--meta)"></span></span><span class="bar-val">385 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li3Mn6</span><span class="bar-track"><span class="bar-fill" style="width:19.80%;background:var(--meta)"></span></span><span class="bar-val">398 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li3Mn3</span><span class="bar-track"><span class="bar-fill" style="width:20.39%;background:var(--meta)"></span></span><span class="bar-val">409 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li2Mn7</span><span class="bar-track"><span class="bar-fill" style="width:21.29%;background:var(--meta)"></span></span><span class="bar-val">427 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li5Mn2</span><span class="bar-track"><span class="bar-fill" style="width:21.37%;background:var(--meta)"></span></span><span class="bar-val">429 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li3Mn4</span><span class="bar-track"><span class="bar-fill" style="width:21.78%;background:var(--meta)"></span></span><span class="bar-val">437 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn3</span><span class="bar-track"><span class="bar-fill" style="width:23.12%;background:var(--meta)"></span></span><span class="bar-val">464 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiMn6</span><span class="bar-track"><span class="bar-fill" style="width:23.81%;background:var(--meta)"></span></span><span class="bar-val">478 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li6Mn3</span><span class="bar-track"><span class="bar-fill" style="width:23.87%;background:var(--meta)"></span></span><span class="bar-val">479 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li4Mn5</span><span class="bar-track"><span class="bar-fill" style="width:24.03%;background:var(--meta)"></span></span><span class="bar-val">482 meV</span></li>
+<li class="bar-row"><span class="bar-name">Li4Mn3</span><span class="bar-track"><span class="bar-fill" style="width:25.65%;background:var(--meta)"></span></span><span class="bar-val">515 meV</span></li>
+<li class="bar-row"><span class="bar-name">LiMn2</span><span class="bar-track"><span class="bar-fill" style="width:41.65%;background:var(--meta)"></span></span><span class="bar-val">836 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn5</span><span class="bar-track"><span class="bar-fill" style="width:45.54%;background:var(--meta)"></span></span><span class="bar-val">914 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mn9</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">2007 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 2 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Li</th><th>Mn</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Li <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>229</td><td>1</td></tr>
+<tr class="stable"><td class="name">Mn2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>194</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>Li は bcc（229）で実在どおり。Mn は hcp 基準で α-Mn（58 原子）は範囲外。Mn を含む生成エネルギーは一律深めに出る（包の判定は不変）。</p></div><div class="note"><h3>この系の読み方</h3><p>安定化合物ゼロ。実在の Li–Mn 二元も化合物を作らない — 妥当（Li–Mn–O 三元でのみ相が立つ）。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に Li<sub>9</sub>Mn（+109 meV, spg 166）。分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴は 0</h3><p>≤10 原子・既約 33 組成すべてに点がある。</p></div><div class="note"><h3>この図の出自</h3><p>三元系の掃引で自動的に撒かれた辺の組成を集めたもので、この二元系そのものを狙った掃引ではない。密度は三元側の都合で決まっている。</p></div></section>
+ <footer><span>三元掃引の辺から再構成（spg_ranks=[1,2,3]・max_atoms=10、系により 15）</span><span>2026-08-31 取得 · group_by=structure 426 構造</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

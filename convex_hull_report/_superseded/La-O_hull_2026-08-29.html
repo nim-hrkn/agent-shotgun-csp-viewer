@@ -1,0 +1,693 @@
+<title>La–O 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>La–O 相図</h1>
+  <p class="lede">凸包に載った化合物は La<sub>2</sub>O<sub>3</sub>、LaO。既存の三元図（La–Ni–O）の辺を埋める二元図で、DB の既存データのみから構築した（新規計算なし）。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>63</dd></div><div class="fact"><dt>凸包上</dt><dd>4</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>11</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は O の原子分率。縦軸は端点（La, O）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="La–O 相図">
+<line class="grid-line" x1="76" x2="846" y1="410.19" y2="410.19"/>
+<text class="tick-text" x="64" y="414.19" text-anchor="end">-4.00</text>
+<line class="grid-line" x1="76" x2="846" y1="394.35" y2="394.35"/>
+<text class="tick-text" x="64" y="398.35" text-anchor="end">-3.75</text>
+<line class="grid-line" x1="76" x2="846" y1="378.50" y2="378.50"/>
+<text class="tick-text" x="64" y="382.50" text-anchor="end">-3.50</text>
+<line class="grid-line" x1="76" x2="846" y1="362.65" y2="362.65"/>
+<text class="tick-text" x="64" y="366.65" text-anchor="end">-3.25</text>
+<line class="grid-line" x1="76" x2="846" y1="346.81" y2="346.81"/>
+<text class="tick-text" x="64" y="350.81" text-anchor="end">-3.00</text>
+<line class="grid-line" x1="76" x2="846" y1="330.96" y2="330.96"/>
+<text class="tick-text" x="64" y="334.96" text-anchor="end">-2.75</text>
+<line class="grid-line" x1="76" x2="846" y1="315.11" y2="315.11"/>
+<text class="tick-text" x="64" y="319.11" text-anchor="end">-2.50</text>
+<line class="grid-line" x1="76" x2="846" y1="299.27" y2="299.27"/>
+<text class="tick-text" x="64" y="303.27" text-anchor="end">-2.25</text>
+<line class="grid-line" x1="76" x2="846" y1="283.42" y2="283.42"/>
+<text class="tick-text" x="64" y="287.42" text-anchor="end">-2.00</text>
+<line class="grid-line" x1="76" x2="846" y1="267.57" y2="267.57"/>
+<text class="tick-text" x="64" y="271.57" text-anchor="end">-1.75</text>
+<line class="grid-line" x1="76" x2="846" y1="251.73" y2="251.73"/>
+<text class="tick-text" x="64" y="255.73" text-anchor="end">-1.50</text>
+<line class="grid-line" x1="76" x2="846" y1="235.88" y2="235.88"/>
+<text class="tick-text" x="64" y="239.88" text-anchor="end">-1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="220.03" y2="220.03"/>
+<text class="tick-text" x="64" y="224.03" text-anchor="end">-1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="204.19" y2="204.19"/>
+<text class="tick-text" x="64" y="208.19" text-anchor="end">-0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="188.34" y2="188.34"/>
+<text class="tick-text" x="64" y="192.34" text-anchor="end">-0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="172.49" y2="172.49"/>
+<text class="tick-text" x="64" y="176.49" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="156.65" y2="156.65"/>
+<text class="tick-text" x="64" y="160.65" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="140.80" y2="140.80"/>
+<text class="tick-text" x="64" y="144.80" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="124.95" y2="124.95"/>
+<text class="tick-text" x="64" y="128.95" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="109.11" y2="109.11"/>
+<text class="tick-text" x="64" y="113.11" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="93.26" y2="93.26"/>
+<text class="tick-text" x="64" y="97.26" text-anchor="end">1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="77.41" y2="77.41"/>
+<text class="tick-text" x="64" y="81.41" text-anchor="end">1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="61.57" y2="61.57"/>
+<text class="tick-text" x="64" y="65.57" text-anchor="end">1.50</text>
+<line class="grid-line" x1="76" x2="846" y1="45.72" y2="45.72"/>
+<text class="tick-text" x="64" y="49.72" text-anchor="end">1.75</text>
+<line class="grid-line" x1="76" x2="846" y1="29.87" y2="29.87"/>
+<text class="tick-text" x="64" y="33.87" text-anchor="end">2.00</text>
+<line class="axis-line" x1="76" x2="846" y1="156.65" y2="156.65"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">La</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">O</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">O の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,156.65 461.00,338.96 538.00,374.65 846.00,156.65"/>
+<line class="tie-drop" x1="461.00" x2="461.00" y1="338.96" y2="412"/>
+<line class="tie-drop" x1="538.00" x2="538.00" y1="374.65" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>La8
+La:O = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 8 / 8</title><circle cx="76.00" cy="156.65" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="142.65" text-anchor="middle">La8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>La6
+La:O = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 64 → 139
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="156.62" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="176.62" text-anchor="middle">La6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.083 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 83 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>La5
+La:O = 1.000 / 0.000
+E_form 0.083 eV/atom
+包から 83 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="76.00" cy="151.38" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="171.38" text-anchor="middle">La5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.083 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 83 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 3"><title>La
+La:O = 1.000 / 0.000
+E_form 0.083 eV/atom
+包から 83 meV/atom
+空間群 229
+原子数 / 候補 1 / 3</title><circle cx="76.00" cy="151.37" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="171.37" text-anchor="middle">La</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.084 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 84 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>La7
+La:O = 1.000 / 0.000
+E_form 0.084 eV/atom
+包から 84 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="76.00" cy="151.35" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="171.35" text-anchor="middle">La7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.123 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 123 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>La10
+La:O = 1.000 / 0.000
+E_form 0.123 eV/atom
+包から 123 meV/atom
+空間群 64
+原子数 / 候補 10 / 6</title><circle cx="76.00" cy="148.84" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="168.84" text-anchor="middle">La10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.185 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 185 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>La9
+La:O = 1.000 / 0.000
+E_form 0.185 eV/atom
+包から 185 meV/atom
+空間群 166
+原子数 / 候補 9 / 3</title><circle cx="76.00" cy="144.93" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="164.93" text-anchor="middle">La9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.291 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 291 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 1"><title>La3
+La:O = 1.000 / 0.000
+E_form 0.291 eV/atom
+包から 291 meV/atom
+空間群 166
+原子数 / 候補 3 / 1</title><circle cx="76.00" cy="138.21" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="158.21" text-anchor="middle">La3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La9O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.416 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 159 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>La9O
+La:O = 0.900 / 0.100
+E_form -0.416 eV/atom
+包から 159 meV/atom
+空間群 155
+原子数 / 候補 10 / 6</title><circle cx="153.00" cy="183.02" r="5" fill="var(--h3)"/><text class="plabel" x="153.00" y="169.02" text-anchor="middle">La9O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La8O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.316 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 323 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>La8O
+La:O = 0.889 / 0.111
+E_form -0.316 eV/atom
+包から 323 meV/atom
+空間群 189
+原子数 / 候補 9 / 3</title><circle cx="161.56" cy="176.70" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="196.70" text-anchor="middle">La8O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La7O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.486 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 233 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>La7O
+La:O = 0.875 / 0.125
+E_form -0.486 eV/atom
+包から 233 meV/atom
+空間群 189
+原子数 / 候補 8 / 3</title><circle cx="172.25" cy="187.47" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="207.47" text-anchor="middle">La7O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La6O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.382 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 440 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>La6O
+La:O = 0.857 / 0.143
+E_form -0.382 eV/atom
+包から 440 meV/atom
+空間群 189
+原子数 / 候補 7 / 3</title><circle cx="186.00" cy="180.86" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="200.86" text-anchor="middle">La6O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La5O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.175 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 784 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 2"><title>La5O
+La:O = 0.833 / 0.167
+E_form -0.175 eV/atom
+包から 784 meV/atom
+空間群 139
+原子数 / 候補 6 / 2</title><circle cx="204.33" cy="167.73" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="153.73" text-anchor="middle">La5O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La8O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.087 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 64 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 140 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>La8O2
+La:O = 0.800 / 0.200
+E_form -1.087 eV/atom
+包から 64 meV/atom
+空間群 140 → 123
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="225.52" r="5" fill="var(--h2)"/><text class="plabel" x="230.00" y="211.52" text-anchor="middle">La8O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La4O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.071 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 79 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>La4O
+La:O = 0.800 / 0.200
+E_form -1.071 eV/atom
+包から 79 meV/atom
+空間群 164
+原子数 / 候補 5 / 3</title><circle cx="230.00" cy="224.56" r="5" fill="var(--h2)"/><text class="plabel" x="230.00" y="244.56" text-anchor="middle">La4O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La7O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.943 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 335 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>La7O2
+La:O = 0.778 / 0.222
+E_form -0.943 eV/atom
+包から 335 meV/atom
+空間群 164
+原子数 / 候補 9 / 6</title><circle cx="247.11" cy="216.43" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="236.43" text-anchor="middle">La7O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La3O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.333 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 105 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 3"><title>La3O
+La:O = 0.750 / 0.250
+E_form -1.333 eV/atom
+包から 105 meV/atom
+空間群 164
+原子数 / 候補 4 / 3</title><circle cx="268.50" cy="241.17" r="5" fill="var(--h3)"/><text class="plabel" x="268.50" y="261.17" text-anchor="middle">La3O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La6O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.225 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 213 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 140&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>La6O2
+La:O = 0.750 / 0.250
+E_form -1.225 eV/atom
+包から 213 meV/atom
+空間群 140
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="234.28" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="254.28" text-anchor="middle">La6O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La5O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.299 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 344 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>La5O2
+La:O = 0.714 / 0.286
+E_form -1.299 eV/atom
+包から 344 meV/atom
+空間群 164
+原子数 / 候補 7 / 6</title><circle cx="296.00" cy="239.00" r="5" fill="var(--meta)"/><text class="plabel" x="296.00" y="259.00" text-anchor="middle">La5O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La4O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.887 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 31 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 127 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>La4O2
+La:O = 0.667 / 0.333
+E_form -1.887 eV/atom
+包から 31 meV/atom
+空間群 127 → 123
+原子数 / 候補 6 / 6</title><circle cx="332.67" cy="276.26" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="262.26" text-anchor="middle">La4O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.792 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 126 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>La2O
+La:O = 0.667 / 0.333
+E_form -1.792 eV/atom
+包から 126 meV/atom
+空間群 164
+原子数 / 候補 3 / 9</title><circle cx="332.67" cy="270.21" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="290.21" text-anchor="middle">La2O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La6O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.511 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 406 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>La6O3
+La:O = 0.667 / 0.333
+E_form -1.511 eV/atom
+包から 406 meV/atom
+空間群 189
+原子数 / 候補 9 / 3</title><circle cx="332.67" cy="252.45" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="272.45" text-anchor="middle">La6O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La5O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.625 / 0.375&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.658 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 499 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>La5O3
+La:O = 0.625 / 0.375
+E_form -1.658 eV/atom
+包から 499 meV/atom
+空間群 189
+原子数 / 候補 8 / 3</title><circle cx="364.75" cy="261.77" r="5" fill="var(--meta)"/><text class="plabel" x="364.75" y="281.77" text-anchor="middle">La5O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La6O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.255 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 46 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 193&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 7"><title>La6O4
+La:O = 0.600 / 0.400
+E_form -2.255 eV/atom
+包から 46 meV/atom
+空間群 193
+原子数 / 候補 10 / 7</title><circle cx="384.00" cy="299.60" r="5" fill="var(--h1)"/><text class="plabel" x="384.00" y="285.60" text-anchor="middle">La6O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La3O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.689 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 612 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 2"><title>La3O2
+La:O = 0.600 / 0.400
+E_form -1.689 eV/atom
+包から 612 meV/atom
+空間群 164
+原子数 / 候補 5 / 2</title><circle cx="384.00" cy="263.73" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="249.73" text-anchor="middle">La3O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La4O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.571 / 0.429&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.366 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 100 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>La4O3
+La:O = 0.571 / 0.429
+E_form -2.366 eV/atom
+包から 100 meV/atom
+空間群 164
+原子数 / 候補 7 / 6</title><circle cx="406.00" cy="306.59" r="5" fill="var(--h2)"/><text class="plabel" x="406.00" y="292.59" text-anchor="middle">La4O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La5O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.556 / 0.444&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.153 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 404 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>La5O4
+La:O = 0.556 / 0.444
+E_form -2.153 eV/atom
+包から 404 meV/atom
+空間群 189
+原子数 / 候補 9 / 3</title><circle cx="418.22" cy="293.12" r="5" fill="var(--meta)"/><text class="plabel" x="418.22" y="313.12" text-anchor="middle">La5O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.823 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 53 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164 → 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>La2O2
+La:O = 0.500 / 0.500
+E_form -2.823 eV/atom
+包から 53 meV/atom
+空間群 164 → 194
+原子数 / 候補 4 / 6</title><circle cx="461.00" cy="335.61" r="5" fill="var(--h2)"/><text class="plabel" x="461.00" y="321.61" text-anchor="middle">La2O2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La5O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.758 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 118 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>La5O5
+La:O = 0.500 / 0.500
+E_form -2.758 eV/atom
+包から 118 meV/atom
+空間群 12 → 1
+原子数 / 候補 10 / 6</title><circle cx="461.00" cy="331.49" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="351.49" text-anchor="middle">La5O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La4O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.691 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 186 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 62 → 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>La4O4
+La:O = 0.500 / 0.500
+E_form -2.691 eV/atom
+包から 186 meV/atom
+空間群 62 → 63
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="327.21" r="5" fill="var(--h3)"/><text class="plabel" x="461.00" y="347.21" text-anchor="middle">La4O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La3O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.340 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 536 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>La3O3
+La:O = 0.500 / 0.500
+E_form -2.340 eV/atom
+包から 536 meV/atom
+空間群 164 → 221
+原子数 / 候補 6 / 3</title><circle cx="461.00" cy="304.97" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="290.97" text-anchor="middle">La3O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La4O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.444 / 0.556&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -3.076 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 113 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>La4O5
+La:O = 0.444 / 0.556
+E_form -3.076 eV/atom
+包から 113 meV/atom
+空間群 12
+原子数 / 候補 9 / 6</title><circle cx="503.78" cy="351.63" r="5" fill="var(--h3)"/><text class="plabel" x="503.78" y="337.63" text-anchor="middle">La4O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La3O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -3.187 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 91 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>La3O4
+La:O = 0.429 / 0.571
+E_form -3.187 eV/atom
+包から 91 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="516.00" cy="358.66" r="5" fill="var(--h2)"/><text class="plabel" x="516.00" y="344.66" text-anchor="middle">La3O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La4O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -3.330 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 109 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>La4O6
+La:O = 0.400 / 0.600
+E_form -3.330 eV/atom
+包から 109 meV/atom
+空間群 12
+原子数 / 候補 10 / 6</title><circle cx="538.00" cy="367.75" r="5" fill="var(--h3)"/><text class="plabel" x="538.00" y="353.75" text-anchor="middle">La4O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La3O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.375 / 0.625&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -3.065 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 160 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>La3O5
+La:O = 0.375 / 0.625
+E_form -3.065 eV/atom
+包から 160 meV/atom
+空間群 12
+原子数 / 候補 8 / 6</title><circle cx="557.25" cy="350.90" r="5" fill="var(--h3)"/><text class="plabel" x="557.25" y="370.90" text-anchor="middle">La3O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La3O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.794 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 73 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 4&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>La3O6
+La:O = 0.333 / 0.667
+E_form -2.794 eV/atom
+包から 73 meV/atom
+空間群 12 → 4
+原子数 / 候補 9 / 6</title><circle cx="589.33" cy="333.72" r="5" fill="var(--h2)"/><text class="plabel" x="589.33" y="319.72" text-anchor="middle">La3O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaO2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.726 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 140 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>LaO2
+La:O = 0.333 / 0.667
+E_form -2.726 eV/atom
+包から 140 meV/atom
+空間群 225
+原子数 / 候補 3 / 9</title><circle cx="589.33" cy="329.42" r="5" fill="var(--h3)"/><text class="plabel" x="589.33" y="349.42" text-anchor="middle">LaO2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.419 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 447 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 40 → 42&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>La2O4
+La:O = 0.333 / 0.667
+E_form -2.419 eV/atom
+包から 447 meV/atom
+空間群 40 → 42
+原子数 / 候補 6 / 9</title><circle cx="589.33" cy="309.97" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="329.97" text-anchor="middle">La2O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La3O7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.466 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 113 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>La3O7
+La:O = 0.300 / 0.700
+E_form -2.466 eV/atom
+包から 113 meV/atom
+空間群 189 → 1
+原子数 / 候補 10 / 6</title><circle cx="615.00" cy="312.98" r="5" fill="var(--h3)"/><text class="plabel" x="615.00" y="332.98" text-anchor="middle">La3O7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.179 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 278 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>La2O5
+La:O = 0.286 / 0.714
+E_form -2.179 eV/atom
+包から 278 meV/atom
+空間群 12 → 1
+原子数 / 候補 7 / 3</title><circle cx="626.00" cy="294.73" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="280.73" text-anchor="middle">La2O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.088 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 61 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>La2O6
+La:O = 0.250 / 0.750
+E_form -2.088 eV/atom
+包から 61 meV/atom
+空間群 11
+原子数 / 候補 8 / 9</title><circle cx="653.50" cy="289.01" r="5" fill="var(--h2)"/><text class="plabel" x="653.50" y="309.01" text-anchor="middle">La2O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaO3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.782 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 368 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>LaO3
+La:O = 0.250 / 0.750
+E_form -1.782 eV/atom
+包から 368 meV/atom
+空間群 166
+原子数 / 候補 4 / 9</title><circle cx="653.50" cy="269.57" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="289.57" text-anchor="middle">LaO3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2O7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.815 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 96 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 7&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>La2O7
+La:O = 0.222 / 0.778
+E_form -1.815 eV/atom
+包から 96 meV/atom
+空間群 12 → 7
+原子数 / 候補 9 / 3</title><circle cx="674.89" cy="271.70" r="5" fill="var(--h2)"/><text class="plabel" x="674.89" y="257.70" text-anchor="middle">La2O7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2O8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.626 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 94 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63 → 20&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>La2O8
+La:O = 0.200 / 0.800
+E_form -1.626 eV/atom
+包から 94 meV/atom
+空間群 63 → 20
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="259.71" r="5" fill="var(--h2)"/><text class="plabel" x="692.00" y="279.71" text-anchor="middle">La2O8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaO4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.530 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 190 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>LaO4
+La:O = 0.200 / 0.800
+E_form -1.530 eV/atom
+包から 190 meV/atom
+空間群 87 → 2
+原子数 / 候補 5 / 9</title><circle cx="692.00" cy="253.62" r="5" fill="var(--h3)"/><text class="plabel" x="692.00" y="273.62" text-anchor="middle">LaO4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaO5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.679 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 755 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>LaO5
+La:O = 0.167 / 0.833
+E_form -0.679 eV/atom
+包から 755 meV/atom
+空間群 166
+原子数 / 候補 6 / 6</title><circle cx="717.67" cy="199.65" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="185.65" text-anchor="middle">LaO5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaO6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -1.118 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 110 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>LaO6
+La:O = 0.143 / 0.857
+E_form -1.118 eV/atom
+包から 110 meV/atom
+空間群 87 → 11
+原子数 / 候補 7 / 9</title><circle cx="736.00" cy="227.53" r="5" fill="var(--h3)"/><text class="plabel" x="736.00" y="213.53" text-anchor="middle">LaO6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaO7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.818 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 257 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>LaO7
+La:O = 0.125 / 0.875
+E_form -0.818 eV/atom
+包から 257 meV/atom
+空間群 87 → 2
+原子数 / 候補 8 / 9</title><circle cx="749.75" cy="208.49" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="228.49" text-anchor="middle">LaO7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaO8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.758 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 198 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>LaO8
+La:O = 0.111 / 0.889
+E_form -0.758 eV/atom
+包から 198 meV/atom
+空間群 164 → 1
+原子数 / 候補 9 / 9</title><circle cx="760.44" cy="204.68" r="5" fill="var(--h3)"/><text class="plabel" x="760.44" y="224.68" text-anchor="middle">LaO8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaO9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.601 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 259 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 71 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>LaO9
+La:O = 0.100 / 0.900
+E_form -0.601 eV/atom
+包から 259 meV/atom
+空間群 71 → 12
+原子数 / 候補 10 / 9</title><circle cx="769.00" cy="194.73" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="180.73" text-anchor="middle">LaO9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.004 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 9&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>O4
+La:O = 0.000 / 1.000
+E_form 0.004 eV/atom
+包から 4 meV/atom
+空間群 9
+原子数 / 候補 4 / 9</title><circle cx="846.00" cy="156.40" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="142.40" text-anchor="middle">O4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.006 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 6 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>O6
+La:O = 0.000 / 1.000
+E_form 0.006 eV/atom
+包から 6 meV/atom
+空間群 12
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="156.25" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="176.25" text-anchor="middle">O6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.011 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 11 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>O8
+La:O = 0.000 / 1.000
+E_form 0.011 eV/atom
+包から 11 meV/atom
+空間群 12
+原子数 / 候補 8 / 9</title><circle cx="846.00" cy="155.97" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="175.97" text-anchor="middle">O8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.152 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 152 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>O9
+La:O = 0.000 / 1.000
+E_form 0.152 eV/atom
+包から 152 meV/atom
+空間群 12 → 2
+原子数 / 候補 9 / 6</title><circle cx="846.00" cy="147.02" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="167.02" text-anchor="middle">O9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.213 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 213 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>O5
+La:O = 0.000 / 1.000
+E_form 0.213 eV/atom
+包から 213 meV/atom
+空間群 12 → 11
+原子数 / 候補 5 / 3</title><circle cx="846.00" cy="143.15" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="163.15" text-anchor="middle">O5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.237 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 237 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 5&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>O10
+La:O = 0.000 / 1.000
+E_form 0.237 eV/atom
+包から 237 meV/atom
+空間群 12 → 5
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="141.61" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="161.61" text-anchor="middle">O10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.386 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 386 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>O3
+La:O = 0.000 / 1.000
+E_form 0.386 eV/atom
+包から 386 meV/atom
+空間群 12 → 11
+原子数 / 候補 3 / 6</title><circle cx="846.00" cy="132.19" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="152.19" text-anchor="middle">O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.497 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 497 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>O7
+La:O = 0.000 / 1.000
+E_form 0.497 eV/atom
+包から 497 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="846.00" cy="125.12" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="111.12" text-anchor="middle">O7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.472 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1472 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 9"><title>O
+La:O = 0.000 / 1.000
+E_form 1.472 eV/atom
+包から 1472 meV/atom
+空間群 12
+原子数 / 候補 1 / 9</title><circle cx="846.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="49.35" text-anchor="middle">O</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>La4
+La:O = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 221 → 225
+原子数 / 候補 4 / 9</title><circle cx="76.00" cy="156.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="176.65" text-anchor="middle">La4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaO&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -2.876 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 9"><title>LaO
+La:O = 0.500 / 0.500
+E_form -2.876 eV/atom
+包から 0（凸包上）
+空間群 225
+原子数 / 候補 2 / 9</title><circle cx="461.00" cy="338.96" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="461.00" y="358.96" text-anchor="middle">LaO</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2O3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -3.439 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>La2O3
+La:O = 0.400 / 0.600
+E_form -3.439 eV/atom
+包から 0（凸包上）
+空間群 164
+原子数 / 候補 5 / 6</title><circle cx="538.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="538.00" y="394.65" text-anchor="middle">La2O3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;O2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:O&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 17"><title>O2
+La:O = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 166 → 2
+原子数 / 候補 2 / 17</title><circle cx="846.00" cy="156.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="176.65" text-anchor="middle">O2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">La4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">La8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">LaO</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">La2O3</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">O2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">La6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">O4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">4 meV</span></li>
+<li class="bar-row"><span class="bar-name">O6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">6 meV</span></li>
+<li class="bar-row"><span class="bar-name">O8</span><span class="bar-track"><span class="bar-fill" style="width:0.72%;background:var(--h1)"></span></span><span class="bar-val">11 meV</span></li>
+<li class="bar-row"><span class="bar-name">La4O2</span><span class="bar-track"><span class="bar-fill" style="width:2.07%;background:var(--h1)"></span></span><span class="bar-val">31 meV</span></li>
+<li class="bar-row"><span class="bar-name">La6O4</span><span class="bar-track"><span class="bar-fill" style="width:3.11%;background:var(--h1)"></span></span><span class="bar-val">46 meV</span></li>
+<li class="bar-row"><span class="bar-name">La2O2</span><span class="bar-track"><span class="bar-fill" style="width:3.60%;background:var(--h2)"></span></span><span class="bar-val">53 meV</span></li>
+<li class="bar-row"><span class="bar-name">La2O6</span><span class="bar-track"><span class="bar-fill" style="width:4.16%;background:var(--h2)"></span></span><span class="bar-val">61 meV</span></li>
+<li class="bar-row"><span class="bar-name">La8O2</span><span class="bar-track"><span class="bar-fill" style="width:4.34%;background:var(--h2)"></span></span><span class="bar-val">64 meV</span></li>
+<li class="bar-row"><span class="bar-name">La3O6</span><span class="bar-track"><span class="bar-fill" style="width:4.93%;background:var(--h2)"></span></span><span class="bar-val">73 meV</span></li>
+<li class="bar-row"><span class="bar-name">La4O</span><span class="bar-track"><span class="bar-fill" style="width:5.38%;background:var(--h2)"></span></span><span class="bar-val">79 meV</span></li>
+<li class="bar-row"><span class="bar-name">La5</span><span class="bar-track"><span class="bar-fill" style="width:5.65%;background:var(--h2)"></span></span><span class="bar-val">83 meV</span></li>
+<li class="bar-row"><span class="bar-name">La</span><span class="bar-track"><span class="bar-fill" style="width:5.65%;background:var(--h2)"></span></span><span class="bar-val">83 meV</span></li>
+<li class="bar-row"><span class="bar-name">La7</span><span class="bar-track"><span class="bar-fill" style="width:5.67%;background:var(--h2)"></span></span><span class="bar-val">84 meV</span></li>
+<li class="bar-row"><span class="bar-name">La3O4</span><span class="bar-track"><span class="bar-fill" style="width:6.21%;background:var(--h2)"></span></span><span class="bar-val">91 meV</span></li>
+<li class="bar-row"><span class="bar-name">La2O8</span><span class="bar-track"><span class="bar-fill" style="width:6.35%;background:var(--h2)"></span></span><span class="bar-val">94 meV</span></li>
+<li class="bar-row"><span class="bar-name">La2O7</span><span class="bar-track"><span class="bar-fill" style="width:6.49%;background:var(--h2)"></span></span><span class="bar-val">96 meV</span></li>
+<li class="bar-row"><span class="bar-name">La4O3</span><span class="bar-track"><span class="bar-fill" style="width:6.78%;background:var(--h2)"></span></span><span class="bar-val">100 meV</span></li>
+<li class="bar-row"><span class="bar-name">La3O</span><span class="bar-track"><span class="bar-fill" style="width:7.12%;background:var(--h3)"></span></span><span class="bar-val">105 meV</span></li>
+<li class="bar-row"><span class="bar-name">La4O6</span><span class="bar-track"><span class="bar-fill" style="width:7.39%;background:var(--h3)"></span></span><span class="bar-val">109 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaO6</span><span class="bar-track"><span class="bar-fill" style="width:7.47%;background:var(--h3)"></span></span><span class="bar-val">110 meV</span></li>
+<li class="bar-row"><span class="bar-name">La4O5</span><span class="bar-track"><span class="bar-fill" style="width:7.67%;background:var(--h3)"></span></span><span class="bar-val">113 meV</span></li>
+<li class="bar-row"><span class="bar-name">La3O7</span><span class="bar-track"><span class="bar-fill" style="width:7.68%;background:var(--h3)"></span></span><span class="bar-val">113 meV</span></li>
+<li class="bar-row"><span class="bar-name">La5O5</span><span class="bar-track"><span class="bar-fill" style="width:8.01%;background:var(--h3)"></span></span><span class="bar-val">118 meV</span></li>
+<li class="bar-row"><span class="bar-name">La10</span><span class="bar-track"><span class="bar-fill" style="width:8.36%;background:var(--h3)"></span></span><span class="bar-val">123 meV</span></li>
+<li class="bar-row"><span class="bar-name">La2O</span><span class="bar-track"><span class="bar-fill" style="width:8.55%;background:var(--h3)"></span></span><span class="bar-val">126 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaO2</span><span class="bar-track"><span class="bar-fill" style="width:9.53%;background:var(--h3)"></span></span><span class="bar-val">140 meV</span></li>
+<li class="bar-row"><span class="bar-name">O9</span><span class="bar-track"><span class="bar-fill" style="width:10.32%;background:var(--h3)"></span></span><span class="bar-val">152 meV</span></li>
+<li class="bar-row"><span class="bar-name">La9O</span><span class="bar-track"><span class="bar-fill" style="width:10.82%;background:var(--h3)"></span></span><span class="bar-val">159 meV</span></li>
+<li class="bar-row"><span class="bar-name">La3O5</span><span class="bar-track"><span class="bar-fill" style="width:10.84%;background:var(--h3)"></span></span><span class="bar-val">160 meV</span></li>
+<li class="bar-row"><span class="bar-name">La9</span><span class="bar-track"><span class="bar-fill" style="width:12.56%;background:var(--h3)"></span></span><span class="bar-val">185 meV</span></li>
+<li class="bar-row"><span class="bar-name">La4O4</span><span class="bar-track"><span class="bar-fill" style="width:12.60%;background:var(--h3)"></span></span><span class="bar-val">186 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaO4</span><span class="bar-track"><span class="bar-fill" style="width:12.88%;background:var(--h3)"></span></span><span class="bar-val">190 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaO8</span><span class="bar-track"><span class="bar-fill" style="width:13.42%;background:var(--h3)"></span></span><span class="bar-val">198 meV</span></li>
+<li class="bar-row"><span class="bar-name">O5</span><span class="bar-track"><span class="bar-fill" style="width:14.47%;background:var(--meta)"></span></span><span class="bar-val">213 meV</span></li>
+<li class="bar-row"><span class="bar-name">La6O2</span><span class="bar-track"><span class="bar-fill" style="width:14.49%;background:var(--meta)"></span></span><span class="bar-val">213 meV</span></li>
+<li class="bar-row"><span class="bar-name">La7O</span><span class="bar-track"><span class="bar-fill" style="width:15.82%;background:var(--meta)"></span></span><span class="bar-val">233 meV</span></li>
+<li class="bar-row"><span class="bar-name">O10</span><span class="bar-track"><span class="bar-fill" style="width:16.12%;background:var(--meta)"></span></span><span class="bar-val">237 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaO7</span><span class="bar-track"><span class="bar-fill" style="width:17.45%;background:var(--meta)"></span></span><span class="bar-val">257 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaO9</span><span class="bar-track"><span class="bar-fill" style="width:17.60%;background:var(--meta)"></span></span><span class="bar-val">259 meV</span></li>
+<li class="bar-row"><span class="bar-name">La2O5</span><span class="bar-track"><span class="bar-fill" style="width:18.90%;background:var(--meta)"></span></span><span class="bar-val">278 meV</span></li>
+<li class="bar-row"><span class="bar-name">La3</span><span class="bar-track"><span class="bar-fill" style="width:19.76%;background:var(--meta)"></span></span><span class="bar-val">291 meV</span></li>
+<li class="bar-row"><span class="bar-name">La8O</span><span class="bar-track"><span class="bar-fill" style="width:21.94%;background:var(--meta)"></span></span><span class="bar-val">323 meV</span></li>
+<li class="bar-row"><span class="bar-name">La7O2</span><span class="bar-track"><span class="bar-fill" style="width:22.77%;background:var(--meta)"></span></span><span class="bar-val">335 meV</span></li>
+<li class="bar-row"><span class="bar-name">La5O2</span><span class="bar-track"><span class="bar-fill" style="width:23.39%;background:var(--meta)"></span></span><span class="bar-val">344 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaO3</span><span class="bar-track"><span class="bar-fill" style="width:25.00%;background:var(--meta)"></span></span><span class="bar-val">368 meV</span></li>
+<li class="bar-row"><span class="bar-name">O3</span><span class="bar-track"><span class="bar-fill" style="width:26.22%;background:var(--meta)"></span></span><span class="bar-val">386 meV</span></li>
+<li class="bar-row"><span class="bar-name">La5O4</span><span class="bar-track"><span class="bar-fill" style="width:27.42%;background:var(--meta)"></span></span><span class="bar-val">404 meV</span></li>
+<li class="bar-row"><span class="bar-name">La6O3</span><span class="bar-track"><span class="bar-fill" style="width:27.60%;background:var(--meta)"></span></span><span class="bar-val">406 meV</span></li>
+<li class="bar-row"><span class="bar-name">La6O</span><span class="bar-track"><span class="bar-fill" style="width:29.88%;background:var(--meta)"></span></span><span class="bar-val">440 meV</span></li>
+<li class="bar-row"><span class="bar-name">La2O4</span><span class="bar-track"><span class="bar-fill" style="width:30.37%;background:var(--meta)"></span></span><span class="bar-val">447 meV</span></li>
+<li class="bar-row"><span class="bar-name">O7</span><span class="bar-track"><span class="bar-fill" style="width:33.80%;background:var(--meta)"></span></span><span class="bar-val">497 meV</span></li>
+<li class="bar-row"><span class="bar-name">La5O3</span><span class="bar-track"><span class="bar-fill" style="width:33.89%;background:var(--meta)"></span></span><span class="bar-val">499 meV</span></li>
+<li class="bar-row"><span class="bar-name">La3O3</span><span class="bar-track"><span class="bar-fill" style="width:36.44%;background:var(--meta)"></span></span><span class="bar-val">536 meV</span></li>
+<li class="bar-row"><span class="bar-name">La3O2</span><span class="bar-track"><span class="bar-fill" style="width:41.55%;background:var(--meta)"></span></span><span class="bar-val">612 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaO5</span><span class="bar-track"><span class="bar-fill" style="width:51.26%;background:var(--meta)"></span></span><span class="bar-val">755 meV</span></li>
+<li class="bar-row"><span class="bar-name">La5O</span><span class="bar-track"><span class="bar-fill" style="width:53.26%;background:var(--meta)"></span></span><span class="bar-val">784 meV</span></li>
+<li class="bar-row"><span class="bar-name">O</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">1472 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 4 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>La</th><th>O</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">La4 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>221 → 225</td><td>4</td></tr>
+<tr class="stable"><td class="name">LaO <span class="pill">凸包上</span></td><td>0.500</td><td>0.500</td><td>-2.8763</td><td>225</td><td>2</td></tr>
+<tr class="stable"><td class="name">La2O3 <span class="pill">凸包上</span></td><td>0.400</td><td>0.600</td><td>-3.4392</td><td>164</td><td>5</td></tr>
+<tr class="stable"><td class="name">O2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>166 → 2</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>La は fcc（225）に検出。実在は dhcp だが差は小さい。O は分子性 O<sub>2</sub> 結晶（検出 2）が基準。分子結晶の絶対エネルギーは MatterSim の弱い所で、酸化物の絶対深さは割引き、序列だけを読む。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に La<sub>4</sub>O<sub>2</sub>（+30 meV, spg 127）。この手法の分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴が 1 組成</h3><p>≤10 原子・既約 33 組成のうち 1 組成に点が無い。そこは「相が無い」ではなく「探していない」。</p></div></section>
+ <footer><span>三元 hull 辺埋めバッチ（87 系・既存データのみ・新規計算なし）</span><span>2026-08-29 取得 · group_by=structure 394 構造</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

@@ -1,0 +1,512 @@
+<title>Mg–Zn 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>Mg–Zn 相図</h1>
+  <p class="lede">Mg と Zn の比を 45 通り（全原子数 10 まで）に刻んだ。凸包に載った化合物は <b>MgZn2 組成の 6 原子セル（Mg2Zn4 / 227）</b>ただ 1 つ。組成は実在の MgZn2 Laves 相と合っているが、<b>出たのは C15 型で、実在の MgZn2 は C14 型</b>である（後述）。両端点は Mg・Zn とも 194（hcp）で正しい。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>42</dd></div><div class="fact"><dt>凸包上</dt><dd>3</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>21</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Zn の原子分率。縦軸は端点（Mg, Zn）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="Mg–Zn 相図">
+<line class="grid-line" x1="76" x2="846" y1="399.06" y2="399.06"/>
+<text class="tick-text" x="64" y="403.06" text-anchor="end">-0.20</text>
+<line class="grid-line" x1="76" x2="846" y1="355.46" y2="355.46"/>
+<text class="tick-text" x="64" y="359.46" text-anchor="end">-0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="311.86" y2="311.86"/>
+<text class="tick-text" x="64" y="315.86" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="268.27" y2="268.27"/>
+<text class="tick-text" x="64" y="272.27" text-anchor="end">0.10</text>
+<line class="grid-line" x1="76" x2="846" y1="224.67" y2="224.67"/>
+<text class="tick-text" x="64" y="228.67" text-anchor="end">0.20</text>
+<line class="grid-line" x1="76" x2="846" y1="181.07" y2="181.07"/>
+<text class="tick-text" x="64" y="185.07" text-anchor="end">0.30</text>
+<line class="grid-line" x1="76" x2="846" y1="137.47" y2="137.47"/>
+<text class="tick-text" x="64" y="141.47" text-anchor="end">0.40</text>
+<line class="grid-line" x1="76" x2="846" y1="93.87" y2="93.87"/>
+<text class="tick-text" x="64" y="97.87" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="50.28" y2="50.28"/>
+<text class="tick-text" x="64" y="54.28" text-anchor="end">0.60</text>
+<line class="axis-line" x1="76" x2="846" y1="311.86" y2="311.86"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Mg</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Zn</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Zn の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,311.86 589.33,374.65 846.00,311.86"/>
+<line class="tie-drop" x1="589.33" x2="589.33" y1="374.65" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 18"><title>Mg2
+Mg:Zn = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 2 / 18</title><circle cx="76.00" cy="311.82" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="297.82" text-anchor="middle">Mg2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 15"><title>Mg6
+Mg:Zn = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 63
+原子数 / 候補 6 / 15</title><circle cx="76.00" cy="311.82" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="331.82" text-anchor="middle">Mg6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 51 → 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 18"><title>Mg4
+Mg:Zn = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 51 → 63
+原子数 / 候補 4 / 18</title><circle cx="76.00" cy="311.78" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="331.78" text-anchor="middle">Mg4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 18"><title>Mg
+Mg:Zn = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 166
+原子数 / 候補 1 / 18</title><circle cx="76.00" cy="311.43" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="331.43" text-anchor="middle">Mg</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.027 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 27 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 9"><title>Mg3
+Mg:Zn = 1.000 / 0.000
+E_form 0.027 eV/atom
+包から 27 meV/atom
+空間群 139 → 229
+原子数 / 候補 3 / 9</title><circle cx="76.00" cy="299.92" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="319.92" text-anchor="middle">Mg3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.028 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 28 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 9"><title>Mg5
+Mg:Zn = 1.000 / 0.000
+E_form 0.028 eV/atom
+包から 28 meV/atom
+空間群 166 → 229
+原子数 / 候補 5 / 9</title><circle cx="76.00" cy="299.70" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="319.70" text-anchor="middle">Mg5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.041 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 41 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Mg7
+Mg:Zn = 1.000 / 0.000
+E_form 0.041 eV/atom
+包から 41 meV/atom
+空間群 8 → 12
+原子数 / 候補 7 / 6</title><circle cx="76.00" cy="294.03" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="314.03" text-anchor="middle">Mg7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg9Zn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.282 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 304 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 200 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>Mg9Zn
+Mg:Zn = 0.900 / 0.100
+E_form 0.282 eV/atom
+包から 304 meV/atom
+空間群 200 → 221
+原子数 / 候補 10 / 3</title><circle cx="153.00" cy="188.79" r="5" fill="var(--meta)"/><text class="plabel" x="153.00" y="174.79" text-anchor="middle">Mg9Zn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg8Zn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.270 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 294 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 200 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Mg8Zn
+Mg:Zn = 0.889 / 0.111
+E_form 0.270 eV/atom
+包から 294 meV/atom
+空間群 200 → 221
+原子数 / 候補 9 / 3</title><circle cx="161.56" cy="194.37" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="180.37" text-anchor="middle">Mg8Zn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg7Zn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.222 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 249 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Mg7Zn
+Mg:Zn = 0.875 / 0.125
+E_form 0.222 eV/atom
+包から 249 meV/atom
+空間群 187
+原子数 / 候補 8 / 6</title><circle cx="172.25" cy="215.12" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="201.12" text-anchor="middle">Mg7Zn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg5Zn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.014 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 22 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>Mg5Zn
+Mg:Zn = 0.833 / 0.167
+E_form -0.014 eV/atom
+包から 22 meV/atom
+空間群 38 → 65
+原子数 / 候補 6 / 3</title><circle cx="204.33" cy="317.79" r="5" fill="var(--h1)"/><text class="plabel" x="204.33" y="303.79" text-anchor="middle">Mg5Zn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg4Zn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.135 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 178 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Mg4Zn
+Mg:Zn = 0.800 / 0.200
+E_form 0.135 eV/atom
+包から 178 meV/atom
+空間群 38
+原子数 / 候補 5 / 3</title><circle cx="230.00" cy="253.14" r="5" fill="var(--h3)"/><text class="plabel" x="230.00" y="239.14" text-anchor="middle">Mg4Zn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg8Zn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.257 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 300 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Mg8Zn2
+Mg:Zn = 0.800 / 0.200
+E_form 0.257 eV/atom
+包から 300 meV/atom
+空間群 194
+原子数 / 候補 10 / 6</title><circle cx="230.00" cy="199.90" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="185.90" text-anchor="middle">Mg8Zn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg7Zn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.778 / 0.222&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.237 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 285 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>Mg7Zn2
+Mg:Zn = 0.778 / 0.222
+E_form 0.237 eV/atom
+包から 285 meV/atom
+空間群 187
+原子数 / 候補 9 / 3</title><circle cx="247.11" cy="208.71" r="5" fill="var(--meta)"/><text class="plabel" x="247.11" y="194.71" text-anchor="middle">Mg7Zn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg6Zn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.038 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 16 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Mg6Zn2
+Mg:Zn = 0.750 / 0.250
+E_form -0.038 eV/atom
+包から 16 meV/atom
+空間群 194
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="328.30" r="5" fill="var(--h1)"/><text class="plabel" x="268.50" y="314.30" text-anchor="middle">Mg6Zn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg3Zn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.031 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 23 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>Mg3Zn
+Mg:Zn = 0.750 / 0.250
+E_form -0.031 eV/atom
+包から 23 meV/atom
+空間群 221
+原子数 / 候補 4 / 6</title><circle cx="268.50" cy="325.55" r="5" fill="var(--h1)"/><text class="plabel" x="268.50" y="345.55" text-anchor="middle">Mg3Zn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg5Zn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.714 / 0.286&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.123 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 184 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 38&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Mg5Zn2
+Mg:Zn = 0.714 / 0.286
+E_form 0.123 eV/atom
+包から 184 meV/atom
+空間群 38
+原子数 / 候補 7 / 3</title><circle cx="296.00" cy="258.37" r="5" fill="var(--h3)"/><text class="plabel" x="296.00" y="244.37" text-anchor="middle">Mg5Zn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg4Zn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.024 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 48 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Mg4Zn2
+Mg:Zn = 0.667 / 0.333
+E_form -0.024 eV/atom
+包から 48 meV/atom
+空間群 63 → 139
+原子数 / 候補 6 / 6</title><circle cx="332.67" cy="322.15" r="5" fill="var(--h1)"/><text class="plabel" x="332.67" y="308.15" text-anchor="middle">Mg4Zn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg2Zn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.046 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 118 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 5"><title>Mg2Zn
+Mg:Zn = 0.667 / 0.333
+E_form 0.046 eV/atom
+包から 118 meV/atom
+空間群 225
+原子数 / 候補 3 / 5</title><circle cx="332.67" cy="291.68" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="277.68" text-anchor="middle">Mg2Zn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg6Zn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 86 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 127&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Mg6Zn4
+Mg:Zn = 0.600 / 0.400
+E_form 0.000 eV/atom
+包から 86 meV/atom
+空間群 127
+原子数 / 候補 10 / 6</title><circle cx="384.00" cy="312.04" r="5" fill="var(--h2)"/><text class="plabel" x="384.00" y="298.04" text-anchor="middle">Mg6Zn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MgZn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.077 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 31 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 12"><title>MgZn
+Mg:Zn = 0.500 / 0.500
+E_form -0.077 eV/atom
+包から 31 meV/atom
+空間群 123
+原子数 / 候補 2 / 12</title><circle cx="461.00" cy="345.52" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="331.52" text-anchor="middle">MgZn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg4Zn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.076 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 32 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 127 → 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 12"><title>Mg4Zn4
+Mg:Zn = 0.500 / 0.500
+E_form -0.076 eV/atom
+包から 32 meV/atom
+空間群 127 → 123
+原子数 / 候補 8 / 12</title><circle cx="461.00" cy="345.13" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="365.13" text-anchor="middle">Mg4Zn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg2Zn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.076 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 32 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Mg2Zn2
+Mg:Zn = 0.500 / 0.500
+E_form -0.076 eV/atom
+包から 32 meV/atom
+空間群 63 → 11
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="345.09" r="5" fill="var(--h1)"/><text class="plabel" x="461.00" y="365.09" text-anchor="middle">Mg2Zn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg3Zn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.429 / 0.571&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.506 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 630 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Mg3Zn4
+Mg:Zn = 0.429 / 0.571
+E_form 0.506 eV/atom
+包から 630 meV/atom
+空間群 216
+原子数 / 候補 7 / 3</title><circle cx="516.00" cy="91.17" r="5" fill="var(--meta)"/><text class="plabel" x="516.00" y="77.17" text-anchor="middle">Mg3Zn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg4Zn6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.055 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 75 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 127&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Mg4Zn6
+Mg:Zn = 0.400 / 0.600
+E_form -0.055 eV/atom
+包から 75 meV/atom
+空間群 127
+原子数 / 候補 10 / 9</title><circle cx="538.00" cy="335.71" r="5" fill="var(--h2)"/><text class="plabel" x="538.00" y="321.71" text-anchor="middle">Mg4Zn6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MgZn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.088 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 56 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>MgZn2
+Mg:Zn = 0.333 / 0.667
+E_form -0.088 eV/atom
+包から 56 meV/atom
+空間群 191
+原子数 / 候補 3 / 6</title><circle cx="589.33" cy="350.10" r="5" fill="var(--h2)"/><text class="plabel" x="589.33" y="336.10" text-anchor="middle">MgZn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg2Zn5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.570 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 693 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>Mg2Zn5
+Mg:Zn = 0.286 / 0.714
+E_form 0.570 eV/atom
+包から 693 meV/atom
+空間群 216
+原子数 / 候補 7 / 3</title><circle cx="626.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="49.35" text-anchor="middle">Mg2Zn5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg2Zn6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.071 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 37 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>Mg2Zn6
+Mg:Zn = 0.250 / 0.750
+E_form -0.071 eV/atom
+包から 37 meV/atom
+空間群 194
+原子数 / 候補 8 / 8</title><circle cx="653.50" cy="342.99" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="328.99" text-anchor="middle">Mg2Zn6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MgZn3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.063 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 45 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>MgZn3
+Mg:Zn = 0.250 / 0.750
+E_form -0.063 eV/atom
+包から 45 meV/atom
+空間群 221
+原子数 / 候補 4 / 6</title><circle cx="653.50" cy="339.33" r="5" fill="var(--h1)"/><text class="plabel" x="653.50" y="359.33" text-anchor="middle">MgZn3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg2Zn8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.015 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 71 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 127&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Mg2Zn8
+Mg:Zn = 0.200 / 0.800
+E_form -0.015 eV/atom
+包から 71 meV/atom
+空間群 127
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="318.58" r="5" fill="var(--h2)"/><text class="plabel" x="692.00" y="304.58" text-anchor="middle">Mg2Zn8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MgZn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.308 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 394 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>MgZn4
+Mg:Zn = 0.200 / 0.800
+E_form 0.308 eV/atom
+包から 394 meV/atom
+空間群 221
+原子数 / 候補 5 / 6</title><circle cx="692.00" cy="177.58" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="163.58" text-anchor="middle">MgZn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MgZn5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.052 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 20 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 216&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>MgZn5
+Mg:Zn = 0.167 / 0.833
+E_form -0.052 eV/atom
+包から 20 meV/atom
+空間群 216
+原子数 / 候補 6 / 3</title><circle cx="717.67" cy="334.71" r="5" fill="var(--h1)"/><text class="plabel" x="717.67" y="320.71" text-anchor="middle">MgZn5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MgZn6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.299 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 361 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>MgZn6
+Mg:Zn = 0.143 / 0.857
+E_form 0.299 eV/atom
+包から 361 meV/atom
+空間群 221
+原子数 / 候補 7 / 3</title><circle cx="736.00" cy="181.42" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="167.42" text-anchor="middle">MgZn6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MgZn7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.188 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 242 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>MgZn7
+Mg:Zn = 0.125 / 0.875
+E_form 0.188 eV/atom
+包から 242 meV/atom
+空間群 139
+原子数 / 候補 8 / 3</title><circle cx="749.75" cy="230.03" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="216.03" text-anchor="middle">MgZn7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MgZn8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.272 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 320 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>MgZn8
+Mg:Zn = 0.111 / 0.889
+E_form 0.272 eV/atom
+包から 320 meV/atom
+空間群 139
+原子数 / 候補 9 / 3</title><circle cx="760.44" cy="193.23" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="179.23" text-anchor="middle">MgZn8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;MgZn9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.099 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 142 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 4"><title>MgZn9
+Mg:Zn = 0.100 / 0.900
+E_form 0.099 eV/atom
+包から 142 meV/atom
+空間群 139
+原子数 / 候補 10 / 4</title><circle cx="769.00" cy="268.83" r="5" fill="var(--h3)"/><text class="plabel" x="769.00" y="254.83" text-anchor="middle">MgZn9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Zn2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 3"><title>Zn2
+Mg:Zn = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 2 / 3</title><circle cx="846.00" cy="311.69" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="297.69" text-anchor="middle">Zn2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Zn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.151 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 151 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 2"><title>Zn4
+Mg:Zn = 0.000 / 1.000
+E_form 0.151 eV/atom
+包から 151 meV/atom
+空間群 194
+原子数 / 候補 4 / 2</title><circle cx="846.00" cy="245.86" r="5" fill="var(--h3)"/><text class="plabel" x="846.00" y="231.86" text-anchor="middle">Zn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Zn&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.251 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 251 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 123&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 3"><title>Zn
+Mg:Zn = 0.000 / 1.000
+E_form 0.251 eV/atom
+包から 251 meV/atom
+空間群 123
+原子数 / 候補 1 / 3</title><circle cx="846.00" cy="202.48" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="188.48" text-anchor="middle">Zn</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 18"><title>Mg8
+Mg:Zn = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 8 / 18</title><circle cx="76.00" cy="311.86" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="331.86" text-anchor="middle">Mg8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Mg2Zn4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.144 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 227&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 10"><title>Mg2Zn4
+Mg:Zn = 0.333 / 0.667
+E_form -0.144 eV/atom
+包から 0（凸包上）
+空間群 227
+原子数 / 候補 6 / 10</title><circle cx="589.33" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="589.33" y="360.65" text-anchor="middle">Mg2Zn4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Zn8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Mg:Zn&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>Zn8
+Mg:Zn = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 194
+原子数 / 候補 8 / 3</title><circle cx="846.00" cy="311.86" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="331.86" text-anchor="middle">Zn8</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Mg8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Mg2Zn4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Zn8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Mg2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Zn2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg6Zn2</span><span class="bar-track"><span class="bar-fill" style="width:2.35%;background:var(--h1)"></span></span><span class="bar-val">16 meV</span></li>
+<li class="bar-row"><span class="bar-name">MgZn5</span><span class="bar-track"><span class="bar-fill" style="width:2.83%;background:var(--h1)"></span></span><span class="bar-val">20 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg5Zn</span><span class="bar-track"><span class="bar-fill" style="width:3.23%;background:var(--h1)"></span></span><span class="bar-val">22 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg3Zn</span><span class="bar-track"><span class="bar-fill" style="width:3.26%;background:var(--h1)"></span></span><span class="bar-val">23 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg3</span><span class="bar-track"><span class="bar-fill" style="width:3.95%;background:var(--h1)"></span></span><span class="bar-val">27 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg5</span><span class="bar-track"><span class="bar-fill" style="width:4.02%;background:var(--h1)"></span></span><span class="bar-val">28 meV</span></li>
+<li class="bar-row"><span class="bar-name">MgZn</span><span class="bar-track"><span class="bar-fill" style="width:4.44%;background:var(--h1)"></span></span><span class="bar-val">31 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg4Zn4</span><span class="bar-track"><span class="bar-fill" style="width:4.57%;background:var(--h1)"></span></span><span class="bar-val">32 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg2Zn2</span><span class="bar-track"><span class="bar-fill" style="width:4.60%;background:var(--h1)"></span></span><span class="bar-val">32 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg2Zn6</span><span class="bar-track"><span class="bar-fill" style="width:5.29%;background:var(--h1)"></span></span><span class="bar-val">37 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg7</span><span class="bar-track"><span class="bar-fill" style="width:5.90%;background:var(--h1)"></span></span><span class="bar-val">41 meV</span></li>
+<li class="bar-row"><span class="bar-name">MgZn3</span><span class="bar-track"><span class="bar-fill" style="width:6.49%;background:var(--h1)"></span></span><span class="bar-val">45 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg4Zn2</span><span class="bar-track"><span class="bar-fill" style="width:6.98%;background:var(--h1)"></span></span><span class="bar-val">48 meV</span></li>
+<li class="bar-row"><span class="bar-name">MgZn2</span><span class="bar-track"><span class="bar-fill" style="width:8.13%;background:var(--h2)"></span></span><span class="bar-val">56 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg2Zn8</span><span class="bar-track"><span class="bar-fill" style="width:10.24%;background:var(--h2)"></span></span><span class="bar-val">71 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg4Zn6</span><span class="bar-track"><span class="bar-fill" style="width:10.80%;background:var(--h2)"></span></span><span class="bar-val">75 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg6Zn4</span><span class="bar-track"><span class="bar-fill" style="width:12.40%;background:var(--h2)"></span></span><span class="bar-val">86 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg2Zn</span><span class="bar-track"><span class="bar-fill" style="width:17.06%;background:var(--h3)"></span></span><span class="bar-val">118 meV</span></li>
+<li class="bar-row"><span class="bar-name">MgZn9</span><span class="bar-track"><span class="bar-fill" style="width:20.46%;background:var(--h3)"></span></span><span class="bar-val">142 meV</span></li>
+<li class="bar-row"><span class="bar-name">Zn4</span><span class="bar-track"><span class="bar-fill" style="width:21.83%;background:var(--h3)"></span></span><span class="bar-val">151 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg4Zn</span><span class="bar-track"><span class="bar-fill" style="width:25.66%;background:var(--h3)"></span></span><span class="bar-val">178 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg5Zn2</span><span class="bar-track"><span class="bar-fill" style="width:26.59%;background:var(--h3)"></span></span><span class="bar-val">184 meV</span></li>
+<li class="bar-row"><span class="bar-name">MgZn7</span><span class="bar-track"><span class="bar-fill" style="width:34.86%;background:var(--meta)"></span></span><span class="bar-val">242 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg7Zn</span><span class="bar-track"><span class="bar-fill" style="width:35.90%;background:var(--meta)"></span></span><span class="bar-val">249 meV</span></li>
+<li class="bar-row"><span class="bar-name">Zn</span><span class="bar-track"><span class="bar-fill" style="width:36.18%;background:var(--meta)"></span></span><span class="bar-val">251 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg7Zn2</span><span class="bar-track"><span class="bar-fill" style="width:41.04%;background:var(--meta)"></span></span><span class="bar-val">285 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg8Zn</span><span class="bar-track"><span class="bar-fill" style="width:42.33%;background:var(--meta)"></span></span><span class="bar-val">294 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg8Zn2</span><span class="bar-track"><span class="bar-fill" style="width:43.27%;background:var(--meta)"></span></span><span class="bar-val">300 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg9Zn</span><span class="bar-track"><span class="bar-fill" style="width:43.83%;background:var(--meta)"></span></span><span class="bar-val">304 meV</span></li>
+<li class="bar-row"><span class="bar-name">MgZn8</span><span class="bar-track"><span class="bar-fill" style="width:46.16%;background:var(--meta)"></span></span><span class="bar-val">320 meV</span></li>
+<li class="bar-row"><span class="bar-name">MgZn6</span><span class="bar-track"><span class="bar-fill" style="width:52.05%;background:var(--meta)"></span></span><span class="bar-val">361 meV</span></li>
+<li class="bar-row"><span class="bar-name">MgZn4</span><span class="bar-track"><span class="bar-fill" style="width:56.88%;background:var(--meta)"></span></span><span class="bar-val">394 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg3Zn4</span><span class="bar-track"><span class="bar-fill" style="width:90.80%;background:var(--meta)"></span></span><span class="bar-val">630 meV</span></li>
+<li class="bar-row"><span class="bar-name">Mg2Zn5</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">693 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 3 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Mg</th><th>Zn</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Mg8 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>194</td><td>8</td></tr>
+<tr class="stable"><td class="name">Mg2Zn4 <span class="pill">凸包上</span></td><td>0.333</td><td>0.667</td><td>-0.1440</td><td>227</td><td>6</td></tr>
+<tr class="stable"><td class="name">Zn8 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>194</td><td>8</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>当たったもの</h3><p>端点は <b>Mg8 → 194（hcp）</b>、<b>Zn8 → 194（hcp）</b>で両方とも実在相。凸包上の <b>Mg2Zn4</b> は x=0.667 で、実在の Laves 相 MgZn2 と<b>組成が一致</b>する。Ef −0.144 eV/atom。</p></div><div class="note"><h3>C15 が出て C14 が出ていない</h3><p><b>Mg2Zn4 / 227 は C15 型（MgCu2 型）</b>で、6 原子の基本胞に載る。実在の MgZn2 は <b>C14 型（P6<sub>3</sub>/mmc, 194）で 12 原子</b>必要 —— <b>10 原子の枠の外</b>である。C14 と C15 は積層の違いだけの近縁多形なので、<b>「Laves 相が出た」は正しく、「どちらの Laves か」は当たっていない。</b>x=0.667 の 3 原子セル <b>MgZn2 / 191</b> は +56.4 meV。</p></div><div class="note"><h3>Mg7Zn3 系（実在の Mg51Zn20 など）は届かない</h3><p>実在の Mg–Zn には Mg51Zn20・Mg12Zn13・Mg2Zn11 といった大きな胞の相があり、<b>いずれも 10 原子では組めない</b>。x=0.5 の <b>MgZn / 123</b> が +30.8 meV に来ているが、これは実在の Mg12Zn13（Mg7Zn3 系, 25 原子）の代役にはならない。</p></div><div class="note"><h3>この系は浅い</h3><p>唯一の凸包上化合物でも <b>−144 meV/atom</b>。包に近いものが多く、<b>Mg6Zn2</b>（194）+16 meV、<b>MgZn5</b>（216）+20、<b>Mg5Zn</b>（38→65）+22、<b>Mg3Zn</b>（221）+23 が並ぶ。<b>この差では載る／載らないを言い切れない。</b></p></div><div class="note"><h3>穴が 15 組成</h3><p><b>30/45</b> にしか点が出ていない。欠けたのは Mg2Zn3 / Mg3Zn2 / Mg3Zn3 / Mg4Zn3 / Mg5Zn3 / Mg5Zn5 ほか、<b>Mg と Zn の数が近い中間組成に集中</b>している。上位 3 空間群の多重度に載らず配置が作れなかった（exit 410）。<b>4 系のなかでいちばん穴が大きく、この凸包はまだ骨格だけと見るべき。</b>spg_ranks を広げれば埋まる。</p></div></section>
+ <footer><span>aiida-shotgun-csp 4.5.0</span><span>sweep = Mg–Zn ≤10 atoms, 45 compositions + terminals</span><span>spg_ranks = 1–3 / mygardenx1-async + mygardenx2-async / MatterSim relax</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

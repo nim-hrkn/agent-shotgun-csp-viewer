@@ -1,0 +1,564 @@
+<title>La–Si 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>La–Si 相図</h1>
+  <p class="lede">凸包に載った化合物は La<sub>2</sub>Si<sub>4</sub>、La<sub>4</sub>Si<sub>4</sub>。既存の三元図（La–Fe–Si）の辺を埋める二元図で、DB の既存データのみから構築した（新規計算なし）。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>50</dd></div><div class="fact"><dt>凸包上</dt><dd>4</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>7</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は Si の原子分率。縦軸は端点（La, Si）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="La–Si 相図">
+<line class="grid-line" x1="76" x2="846" y1="370.91" y2="370.91"/>
+<text class="tick-text" x="64" y="374.91" text-anchor="end">-0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="308.59" y2="308.59"/>
+<text class="tick-text" x="64" y="312.59" text-anchor="end">-0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="246.27" y2="246.27"/>
+<text class="tick-text" x="64" y="250.27" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="183.95" y2="183.95"/>
+<text class="tick-text" x="64" y="187.95" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="121.63" y2="121.63"/>
+<text class="tick-text" x="64" y="125.63" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="59.32" y2="59.32"/>
+<text class="tick-text" x="64" y="63.32" text-anchor="end">0.50</text>
+<line class="axis-line" x1="76" x2="846" y1="183.95" y2="183.95"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">La</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">Si</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">Si の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,183.95 461.00,374.65 589.33,353.63 846.00,183.95"/>
+<line class="tie-drop" x1="461.00" x2="461.00" y1="374.65" y2="412"/>
+<line class="tie-drop" x1="589.33" x2="589.33" y1="353.63" y2="412"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 8"><title>La8
+La:Si = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 194
+原子数 / 候補 8 / 8</title><circle cx="76.00" cy="183.95" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="169.95" text-anchor="middle">La8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>La6
+La:Si = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 64 → 139
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="183.83" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="203.83" text-anchor="middle">La6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.083 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 83 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>La5
+La:Si = 1.000 / 0.000
+E_form 0.083 eV/atom
+包から 83 meV/atom
+空間群 166
+原子数 / 候補 5 / 3</title><circle cx="76.00" cy="163.24" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="183.24" text-anchor="middle">La5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.083 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 83 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 229&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 3"><title>La
+La:Si = 1.000 / 0.000
+E_form 0.083 eV/atom
+包から 83 meV/atom
+空間群 229
+原子数 / 候補 1 / 3</title><circle cx="76.00" cy="163.21" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="183.21" text-anchor="middle">La</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.084 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 84 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>La7
+La:Si = 1.000 / 0.000
+E_form 0.084 eV/atom
+包から 84 meV/atom
+空間群 166
+原子数 / 候補 7 / 3</title><circle cx="76.00" cy="163.14" r="5" fill="var(--h2)"/><text class="plabel" x="76.00" y="183.14" text-anchor="middle">La7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.123 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 123 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>La10
+La:Si = 1.000 / 0.000
+E_form 0.123 eV/atom
+包から 123 meV/atom
+空間群 64
+原子数 / 候補 10 / 6</title><circle cx="76.00" cy="153.27" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="139.27" text-anchor="middle">La10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.185 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 185 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>La9
+La:Si = 1.000 / 0.000
+E_form 0.185 eV/atom
+包から 185 meV/atom
+空間群 166
+原子数 / 候補 9 / 3</title><circle cx="76.00" cy="137.86" r="5" fill="var(--h3)"/><text class="plabel" x="76.00" y="157.86" text-anchor="middle">La9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.291 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 291 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 1"><title>La3
+La:Si = 1.000 / 0.000
+E_form 0.291 eV/atom
+包から 291 meV/atom
+空間群 166
+原子数 / 候補 3 / 1</title><circle cx="76.00" cy="111.44" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="97.44" text-anchor="middle">La3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La9Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.226 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 379 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>La9Si
+La:Si = 0.900 / 0.100
+E_form 0.226 eV/atom
+包から 379 meV/atom
+空間群 221
+原子数 / 候補 10 / 3</title><circle cx="153.00" cy="127.59" r="5" fill="var(--meta)"/><text class="plabel" x="153.00" y="113.59" text-anchor="middle">La9Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La8Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.208 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 378 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>La8Si
+La:Si = 0.889 / 0.111
+E_form 0.208 eV/atom
+包から 378 meV/atom
+空間群 221
+原子数 / 候補 9 / 3</title><circle cx="161.56" cy="132.23" r="5" fill="var(--meta)"/><text class="plabel" x="161.56" y="118.23" text-anchor="middle">La8Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La7Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.238 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 429 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 189 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>La7Si
+La:Si = 0.875 / 0.125
+E_form 0.238 eV/atom
+包から 429 meV/atom
+空間群 189 → 191
+原子数 / 候補 8 / 6</title><circle cx="172.25" cy="124.73" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="144.73" text-anchor="middle">La7Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La6Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.253 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 472 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 5"><title>La6Si
+La:Si = 0.857 / 0.143
+E_form 0.253 eV/atom
+包から 472 meV/atom
+空間群 139
+原子数 / 候補 7 / 5</title><circle cx="186.00" cy="120.84" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="140.84" text-anchor="middle">La6Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La5Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.175 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 430 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>La5Si
+La:Si = 0.833 / 0.167
+E_form 0.175 eV/atom
+包から 430 meV/atom
+空間群 139
+原子数 / 候補 6 / 3</title><circle cx="204.33" cy="140.23" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="160.23" text-anchor="middle">La5Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La8Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.052 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 254 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 127&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>La8Si2
+La:Si = 0.800 / 0.200
+E_form -0.052 eV/atom
+包から 254 meV/atom
+空間群 127
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="196.96" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="182.96" text-anchor="middle">La8Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La4Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.049 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 257 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 4"><title>La4Si
+La:Si = 0.800 / 0.200
+E_form -0.049 eV/atom
+包から 257 meV/atom
+空間群 221
+原子数 / 候補 5 / 4</title><circle cx="230.00" cy="196.22" r="5" fill="var(--meta)"/><text class="plabel" x="230.00" y="216.22" text-anchor="middle">La4Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La6Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.315 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 67 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 140&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>La6Si2
+La:Si = 0.750 / 0.250
+E_form -0.315 eV/atom
+包から 67 meV/atom
+空間群 140
+原子数 / 候補 8 / 6</title><circle cx="268.50" cy="262.47" r="5" fill="var(--h2)"/><text class="plabel" x="268.50" y="248.47" text-anchor="middle">La6Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La3Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.308 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 75 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>La3Si
+La:Si = 0.750 / 0.250
+E_form -0.308 eV/atom
+包から 75 meV/atom
+空間群 221
+原子数 / 候補 4 / 6</title><circle cx="268.50" cy="260.68" r="5" fill="var(--h2)"/><text class="plabel" x="268.50" y="280.68" text-anchor="middle">La3Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La4Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.460 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 51 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 140&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 1"><title>La4Si2
+La:Si = 0.667 / 0.333
+E_form -0.460 eV/atom
+包から 51 meV/atom
+空間群 140
+原子数 / 候補 6 / 1</title><circle cx="332.67" cy="298.49" r="5" fill="var(--h2)"/><text class="plabel" x="332.67" y="284.49" text-anchor="middle">La4Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.397 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 113 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>La2Si
+La:Si = 0.667 / 0.333
+E_form -0.397 eV/atom
+包から 113 meV/atom
+空間群 225
+原子数 / 候補 3 / 3</title><circle cx="332.67" cy="282.99" r="5" fill="var(--h3)"/><text class="plabel" x="332.67" y="302.99" text-anchor="middle">La2Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La6Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.387 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 225 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 127&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>La6Si4
+La:Si = 0.600 / 0.400
+E_form -0.387 eV/atom
+包から 225 meV/atom
+空間群 127
+原子数 / 候補 10 / 6</title><circle cx="384.00" cy="280.50" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="266.50" text-anchor="middle">La6Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaSi&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.404 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 361 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 8"><title>LaSi
+La:Si = 0.500 / 0.500
+E_form -0.404 eV/atom
+包から 361 meV/atom
+空間群 225
+原子数 / 候補 2 / 8</title><circle cx="461.00" cy="284.63" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="270.63" text-anchor="middle">LaSi</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.171 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 594 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 109 → 141&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 4"><title>La2Si2
+La:Si = 0.500 / 0.500
+E_form -0.171 eV/atom
+包から 594 meV/atom
+空間群 109 → 141
+原子数 / 候補 4 / 4</title><circle cx="461.00" cy="226.68" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="212.68" text-anchor="middle">La2Si2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La4Si6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.451 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 264 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>La4Si6
+La:Si = 0.400 / 0.600
+E_form -0.451 eV/atom
+包から 264 meV/atom
+空間群 63 → 2
+原子数 / 候補 10 / 6</title><circle cx="538.00" cy="296.27" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="282.27" text-anchor="middle">La4Si6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaSi2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.681 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>LaSi2
+La:Si = 0.333 / 0.667
+E_form -0.681 eV/atom
+包から 0 meV/atom
+空間群 191
+原子数 / 候補 3 / 6</title><circle cx="589.33" cy="353.61" r="5" fill="var(--h1)"/><text class="plabel" x="589.33" y="339.61" text-anchor="middle">LaSi2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La3Si6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.351 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 329 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>La3Si6
+La:Si = 0.333 / 0.667
+E_form -0.351 eV/atom
+包から 329 meV/atom
+空間群 12 → 2
+原子数 / 候補 9 / 3</title><circle cx="589.33" cy="271.52" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="257.52" text-anchor="middle">La3Si6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La3Si7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.300 / 0.700&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.371 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 242 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 2&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>La3Si7
+La:Si = 0.300 / 0.700
+E_form -0.371 eV/atom
+包から 242 meV/atom
+空間群 12 → 2
+原子数 / 候補 10 / 3</title><circle cx="615.00" cy="276.38" r="5" fill="var(--meta)"/><text class="plabel" x="615.00" y="262.38" text-anchor="middle">La3Si7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2Si5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.286 / 0.714&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.236 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 348 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>La2Si5
+La:Si = 0.286 / 0.714
+E_form -0.236 eV/atom
+包から 348 meV/atom
+空間群 12
+原子数 / 候補 7 / 3</title><circle cx="626.00" cy="242.76" r="5" fill="var(--meta)"/><text class="plabel" x="626.00" y="228.76" text-anchor="middle">La2Si5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2Si6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.364 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 146 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>La2Si6
+La:Si = 0.250 / 0.750
+E_form -0.364 eV/atom
+包から 146 meV/atom
+空間群 194
+原子数 / 候補 8 / 6</title><circle cx="653.50" cy="274.76" r="5" fill="var(--h3)"/><text class="plabel" x="653.50" y="260.76" text-anchor="middle">La2Si6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaSi3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.272 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 239 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 5"><title>LaSi3
+La:Si = 0.250 / 0.750
+E_form -0.272 eV/atom
+包から 239 meV/atom
+空間群 164 → 191
+原子数 / 候補 4 / 5</title><circle cx="653.50" cy="251.73" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="271.73" text-anchor="middle">LaSi3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2Si7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.222 / 0.778&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.242 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 212 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>La2Si7
+La:Si = 0.222 / 0.778
+E_form -0.242 eV/atom
+包から 212 meV/atom
+空間群 12
+原子数 / 候補 9 / 6</title><circle cx="674.89" cy="244.23" r="5" fill="var(--meta)"/><text class="plabel" x="674.89" y="230.23" text-anchor="middle">La2Si7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaSi4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.256 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 152 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>LaSi4
+La:Si = 0.200 / 0.800
+E_form -0.256 eV/atom
+包から 152 meV/atom
+空間群 164 → 191
+原子数 / 候補 5 / 6</title><circle cx="692.00" cy="247.79" r="5" fill="var(--h3)"/><text class="plabel" x="692.00" y="233.79" text-anchor="middle">LaSi4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2Si8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.100 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 308 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>La2Si8
+La:Si = 0.200 / 0.800
+E_form -0.100 eV/atom
+包から 308 meV/atom
+空間群 166
+原子数 / 候補 10 / 9</title><circle cx="692.00" cy="208.90" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="194.90" text-anchor="middle">La2Si8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaSi5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.167 / 0.833&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.128 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 469 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 3"><title>LaSi5
+La:Si = 0.167 / 0.833
+E_form 0.128 eV/atom
+包から 469 meV/atom
+空間群 139
+原子数 / 候補 6 / 3</title><circle cx="717.67" cy="152.00" r="5" fill="var(--meta)"/><text class="plabel" x="717.67" y="138.00" text-anchor="middle">LaSi5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaSi6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.057 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 348 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>LaSi6
+La:Si = 0.143 / 0.857
+E_form 0.057 eV/atom
+包から 348 meV/atom
+空間群 139
+原子数 / 候補 7 / 6</title><circle cx="736.00" cy="169.87" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="155.87" text-anchor="middle">LaSi6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaSi7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.371 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 626 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>LaSi7
+La:Si = 0.125 / 0.875
+E_form 0.371 eV/atom
+包から 626 meV/atom
+空間群 139
+原子数 / 候補 8 / 6</title><circle cx="749.75" cy="91.55" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="77.55" text-anchor="middle">LaSi7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaSi8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.178 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 405 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>LaSi8
+La:Si = 0.111 / 0.889
+E_form 0.178 eV/atom
+包から 405 meV/atom
+空間群 166
+原子数 / 候補 9 / 6</title><circle cx="760.44" cy="139.56" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="125.56" text-anchor="middle">LaSi8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;LaSi9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.170 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 374 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>LaSi9
+La:Si = 0.100 / 0.900
+E_form 0.170 eV/atom
+包から 374 meV/atom
+空間群 166
+原子数 / 候補 10 / 6</title><circle cx="769.00" cy="141.65" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="161.65" text-anchor="middle">LaSi9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.293 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 293 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 51&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 11"><title>Si4
+La:Si = 0.000 / 1.000
+E_form 0.293 eV/atom
+包から 293 meV/atom
+空間群 64 → 51
+原子数 / 候補 4 / 11</title><circle cx="846.00" cy="111.02" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="97.02" text-anchor="middle">Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.296 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 296 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 24"><title>Si8
+La:Si = 0.000 / 1.000
+E_form 0.296 eV/atom
+包から 296 meV/atom
+空間群 12 → 63
+原子数 / 候補 8 / 24</title><circle cx="846.00" cy="110.24" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="130.24" text-anchor="middle">Si8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.296 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 296 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 87&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Si10
+La:Si = 0.000 / 1.000
+E_form 0.296 eV/atom
+包から 296 meV/atom
+空間群 87
+原子数 / 候補 10 / 9</title><circle cx="846.00" cy="110.19" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="130.19" text-anchor="middle">Si10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.297 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 297 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Si6
+La:Si = 0.000 / 1.000
+E_form 0.297 eV/atom
+包から 297 meV/atom
+空間群 63
+原子数 / 候補 6 / 9</title><circle cx="846.00" cy="109.99" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="129.99" text-anchor="middle">Si6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.297 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 297 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 65&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Si5
+La:Si = 0.000 / 1.000
+E_form 0.297 eV/atom
+包から 297 meV/atom
+空間群 12 → 65
+原子数 / 候補 5 / 6</title><circle cx="846.00" cy="109.97" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="129.97" text-anchor="middle">Si5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.319 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 319 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 6"><title>Si9
+La:Si = 0.000 / 1.000
+E_form 0.319 eV/atom
+包から 319 meV/atom
+空間群 12
+原子数 / 候補 9 / 6</title><circle cx="846.00" cy="104.34" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="124.34" text-anchor="middle">Si9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.406 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 406 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 6"><title>Si7
+La:Si = 0.000 / 1.000
+E_form 0.406 eV/atom
+包から 406 meV/atom
+空間群 12
+原子数 / 候補 7 / 6</title><circle cx="846.00" cy="82.75" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="102.75" text-anchor="middle">Si7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.472 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 472 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 42 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 18"><title>Si
+La:Si = 0.000 / 1.000
+E_form 0.472 eV/atom
+包から 472 meV/atom
+空間群 42 → 139
+原子数 / 候補 1 / 18</title><circle cx="846.00" cy="66.20" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="52.20" text-anchor="middle">Si</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.484 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 484 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 200 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Si3
+La:Si = 0.000 / 1.000
+E_form 0.484 eV/atom
+包から 484 meV/atom
+空間群 200 → 221
+原子数 / 候補 3 / 3</title><circle cx="846.00" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="83.35" text-anchor="middle">Si3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>La4
+La:Si = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 221 → 225
+原子数 / 候補 4 / 9</title><circle cx="76.00" cy="183.95" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="203.95" text-anchor="middle">La4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La4Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.765 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 62&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>La4Si4
+La:Si = 0.500 / 0.500
+E_form -0.765 eV/atom
+包から 0（凸包上）
+空間群 62
+原子数 / 候補 8 / 6</title><circle cx="461.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="461.00" y="360.65" text-anchor="middle">La4Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;La2Si4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; -0.681 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 63 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 5"><title>La2Si4
+La:Si = 0.333 / 0.667
+E_form -0.681 eV/atom
+包から 0（凸包上）
+空間群 63 → 191
+原子数 / 候補 6 / 5</title><circle cx="589.33" cy="353.63" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="589.33" y="373.63" text-anchor="middle">La2Si4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Si2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;La:Si&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 227&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 20"><title>Si2
+La:Si = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 227
+原子数 / 候補 2 / 20</title><circle cx="846.00" cy="183.95" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="169.95" text-anchor="middle">Si2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">La4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">La8</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--h1)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">La4Si4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">La2Si4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">Si2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">LaSi2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">La6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">La4Si2</span><span class="bar-track"><span class="bar-fill" style="width:8.07%;background:var(--h2)"></span></span><span class="bar-val">51 meV</span></li>
+<li class="bar-row"><span class="bar-name">La6Si2</span><span class="bar-track"><span class="bar-fill" style="width:10.77%;background:var(--h2)"></span></span><span class="bar-val">67 meV</span></li>
+<li class="bar-row"><span class="bar-name">La3Si</span><span class="bar-track"><span class="bar-fill" style="width:11.93%;background:var(--h2)"></span></span><span class="bar-val">75 meV</span></li>
+<li class="bar-row"><span class="bar-name">La5</span><span class="bar-track"><span class="bar-fill" style="width:13.28%;background:var(--h2)"></span></span><span class="bar-val">83 meV</span></li>
+<li class="bar-row"><span class="bar-name">La</span><span class="bar-track"><span class="bar-fill" style="width:13.29%;background:var(--h2)"></span></span><span class="bar-val">83 meV</span></li>
+<li class="bar-row"><span class="bar-name">La7</span><span class="bar-track"><span class="bar-fill" style="width:13.34%;background:var(--h2)"></span></span><span class="bar-val">84 meV</span></li>
+<li class="bar-row"><span class="bar-name">La2Si</span><span class="bar-track"><span class="bar-fill" style="width:18.01%;background:var(--h3)"></span></span><span class="bar-val">113 meV</span></li>
+<li class="bar-row"><span class="bar-name">La10</span><span class="bar-track"><span class="bar-fill" style="width:19.67%;background:var(--h3)"></span></span><span class="bar-val">123 meV</span></li>
+<li class="bar-row"><span class="bar-name">La2Si6</span><span class="bar-track"><span class="bar-fill" style="width:23.37%;background:var(--h3)"></span></span><span class="bar-val">146 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaSi4</span><span class="bar-track"><span class="bar-fill" style="width:24.33%;background:var(--h3)"></span></span><span class="bar-val">152 meV</span></li>
+<li class="bar-row"><span class="bar-name">La9</span><span class="bar-track"><span class="bar-fill" style="width:29.54%;background:var(--h3)"></span></span><span class="bar-val">185 meV</span></li>
+<li class="bar-row"><span class="bar-name">La2Si7</span><span class="bar-track"><span class="bar-fill" style="width:33.87%;background:var(--meta)"></span></span><span class="bar-val">212 meV</span></li>
+<li class="bar-row"><span class="bar-name">La6Si4</span><span class="bar-track"><span class="bar-fill" style="width:35.88%;background:var(--meta)"></span></span><span class="bar-val">225 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaSi3</span><span class="bar-track"><span class="bar-fill" style="width:38.12%;background:var(--meta)"></span></span><span class="bar-val">239 meV</span></li>
+<li class="bar-row"><span class="bar-name">La3Si7</span><span class="bar-track"><span class="bar-fill" style="width:38.65%;background:var(--meta)"></span></span><span class="bar-val">242 meV</span></li>
+<li class="bar-row"><span class="bar-name">La8Si2</span><span class="bar-track"><span class="bar-fill" style="width:40.55%;background:var(--meta)"></span></span><span class="bar-val">254 meV</span></li>
+<li class="bar-row"><span class="bar-name">La4Si</span><span class="bar-track"><span class="bar-fill" style="width:41.03%;background:var(--meta)"></span></span><span class="bar-val">257 meV</span></li>
+<li class="bar-row"><span class="bar-name">La4Si6</span><span class="bar-track"><span class="bar-fill" style="width:42.15%;background:var(--meta)"></span></span><span class="bar-val">264 meV</span></li>
+<li class="bar-row"><span class="bar-name">La3</span><span class="bar-track"><span class="bar-fill" style="width:46.48%;background:var(--meta)"></span></span><span class="bar-val">291 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si4</span><span class="bar-track"><span class="bar-fill" style="width:46.75%;background:var(--meta)"></span></span><span class="bar-val">293 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si8</span><span class="bar-track"><span class="bar-fill" style="width:47.24%;background:var(--meta)"></span></span><span class="bar-val">296 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si10</span><span class="bar-track"><span class="bar-fill" style="width:47.28%;background:var(--meta)"></span></span><span class="bar-val">296 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si6</span><span class="bar-track"><span class="bar-fill" style="width:47.40%;background:var(--meta)"></span></span><span class="bar-val">297 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si5</span><span class="bar-track"><span class="bar-fill" style="width:47.42%;background:var(--meta)"></span></span><span class="bar-val">297 meV</span></li>
+<li class="bar-row"><span class="bar-name">La2Si8</span><span class="bar-track"><span class="bar-fill" style="width:49.26%;background:var(--meta)"></span></span><span class="bar-val">308 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si9</span><span class="bar-track"><span class="bar-fill" style="width:51.03%;background:var(--meta)"></span></span><span class="bar-val">319 meV</span></li>
+<li class="bar-row"><span class="bar-name">La3Si6</span><span class="bar-track"><span class="bar-fill" style="width:52.63%;background:var(--meta)"></span></span><span class="bar-val">329 meV</span></li>
+<li class="bar-row"><span class="bar-name">La2Si5</span><span class="bar-track"><span class="bar-fill" style="width:55.54%;background:var(--meta)"></span></span><span class="bar-val">348 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaSi6</span><span class="bar-track"><span class="bar-fill" style="width:55.65%;background:var(--meta)"></span></span><span class="bar-val">348 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaSi</span><span class="bar-track"><span class="bar-fill" style="width:57.69%;background:var(--meta)"></span></span><span class="bar-val">361 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaSi9</span><span class="bar-track"><span class="bar-fill" style="width:59.74%;background:var(--meta)"></span></span><span class="bar-val">374 meV</span></li>
+<li class="bar-row"><span class="bar-name">La8Si</span><span class="bar-track"><span class="bar-fill" style="width:60.31%;background:var(--meta)"></span></span><span class="bar-val">378 meV</span></li>
+<li class="bar-row"><span class="bar-name">La9Si</span><span class="bar-track"><span class="bar-fill" style="width:60.57%;background:var(--meta)"></span></span><span class="bar-val">379 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaSi8</span><span class="bar-track"><span class="bar-fill" style="width:64.71%;background:var(--meta)"></span></span><span class="bar-val">405 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si7</span><span class="bar-track"><span class="bar-fill" style="width:64.87%;background:var(--meta)"></span></span><span class="bar-val">406 meV</span></li>
+<li class="bar-row"><span class="bar-name">La7Si</span><span class="bar-track"><span class="bar-fill" style="width:68.51%;background:var(--meta)"></span></span><span class="bar-val">429 meV</span></li>
+<li class="bar-row"><span class="bar-name">La5Si</span><span class="bar-track"><span class="bar-fill" style="width:68.76%;background:var(--meta)"></span></span><span class="bar-val">430 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaSi5</span><span class="bar-track"><span class="bar-fill" style="width:74.85%;background:var(--meta)"></span></span><span class="bar-val">469 meV</span></li>
+<li class="bar-row"><span class="bar-name">La6Si</span><span class="bar-track"><span class="bar-fill" style="width:75.36%;background:var(--meta)"></span></span><span class="bar-val">472 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si</span><span class="bar-track"><span class="bar-fill" style="width:75.48%;background:var(--meta)"></span></span><span class="bar-val">472 meV</span></li>
+<li class="bar-row"><span class="bar-name">Si3</span><span class="bar-track"><span class="bar-fill" style="width:77.30%;background:var(--meta)"></span></span><span class="bar-val">484 meV</span></li>
+<li class="bar-row"><span class="bar-name">La2Si2</span><span class="bar-track"><span class="bar-fill" style="width:94.84%;background:var(--meta)"></span></span><span class="bar-val">594 meV</span></li>
+<li class="bar-row"><span class="bar-name">LaSi7</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">626 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 4 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>La</th><th>Si</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">La4 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>221 → 225</td><td>4</td></tr>
+<tr class="stable"><td class="name">La4Si4 <span class="pill">凸包上</span></td><td>0.500</td><td>0.500</td><td>-0.7650</td><td>62</td><td>8</td></tr>
+<tr class="stable"><td class="name">La2Si4 <span class="pill">凸包上</span></td><td>0.333</td><td>0.667</td><td>-0.6807</td><td>63 → 191</td><td>6</td></tr>
+<tr class="stable"><td class="name">Si2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>227</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>La は fcc（225）に検出。実在は dhcp だが差は小さい。Si は ダイヤモンド型（227）で当たり、信用できる。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に LaSi<sub>2</sub>（+0 meV, spg 191）。この手法の分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴が 11 組成</h3><p>≤10 原子・既約 33 組成のうち 11 組成に点が無い。そこは「相が無い」ではなく「探していない」。</p></div></section>
+ <footer><span>三元 hull 辺埋めバッチ（87 系・既存データのみ・新規計算なし）</span><span>2026-08-29 取得 · group_by=structure 315 構造</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>

@@ -1,0 +1,539 @@
+<title>C–Ni 相図</title>
+<style>
+:root{color-scheme:light;
+ --ground:#f5f7f9;--surface:#fff;--surface-sunk:#eceff3;--line:#d5dbe2;--line-soft:#e6eaef;
+ --ink:#101519;--ink-2:#4d5761;--ink-3:#78828d;--stable:#2a78d6;--meta:#eb6834;
+ --h1:#cfe0f4;--h2:#9dc2e9;--h3:#5f9adc;--h4:#2a78d6;
+ --grid:#e6eaef;--shadow:0 1px 2px rgba(16,21,25,.05),0 8px 24px rgba(16,21,25,.05);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#101418;--surface:#171c21;--surface-sunk:#1e242a;--line:#313a43;--line-soft:#262d34;
+ --ink:#eef2f6;--ink-2:#a9b3bd;--ink-3:#7d8892;--stable:#3987e5;--meta:#d95926;
+ --h1:#24384f;--h2:#2c5484;--h3:#2f6ab0;--h4:#3987e5;
+ --grid:#262d34;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+ font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(30px,4.4vw,44px);
+ line-height:1.2;letter-spacing:-.01em;margin:0 0 18px;text-wrap:balance}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:17px}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:10px 40px;margin-top:26px;padding-top:22px;
+ border-top:1px solid var(--line)}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact dt{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:20px;font-weight:500;
+ font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;
+ box-shadow:var(--shadow);padding:26px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+h2{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;margin:0}
+.panel-note{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-left:auto}
+.key{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.plot-scroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:600px}
+.axis-line{stroke:var(--line);stroke-width:1}
+.grid-line{stroke:var(--grid);stroke-width:1}
+.tri-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+.tick-text{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;fill:var(--ink-3)}
+.axis-title{font-size:12.5px;fill:var(--ink-2)}
+.corner{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.hull-line,.tieline{stroke:var(--stable);fill:none}
+.hull-line{stroke-width:2;stroke-linejoin:round}
+.tieline{stroke-width:1.6;opacity:.75}
+.tie-drop{stroke:var(--stable);stroke-width:1;stroke-dasharray:3 4;opacity:.5}
+.pt{cursor:pointer}
+.pt circle{stroke:var(--surface);stroke-width:1.5}
+.pt:focus{outline:none}
+.pt:focus-visible circle{stroke:var(--ink);stroke-width:2.5}
+.plabel{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;fill:var(--ink-2)}
+.plabel.on-hull{fill:var(--ink);font-weight:500}
+.ramp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;
+ color:var(--ink-2);margin-top:14px}
+.ramp i{width:26px;height:11px;border-radius:2px;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:7px;margin:4px 0 0;padding:0;list-style:none}
+.bar-row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:14px}
+.bar-name{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13.5px;text-align:right;color:var(--ink)}
+.bar-track{display:block;background:var(--surface-sunk);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{display:block;height:100%;border-radius:3px}
+.bar-val{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--ink-2);
+ font-variant-numeric:tabular-nums}
+.bar-row.is-stable .bar-val{color:var(--stable);font-weight:500}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--ink-3);font-weight:400;border-bottom-color:var(--line)}
+td{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink-2)}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink)}
+tr.stable td{background:color-mix(in srgb,var(--stable) 8%,transparent)}
+tr.stable td.name{font-weight:500}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;
+ background:color-mix(in srgb,var(--stable) 16%,transparent);color:var(--stable)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+.note h3{font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-size:16px;margin:0 0 6px;font-weight:600}
+.note p{margin:0 0 10px;font-size:14.5px;color:var(--ink-2)}
+.note p:last-child{margin:0}
+code{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:var(--surface-sunk);
+ padding:1px 5px;border-radius:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;color:var(--ink-3);font-size:13px;
+ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;display:flex;flex-wrap:wrap;gap:6px 26px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:5px;box-shadow:var(--shadow);padding:9px 12px;
+ font-size:13px;line-height:1.55;font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;opacity:0;
+ transition:opacity .12s ease;max-width:270px}
+#tip.on{opacity:1}
+#tip .muted{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+ <header>
+  <p class="eyebrow">ShotgunCSP-GW · MatterSim</p>
+  <h1>C–Ni 相図</h1>
+  <p class="lede">端点以外に安定な化合物は出なかった。C–La–Ni 三元系の辺として切り出した二元相図。</p>
+  <dl class="facts"><div class="fact"><dt>点の総数</dt><dd>43</dd></div><div class="fact"><dt>凸包上</dt><dd>2</dd></div><div class="fact"><dt>50 meV 以内</dt><dd>8</dd></div></dl>
+ </header>
+
+ <section class="panel">
+  <div class="panel-head"><h2>凸包</h2>
+   <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--stable)"></span>凸包上</span>
+    <span class="key"><span class="dot" style="background:var(--meta)"></span>200 meV 超</span>
+   </div></div>
+  <p class="panel-note">横軸は C の原子分率。縦軸は端点（Ni, C）を 0 とした生成エネルギー。線が凸包で、点から線までの縦の距離が <code>e_above_hull</code>。 点にカーソルを合わせると内訳が出る。</p>
+  <div class="plot-scroll"><svg id="plot" viewBox="0 0 880 470" role="list" aria-label="C–Ni 相図">
+<line class="grid-line" x1="76" x2="846" y1="393.42" y2="393.42"/>
+<text class="tick-text" x="64" y="397.42" text-anchor="end">-0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<text class="tick-text" x="64" y="378.65" text-anchor="end">0.00</text>
+<line class="grid-line" x1="76" x2="846" y1="355.87" y2="355.87"/>
+<text class="tick-text" x="64" y="359.87" text-anchor="end">0.25</text>
+<line class="grid-line" x1="76" x2="846" y1="337.10" y2="337.10"/>
+<text class="tick-text" x="64" y="341.10" text-anchor="end">0.50</text>
+<line class="grid-line" x1="76" x2="846" y1="318.33" y2="318.33"/>
+<text class="tick-text" x="64" y="322.33" text-anchor="end">0.75</text>
+<line class="grid-line" x1="76" x2="846" y1="299.56" y2="299.56"/>
+<text class="tick-text" x="64" y="303.56" text-anchor="end">1.00</text>
+<line class="grid-line" x1="76" x2="846" y1="280.79" y2="280.79"/>
+<text class="tick-text" x="64" y="284.79" text-anchor="end">1.25</text>
+<line class="grid-line" x1="76" x2="846" y1="262.02" y2="262.02"/>
+<text class="tick-text" x="64" y="266.02" text-anchor="end">1.50</text>
+<line class="grid-line" x1="76" x2="846" y1="243.25" y2="243.25"/>
+<text class="tick-text" x="64" y="247.25" text-anchor="end">1.75</text>
+<line class="grid-line" x1="76" x2="846" y1="224.48" y2="224.48"/>
+<text class="tick-text" x="64" y="228.48" text-anchor="end">2.00</text>
+<line class="grid-line" x1="76" x2="846" y1="205.71" y2="205.71"/>
+<text class="tick-text" x="64" y="209.71" text-anchor="end">2.25</text>
+<line class="grid-line" x1="76" x2="846" y1="186.94" y2="186.94"/>
+<text class="tick-text" x="64" y="190.94" text-anchor="end">2.50</text>
+<line class="grid-line" x1="76" x2="846" y1="168.16" y2="168.16"/>
+<text class="tick-text" x="64" y="172.16" text-anchor="end">2.75</text>
+<line class="grid-line" x1="76" x2="846" y1="149.39" y2="149.39"/>
+<text class="tick-text" x="64" y="153.39" text-anchor="end">3.00</text>
+<line class="grid-line" x1="76" x2="846" y1="130.62" y2="130.62"/>
+<text class="tick-text" x="64" y="134.62" text-anchor="end">3.25</text>
+<line class="grid-line" x1="76" x2="846" y1="111.85" y2="111.85"/>
+<text class="tick-text" x="64" y="115.85" text-anchor="end">3.50</text>
+<line class="grid-line" x1="76" x2="846" y1="93.08" y2="93.08"/>
+<text class="tick-text" x="64" y="97.08" text-anchor="end">3.75</text>
+<line class="grid-line" x1="76" x2="846" y1="74.31" y2="74.31"/>
+<text class="tick-text" x="64" y="78.31" text-anchor="end">4.00</text>
+<line class="grid-line" x1="76" x2="846" y1="55.54" y2="55.54"/>
+<text class="tick-text" x="64" y="59.54" text-anchor="end">4.25</text>
+<line class="grid-line" x1="76" x2="846" y1="36.77" y2="36.77"/>
+<text class="tick-text" x="64" y="40.77" text-anchor="end">4.50</text>
+<line class="axis-line" x1="76" x2="846" y1="374.65" y2="374.65"/>
+<line class="grid-line" x1="76.00" x2="76.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="76.00" y="432" text-anchor="middle">Ni</text>
+<line class="grid-line" x1="230.00" x2="230.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="230.00" y="432" text-anchor="middle">1/5</text>
+<line class="grid-line" x1="268.50" x2="268.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="268.50" y="432" text-anchor="middle">1/4</text>
+<line class="grid-line" x1="332.67" x2="332.67" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="332.67" y="432" text-anchor="middle">1/3</text>
+<line class="grid-line" x1="461.00" x2="461.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="461.00" y="432" text-anchor="middle">1/2</text>
+<line class="grid-line" x1="589.33" x2="589.33" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="589.33" y="432" text-anchor="middle">2/3</text>
+<line class="grid-line" x1="653.50" x2="653.50" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="653.50" y="432" text-anchor="middle">3/4</text>
+<line class="grid-line" x1="692.00" x2="692.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="692.00" y="432" text-anchor="middle">4/5</text>
+<line class="grid-line" x1="846.00" x2="846.00" y1="26" y2="412" opacity=".6"/>
+<text class="tick-text" x="846.00" y="432" text-anchor="middle">C</text>
+<line class="axis-line" x1="76" x2="846" y1="412" y2="412"/>
+<text class="axis-title" x="461.0" y="456" text-anchor="middle">C の原子分率  x  →</text>
+<text class="axis-title" x="18" y="219.0" text-anchor="middle" transform="rotate(-90 18 219.0)">生成エネルギー  eV/atom</text>
+<polyline class="hull-line" points="76.00,374.65 846.00,374.65"/>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 6"><title>Ni
+Ni:C = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 225
+原子数 / 候補 1 / 6</title><circle cx="76.00" cy="374.64" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="360.64" text-anchor="middle">Ni</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 40"><title>Ni2
+Ni:C = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 166 → 225
+原子数 / 候補 2 / 40</title><circle cx="76.00" cy="374.63" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.63" text-anchor="middle">Ni2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 68 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ni8
+Ni:C = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0 meV/atom
+空間群 68 → 139
+原子数 / 候補 8 / 9</title><circle cx="76.00" cy="374.62" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.62" text-anchor="middle">Ni8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 68 → 139&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 9"><title>Ni6
+Ni:C = 1.000 / 0.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 68 → 139
+原子数 / 候補 6 / 9</title><circle cx="76.00" cy="374.59" r="5" fill="var(--h1)"/><text class="plabel" x="76.00" y="394.59" text-anchor="middle">Ni6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.320 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 320 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ni10
+Ni:C = 1.000 / 0.000
+E_form 0.320 eV/atom
+包から 320 meV/atom
+空間群 194
+原子数 / 候補 10 / 9</title><circle cx="76.00" cy="350.61" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="370.61" text-anchor="middle">Ni10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.533 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 533 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Ni3
+Ni:C = 1.000 / 0.000
+E_form 0.533 eV/atom
+包から 533 meV/atom
+空間群 221
+原子数 / 候補 3 / 3</title><circle cx="76.00" cy="334.64" r="5" fill="var(--meta)"/><text class="plabel" x="76.00" y="320.64" text-anchor="middle">Ni3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni9C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.900 / 0.100&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.263 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 263 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 25 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ni9C
+Ni:C = 0.900 / 0.100
+E_form 0.263 eV/atom
+包から 263 meV/atom
+空間群 25 → 1
+原子数 / 候補 10 / 9</title><circle cx="153.00" cy="354.94" r="5" fill="var(--meta)"/><text class="plabel" x="153.00" y="340.94" text-anchor="middle">Ni9C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni8C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.889 / 0.111&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.062 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 62 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 9"><title>Ni8C
+Ni:C = 0.889 / 0.111
+E_form 0.062 eV/atom
+包から 62 meV/atom
+空間群 225
+原子数 / 候補 9 / 9</title><circle cx="161.56" cy="370.02" r="5" fill="var(--h2)"/><text class="plabel" x="161.56" y="356.02" text-anchor="middle">Ni8C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni7C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.875 / 0.125&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.235 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 235 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ni7C
+Ni:C = 0.875 / 0.125
+E_form 0.235 eV/atom
+包から 235 meV/atom
+空間群 164 → 1
+原子数 / 候補 8 / 9</title><circle cx="172.25" cy="357.02" r="5" fill="var(--meta)"/><text class="plabel" x="172.25" y="377.02" text-anchor="middle">Ni7C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni6C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.857 / 0.143&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.336 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 336 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 7"><title>Ni6C
+Ni:C = 0.857 / 0.143
+E_form 0.336 eV/atom
+包から 336 meV/atom
+空間群 166
+原子数 / 候補 7 / 7</title><circle cx="186.00" cy="349.44" r="5" fill="var(--meta)"/><text class="plabel" x="186.00" y="369.44" text-anchor="middle">Ni6C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni5C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.833 / 0.167&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.277 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 277 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Ni5C
+Ni:C = 0.833 / 0.167
+E_form 0.277 eV/atom
+包から 277 meV/atom
+空間群 155 → 166
+原子数 / 候補 6 / 6</title><circle cx="204.33" cy="353.83" r="5" fill="var(--meta)"/><text class="plabel" x="204.33" y="373.83" text-anchor="middle">Ni5C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni8C2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.177 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 177 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 58 → 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 9"><title>Ni8C2
+Ni:C = 0.800 / 0.200
+E_form 0.177 eV/atom
+包から 177 meV/atom
+空間群 58 → 71
+原子数 / 候補 10 / 9</title><circle cx="230.00" cy="361.33" r="5" fill="var(--h3)"/><text class="plabel" x="230.00" y="381.33" text-anchor="middle">Ni8C2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni4C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.800 / 0.200&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.178 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 178 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 155 → 221&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 6"><title>Ni4C
+Ni:C = 0.800 / 0.200
+E_form 0.178 eV/atom
+包から 178 meV/atom
+空間群 155 → 221
+原子数 / 候補 5 / 6</title><circle cx="230.00" cy="361.30" r="5" fill="var(--h3)"/><text class="plabel" x="230.00" y="381.30" text-anchor="middle">Ni4C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni6C2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.186 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 186 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 58 → 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ni6C2
+Ni:C = 0.750 / 0.250
+E_form 0.186 eV/atom
+包から 186 meV/atom
+空間群 58 → 71
+原子数 / 候補 8 / 9</title><circle cx="268.50" cy="360.69" r="5" fill="var(--h3)"/><text class="plabel" x="268.50" y="346.69" text-anchor="middle">Ni6C2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni3C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.750 / 0.250&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.326 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 326 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 6"><title>Ni3C
+Ni:C = 0.750 / 0.250
+E_form 0.326 eV/atom
+包から 326 meV/atom
+空間群 164
+原子数 / 候補 4 / 6</title><circle cx="268.50" cy="350.20" r="5" fill="var(--meta)"/><text class="plabel" x="268.50" y="370.20" text-anchor="middle">Ni3C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni2C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.323 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 323 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 3"><title>Ni2C
+Ni:C = 0.667 / 0.333
+E_form 0.323 eV/atom
+包から 323 meV/atom
+空間群 225
+原子数 / 候補 3 / 3</title><circle cx="332.67" cy="350.43" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="336.43" text-anchor="middle">Ni2C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni4C2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.667 / 0.333&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.387 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 387 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 11 → 164&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 6"><title>Ni4C2
+Ni:C = 0.667 / 0.333
+E_form 0.387 eV/atom
+包から 387 meV/atom
+空間群 11 → 164
+原子数 / 候補 6 / 6</title><circle cx="332.67" cy="345.63" r="5" fill="var(--meta)"/><text class="plabel" x="332.67" y="365.63" text-anchor="middle">Ni4C2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni6C4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.600 / 0.400&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.646 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 646 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 58&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Ni6C4
+Ni:C = 0.600 / 0.400
+E_form 0.646 eV/atom
+包から 646 meV/atom
+空間群 58
+原子数 / 候補 10 / 6</title><circle cx="384.00" cy="326.18" r="5" fill="var(--meta)"/><text class="plabel" x="384.00" y="312.18" text-anchor="middle">Ni6C4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni4C4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.667 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 667 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 62&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 9"><title>Ni4C4
+Ni:C = 0.500 / 0.500
+E_form 0.667 eV/atom
+包から 667 meV/atom
+空間群 62
+原子数 / 候補 8 / 9</title><circle cx="461.00" cy="324.59" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="310.59" text-anchor="middle">Ni4C4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni2C2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.695 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 695 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 9"><title>Ni2C2
+Ni:C = 0.500 / 0.500
+E_form 0.695 eV/atom
+包から 695 meV/atom
+空間群 11
+原子数 / 候補 4 / 9</title><circle cx="461.00" cy="322.50" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="342.50" text-anchor="middle">Ni2C2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NiC&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.500 / 0.500&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.034 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1034 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 6"><title>NiC
+Ni:C = 0.500 / 0.500
+E_form 1.034 eV/atom
+包から 1034 meV/atom
+空間群 187
+原子数 / 候補 2 / 6</title><circle cx="461.00" cy="297.00" r="5" fill="var(--meta)"/><text class="plabel" x="461.00" y="317.00" text-anchor="middle">NiC</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni4C6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.632 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 632 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Ni4C6
+Ni:C = 0.400 / 0.600
+E_form 0.632 eV/atom
+包から 632 meV/atom
+空間群 194
+原子数 / 候補 10 / 6</title><circle cx="538.00" cy="327.20" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="313.20" text-anchor="middle">Ni4C6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni2C3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.400 / 0.600&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.960 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 960 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 44 → 71&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 3"><title>Ni2C3
+Ni:C = 0.400 / 0.600
+E_form 0.960 eV/atom
+包から 960 meV/atom
+空間群 44 → 71
+原子数 / 候補 5 / 3</title><circle cx="538.00" cy="302.56" r="5" fill="var(--meta)"/><text class="plabel" x="538.00" y="322.56" text-anchor="middle">Ni2C3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni2C4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.578 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 578 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 194 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 8"><title>Ni2C4
+Ni:C = 0.333 / 0.667
+E_form 0.578 eV/atom
+包から 578 meV/atom
+空間群 194 → 191
+原子数 / 候補 6 / 8</title><circle cx="589.33" cy="331.22" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="317.22" text-anchor="middle">Ni2C4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NiC2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.333 / 0.667&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.993 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 993 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 44&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 6"><title>NiC2
+Ni:C = 0.333 / 0.667
+E_form 0.993 eV/atom
+包から 993 meV/atom
+空間群 44
+原子数 / 候補 3 / 6</title><circle cx="589.33" cy="300.09" r="5" fill="var(--meta)"/><text class="plabel" x="589.33" y="286.09" text-anchor="middle">NiC2</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni2C6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.933 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 933 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 58 → 11&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 6"><title>Ni2C6
+Ni:C = 0.250 / 0.750
+E_form 0.933 eV/atom
+包から 933 meV/atom
+空間群 58 → 11
+原子数 / 候補 8 / 6</title><circle cx="653.50" cy="304.56" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="290.56" text-anchor="middle">Ni2C6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NiC3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.250 / 0.750&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 3.326 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3326 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 3"><title>NiC3
+Ni:C = 0.250 / 0.750
+E_form 3.326 eV/atom
+包から 3326 meV/atom
+空間群 225
+原子数 / 候補 4 / 3</title><circle cx="653.50" cy="124.91" r="5" fill="var(--meta)"/><text class="plabel" x="653.50" y="110.91" text-anchor="middle">NiC3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni2C8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.200 / 0.800&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.562 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 562 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 58&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>Ni2C8
+Ni:C = 0.200 / 0.800
+E_form 0.562 eV/atom
+包から 562 meV/atom
+空間群 58
+原子数 / 候補 10 / 6</title><circle cx="692.00" cy="332.49" r="5" fill="var(--meta)"/><text class="plabel" x="692.00" y="318.49" text-anchor="middle">Ni2C8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NiC6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.143 / 0.857&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 3.846 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3846 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 3"><title>NiC6
+Ni:C = 0.143 / 0.857
+E_form 3.846 eV/atom
+包から 3846 meV/atom
+空間群 225
+原子数 / 候補 7 / 3</title><circle cx="736.00" cy="85.85" r="5" fill="var(--meta)"/><text class="plabel" x="736.00" y="71.85" text-anchor="middle">NiC6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NiC7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.125 / 0.875&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 4.146 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4146 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 3"><title>NiC7
+Ni:C = 0.125 / 0.875
+E_form 4.146 eV/atom
+包から 4146 meV/atom
+空間群 225
+原子数 / 候補 8 / 3</title><circle cx="749.75" cy="63.35" r="5" fill="var(--meta)"/><text class="plabel" x="749.75" y="83.35" text-anchor="middle">NiC7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NiC8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.111 / 0.889&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 3.727 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3727 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>NiC8
+Ni:C = 0.111 / 0.889
+E_form 3.727 eV/atom
+包から 3727 meV/atom
+空間群 225
+原子数 / 候補 9 / 3</title><circle cx="760.44" cy="94.78" r="5" fill="var(--meta)"/><text class="plabel" x="760.44" y="114.78" text-anchor="middle">NiC8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;NiC9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.100 / 0.900&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 3.749 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 3749 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 3"><title>NiC9
+Ni:C = 0.100 / 0.900
+E_form 3.749 eV/atom
+包から 3749 meV/atom
+空間群 225
+原子数 / 候補 10 / 3</title><circle cx="769.00" cy="93.16" r="5" fill="var(--meta)"/><text class="plabel" x="769.00" y="113.16" text-anchor="middle">NiC9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.001 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 39"><title>C4
+Ni:C = 0.000 / 1.000
+E_form 0.001 eV/atom
+包から 1 meV/atom
+空間群 64 → 69
+原子数 / 候補 4 / 39</title><circle cx="846.00" cy="374.54" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="360.54" text-anchor="middle">C4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C8&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.004 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 4 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 161 → 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 8 / 38"><title>C8
+Ni:C = 0.000 / 1.000
+E_form 0.004 eV/atom
+包から 4 meV/atom
+空間群 161 → 166
+原子数 / 候補 8 / 38</title><circle cx="846.00" cy="374.37" r="5" fill="var(--h1)"/><text class="plabel" x="846.00" y="394.37" text-anchor="middle">C8</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C6&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.085 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 85 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 6 / 33"><title>C6
+Ni:C = 0.000 / 1.000
+E_form 0.085 eV/atom
+包から 85 meV/atom
+空間群 166
+原子数 / 候補 6 / 33</title><circle cx="846.00" cy="368.29" r="5" fill="var(--h2)"/><text class="plabel" x="846.00" y="388.29" text-anchor="middle">C6</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C5&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.691 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 691 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 5 / 15"><title>C5
+Ni:C = 0.000 / 1.000
+E_form 0.691 eV/atom
+包から 691 meV/atom
+空間群 8 → 1
+原子数 / 候補 5 / 15</title><circle cx="846.00" cy="322.75" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="308.75" text-anchor="middle">C5</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C7&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.843 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 843 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 12 → 1&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 7 / 9"><title>C7
+Ni:C = 0.000 / 1.000
+E_form 0.843 eV/atom
+包から 843 meV/atom
+空間群 12 → 1
+原子数 / 候補 7 / 9</title><circle cx="846.00" cy="311.33" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="331.33" text-anchor="middle">C7</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C3&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.851 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 851 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 8 → 12&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 3 / 15"><title>C3
+Ni:C = 0.000 / 1.000
+E_form 0.851 eV/atom
+包から 851 meV/atom
+空間群 8 → 12
+原子数 / 候補 3 / 15</title><circle cx="846.00" cy="310.76" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="330.76" text-anchor="middle">C3</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.965 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 965 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 156 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 1 / 30"><title>C
+Ni:C = 0.000 / 1.000
+E_form 0.965 eV/atom
+包から 965 meV/atom
+空間群 156 → 191
+原子数 / 候補 1 / 30</title><circle cx="846.00" cy="302.19" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="322.19" text-anchor="middle">C</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C10&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.986 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 986 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 64 → 69&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 10 / 6"><title>C10
+Ni:C = 0.000 / 1.000
+E_form 0.986 eV/atom
+包から 986 meV/atom
+空間群 64 → 69
+原子数 / 候補 10 / 6</title><circle cx="846.00" cy="300.59" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="320.59" text-anchor="middle">C10</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C9&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 1.719 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 1719 meV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 166&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 9 / 3"><title>C9
+Ni:C = 0.000 / 1.000
+E_form 1.719 eV/atom
+包から 1719 meV/atom
+空間群 166
+原子数 / 候補 9 / 3</title><circle cx="846.00" cy="245.61" r="5" fill="var(--meta)"/><text class="plabel" x="846.00" y="231.61" text-anchor="middle">C9</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;Ni4&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 1.000 / 0.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 221 → 225&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 4 / 48"><title>Ni4
+Ni:C = 1.000 / 0.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 221 → 225
+原子数 / 候補 4 / 48</title><circle cx="76.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="76.00" y="394.65" text-anchor="middle">Ni4</text></g>
+<g class="pt" tabindex="0" role="listitem" data-tip="&lt;b&gt;C2&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Ni:C&lt;/span&gt; 0.000 / 1.000&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;E_form&lt;/span&gt; 0.000 eV/atom&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;包から&lt;/span&gt; 0（凸包上）&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;空間群&lt;/span&gt; 187 → 191&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;原子数 / 候補&lt;/span&gt; 2 / 32"><title>C2
+Ni:C = 0.000 / 1.000
+E_form 0.000 eV/atom
+包から 0（凸包上）
+空間群 187 → 191
+原子数 / 候補 2 / 32</title><circle cx="846.00" cy="374.65" r="7" fill="var(--stable)"/><text class="plabel on-hull" x="846.00" y="394.65" text-anchor="middle">C2</text></g>
+</svg></div>
+  <div class="ramp"><span>包からの高さ</span><i style="background:var(--stable)"></i><span>0</span><i style="background:var(--h1)"></i><span>&lt;50</span><i style="background:var(--h2)"></i><span>&lt;100</span><i style="background:var(--h3)"></i><span>&lt;200</span><i style="background:var(--meta)"></i><span>≥200 meV/atom</span></div>
+ </section>
+
+  <section class="panel">
+   <div class="panel-head"><h2>凸包からの高さ</h2></div>
+   <p class="panel-note">0 なら安定相。<b>この手法の分解能は数十 meV</b> なので、
+    その程度の差で順位を断定しない。</p>
+   <ul class="bars" id="bars">
+<li class="bar-row is-stable"><span class="bar-name">Ni4</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row is-stable"><span class="bar-name">C2</span><span class="bar-track"><span class="bar-fill" style="width:0.00%;background:var(--stable)"></span></span><span class="bar-val">0（安定）</span></li>
+<li class="bar-row"><span class="bar-name">Ni</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni2</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">0 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni6</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">C4</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">1 meV</span></li>
+<li class="bar-row"><span class="bar-name">C8</span><span class="bar-track"><span class="bar-fill" style="width:0.70%;background:var(--h1)"></span></span><span class="bar-val">4 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni8C</span><span class="bar-track"><span class="bar-fill" style="width:1.49%;background:var(--h2)"></span></span><span class="bar-val">62 meV</span></li>
+<li class="bar-row"><span class="bar-name">C6</span><span class="bar-track"><span class="bar-fill" style="width:2.04%;background:var(--h2)"></span></span><span class="bar-val">85 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni8C2</span><span class="bar-track"><span class="bar-fill" style="width:4.28%;background:var(--h3)"></span></span><span class="bar-val">177 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni4C</span><span class="bar-track"><span class="bar-fill" style="width:4.29%;background:var(--h3)"></span></span><span class="bar-val">178 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni6C2</span><span class="bar-track"><span class="bar-fill" style="width:4.48%;background:var(--h3)"></span></span><span class="bar-val">186 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni7C</span><span class="bar-track"><span class="bar-fill" style="width:5.66%;background:var(--meta)"></span></span><span class="bar-val">235 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni9C</span><span class="bar-track"><span class="bar-fill" style="width:6.33%;background:var(--meta)"></span></span><span class="bar-val">263 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni5C</span><span class="bar-track"><span class="bar-fill" style="width:6.69%;background:var(--meta)"></span></span><span class="bar-val">277 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni10</span><span class="bar-track"><span class="bar-fill" style="width:7.72%;background:var(--meta)"></span></span><span class="bar-val">320 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni2C</span><span class="bar-track"><span class="bar-fill" style="width:7.78%;background:var(--meta)"></span></span><span class="bar-val">323 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni3C</span><span class="bar-track"><span class="bar-fill" style="width:7.85%;background:var(--meta)"></span></span><span class="bar-val">326 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni6C</span><span class="bar-track"><span class="bar-fill" style="width:8.10%;background:var(--meta)"></span></span><span class="bar-val">336 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni4C2</span><span class="bar-track"><span class="bar-fill" style="width:9.32%;background:var(--meta)"></span></span><span class="bar-val">387 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni3</span><span class="bar-track"><span class="bar-fill" style="width:12.85%;background:var(--meta)"></span></span><span class="bar-val">533 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni2C8</span><span class="bar-track"><span class="bar-fill" style="width:13.54%;background:var(--meta)"></span></span><span class="bar-val">562 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni2C4</span><span class="bar-track"><span class="bar-fill" style="width:13.95%;background:var(--meta)"></span></span><span class="bar-val">578 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni4C6</span><span class="bar-track"><span class="bar-fill" style="width:15.24%;background:var(--meta)"></span></span><span class="bar-val">632 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni6C4</span><span class="bar-track"><span class="bar-fill" style="width:15.57%;background:var(--meta)"></span></span><span class="bar-val">646 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni4C4</span><span class="bar-track"><span class="bar-fill" style="width:16.08%;background:var(--meta)"></span></span><span class="bar-val">667 meV</span></li>
+<li class="bar-row"><span class="bar-name">C5</span><span class="bar-track"><span class="bar-fill" style="width:16.67%;background:var(--meta)"></span></span><span class="bar-val">691 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni2C2</span><span class="bar-track"><span class="bar-fill" style="width:16.75%;background:var(--meta)"></span></span><span class="bar-val">695 meV</span></li>
+<li class="bar-row"><span class="bar-name">C7</span><span class="bar-track"><span class="bar-fill" style="width:20.34%;background:var(--meta)"></span></span><span class="bar-val">843 meV</span></li>
+<li class="bar-row"><span class="bar-name">C3</span><span class="bar-track"><span class="bar-fill" style="width:20.52%;background:var(--meta)"></span></span><span class="bar-val">851 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni2C6</span><span class="bar-track"><span class="bar-fill" style="width:22.51%;background:var(--meta)"></span></span><span class="bar-val">933 meV</span></li>
+<li class="bar-row"><span class="bar-name">Ni2C3</span><span class="bar-track"><span class="bar-fill" style="width:23.16%;background:var(--meta)"></span></span><span class="bar-val">960 meV</span></li>
+<li class="bar-row"><span class="bar-name">C</span><span class="bar-track"><span class="bar-fill" style="width:23.28%;background:var(--meta)"></span></span><span class="bar-val">965 meV</span></li>
+<li class="bar-row"><span class="bar-name">C10</span><span class="bar-track"><span class="bar-fill" style="width:23.79%;background:var(--meta)"></span></span><span class="bar-val">986 meV</span></li>
+<li class="bar-row"><span class="bar-name">NiC2</span><span class="bar-track"><span class="bar-fill" style="width:23.95%;background:var(--meta)"></span></span><span class="bar-val">993 meV</span></li>
+<li class="bar-row"><span class="bar-name">NiC</span><span class="bar-track"><span class="bar-fill" style="width:24.94%;background:var(--meta)"></span></span><span class="bar-val">1034 meV</span></li>
+<li class="bar-row"><span class="bar-name">C9</span><span class="bar-track"><span class="bar-fill" style="width:41.45%;background:var(--meta)"></span></span><span class="bar-val">1719 meV</span></li>
+<li class="bar-row"><span class="bar-name">NiC3</span><span class="bar-track"><span class="bar-fill" style="width:80.23%;background:var(--meta)"></span></span><span class="bar-val">3326 meV</span></li>
+<li class="bar-row"><span class="bar-name">NiC8</span><span class="bar-track"><span class="bar-fill" style="width:89.91%;background:var(--meta)"></span></span><span class="bar-val">3727 meV</span></li>
+<li class="bar-row"><span class="bar-name">NiC9</span><span class="bar-track"><span class="bar-fill" style="width:90.42%;background:var(--meta)"></span></span><span class="bar-val">3749 meV</span></li>
+<li class="bar-row"><span class="bar-name">NiC6</span><span class="bar-track"><span class="bar-fill" style="width:92.77%;background:var(--meta)"></span></span><span class="bar-val">3846 meV</span></li>
+<li class="bar-row"><span class="bar-name">NiC7</span><span class="bar-track"><span class="bar-fill" style="width:100.00%;background:var(--meta)"></span></span><span class="bar-val">4146 meV</span></li>
+   </ul>
+  </section>
+ <section class="panel">
+  <div class="panel-head"><h2>凸包に載った 2 相</h2></div>
+  <div class="table-scroll"><table id="tbl-stable"><thead><tr>
+   <th>組成</th><th>Ni</th><th>C</th><th>E<sub>form</sub> eV/atom</th><th>空間群</th><th>原子数</th>
+  </tr></thead><tbody>
+<tr class="stable"><td class="name">Ni4 <span class="pill">凸包上</span></td><td>1.000</td><td>0.000</td><td>0.0000</td><td>221 → 225</td><td>4</td></tr>
+<tr class="stable"><td class="name">C2 <span class="pill">凸包上</span></td><td>0.000</td><td>1.000</td><td>0.0000</td><td>187 → 191</td><td>2</td></tr>
+  </tbody></table></div>
+ </section>
+<section class="notes"><div class="note"><h3>端点の信用度</h3><p>C は層 1 枚（191）で、実在の黒鉛（194・層間力込み）とは別。炭化物の深さはやや深めに出る。Ni は検出 225（fcc）が実在で信用できる。</p></div><div class="note"><h3>この系の読み方</h3><p><b>安定な炭化物はゼロ。実在の Ni<sub>3</sub>C は準安定相</b>なので、これは妥当な結果である。最近接でも CNi<sub>8</sub> が +62 meV。ただし穴が 15/33 と多く、C 濃厚側は「探していない」帯が広い点に注意。</p></div><div class="note"><h3>数十 meV の帯</h3><p>包のすぐ上に CNi<sub>8</sub>（+62 meV, spg 225）。分解能は数十 meV/atom なので、載った / 載らないをこの差で言い切らない。</p></div><div class="note"><h3>穴が 15 組成</h3><p>≤10 原子・既約 33 組成のうち 15 組成に点が無い（exit 430 等）。そこは「相が無い」ではなく「探していない」。</p></div><div class="note"><h3>この図の出自</h3><p>この二元は C–La–Ni を狙った掃引（topo-2026-08-31 ほか）の副産物である。三元の点群を二元へ射影したものではなく、この二元系そのものの全データから引き直した独立の凸包。三元図のタイラインと突き合わせて読むためのもの。</p></div></section>
+ <footer><span>三元 C–La–Ni の辺（spg_ranks=[1,2,3]・scope=all・basis=all・max_atoms=10）</span><span>2026-08-31 取得 · group_by=structure 503 構造</span></footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+<script>
+
+(function(){
+  var tip=document.getElementById("tip");
+  if(!tip)return;
+  function place(px,py){
+    tip.classList.add("on");
+    var r=tip.getBoundingClientRect();
+    var x=px+16,y=py-r.height-12;
+    if(x+r.width>innerWidth-8)x=px-r.width-16;
+    if(y<8)y=py+18;
+    tip.style.left=x+"px";tip.style.top=y+"px";
+  }
+  function hide(){tip.classList.remove("on");}
+  document.querySelectorAll(".pt").forEach(function(g){
+    var t=g.querySelector("title");
+    // JS が動くなら native の tooltip は邪魔になる（二重に出る）
+    if(t)g.removeChild(t);
+    var html=g.getAttribute("data-tip");
+    var show=function(ev){tip.innerHTML=html;place(ev.clientX,ev.clientY);};
+    g.addEventListener("mousemove",show);
+    g.addEventListener("mouseenter",show);
+    g.addEventListener("mouseleave",hide);
+    g.addEventListener("blur",hide);
+    g.addEventListener("focus",function(){
+      tip.innerHTML=html;
+      var c=g.querySelector("circle"),b=c.getBoundingClientRect();
+      place(b.left+b.width/2,b.top);
+    });
+  });
+})();
+
+</script>
