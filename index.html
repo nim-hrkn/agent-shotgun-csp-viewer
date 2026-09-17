@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Agent Shotgun CSP View</title>
+<p class="subtitle">
+  Interactive visualization of crystal structures and convex-hull analysis.
+</p>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+
+<body>
+
+<h1>Agent Shotgun CSP View</h1>
+
+<h2>Convex Hull Report</h2>
+
+<p>
+  <a href="./convex_hull_report/ptable.html" target="_blank">
+    Open periodic table / convex hull report
+  </a>
+</p>
+
+
+<h2>Structures</h2>
+
+<div id="structures" class="status">
+  Loading...
+</div>
+
+
+<script>
+
+const owner = "nim-hrkn";
+const repo = "agent-shotgun-csp-view";
+const branch = "main";
+
+async function showStructureHTMLFiles() {
+
+  const directory = "structures";
+
+  const apiUrl =
+    `https://api.github.com/repos/${owner}/${repo}/contents/${directory}?ref=${branch}`;
+
+  const container = document.getElementById("structures");
+
+  try {
+
+    const response = await fetch(apiUrl);
+
+    if (!response.ok) {
+      throw new Error(`GitHub API error: ${response.status}`);
+    }
+
+    const files = await response.json();
+
+    const htmlFiles = files
+      .filter(file =>
+        file.type === "file" &&
+        file.name.toLowerCase().endsWith(".html")
+      )
+      .sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+
+    if (htmlFiles.length === 0) {
+      container.textContent = "No HTML files found.";
+      return;
+    }
+
+    const ul = document.createElement("ul");
+
+    for (const file of htmlFiles) {
+
+      const li = document.createElement("li");
+
+      const a = document.createElement("a");
+
+      a.textContent = file.name;
+
+      a.href =
+        `https://${owner}.github.io/${repo}/${file.path}`;
+
+      a.target = "_blank";
+
+      li.appendChild(a);
+      ul.appendChild(li);
+    }
+
+    container.textContent = "";
+    container.appendChild(ul);
+
+  } catch (error) {
+
+    container.textContent =
+      "Failed to load structure files: " + error.message;
+
+  }
+}
+
+showStructureHTMLFiles();
+
+</script>
+
+</body>
+</html>
